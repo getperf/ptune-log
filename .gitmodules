@@ -1,0 +1,3 @@
+[submodule "plugins/tag-wrangler-ptune/upstream"]
+	path = plugins/tag-wrangler-ptune/upstream
+	url = https://github.com/pjeby/tag-wrangler.git

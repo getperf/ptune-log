@@ -1,0 +1,195 @@
+// src/features/note_creator/NoteCreatorModal.ts
+import { App, Modal, Notice, Setting, TFolder } from 'obsidian';
+import { ConfigManager } from 'src/config/ConfigManager';
+import { PrefixGenerator } from 'src/features/note_creator/services/PrefixGenerator';
+import { NoteCreator } from '../commands/NoteCreator';
+import { ExportTask, ExportTasks } from 'src/core/models/tasks/ExportTasks';
+import { logger } from 'src/core/services/logger/loggerInstance';
+
+export enum SerialNoteCreationType {
+  FILE = 'file',
+  FOLDER = 'folder',
+}
+
+/**
+ * ノート作成入力情報
+ * taskKey はタスク連携時にセットされる識別子（ExportTasks 由来）
+ */
+export interface NoteCreationInput {
+  folderPath: string;
+  title: string;
+  prefix: string;
+  creationType: SerialNoteCreationType;
+  taskKey?: string;
+}
+
+/**
+ * 連番付きノート／フォルダ作成モーダル
+ * - タスク選択時に taskKey をタイトルへ自動セット（未入力時のみ）
+ * - タイトル編集後は自動反映を無効化
+ */
+export class NoteCreatorModal extends Modal {
+  private input: Partial<NoteCreationInput> = {};
+  private onSubmit: (result: NoteCreationInput) => void;
+
+  constructor(
+    app: App,
+    private folder: TFolder,
+    private config: ConfigManager,
+    private creationType: SerialNoteCreationType,
+    onSubmit: (result: NoteCreationInput) => void
+  ) {
+    super(app);
+    this.onSubmit = onSubmit;
+    this.input.folderPath = this.folder.path;
+    this.input.creationType = creationType;
+  }
+
+  /**
+   * モーダル表示時のUI構築処理
+   */
+  async onOpen() {
+    const { contentEl } = this;
+    const title =
+      this.creationType === SerialNoteCreationType.FILE
+        ? '連番付きファイル作成'
+        : '連番付きフォルダ作成';
+    contentEl.createEl('h2', { text: title });
+
+    // --- 1. 連番取得 ---
+    const prefix = await PrefixGenerator.getNextPrefix(
+      this.app.vault,
+      this.folder,
+      this.creationType,
+      this.config
+    );
+    if (!prefix) {
+      logger.error('[NoteCreatorModal.onOpen] プレフィックス取得失敗');
+      new Notice('連番の取得に失敗しました');
+      this.close();
+      return;
+    }
+    this.input.prefix = prefix;
+
+    // --- 2. ExportTasks のタスクリストを読込 ---
+    const taskList = await this.loadTaskTitles();
+
+    let inputTitle = '';
+    let inputTitleEl: HTMLInputElement;
+    let isTitleEdited = false; // ← 編集済みフラグ
+
+    // --- 3. タスク選択（存在する場合のみ表示） ---
+    if (taskList.length > 0) {
+      new Setting(contentEl).setName('タスクを選択').addDropdown((dropdown) => {
+        dropdown.addOption('', '(選択なし)');
+        for (const task of taskList) {
+          dropdown.addOption(task.taskKey, task.title);
+        }
+        dropdown.onChange((value) => {
+          this.input.taskKey = value;
+          const matched = taskList.find((task) => task.taskKey === value);
+          if (matched && !isTitleEdited) {
+            inputTitle = matched.taskKey;
+            if (inputTitleEl) inputTitleEl.value = matched.taskKey;
+          }
+          logger.debug(`[NoteCreatorModal] task selected: key=${value}`);
+        });
+      });
+    }
+
+    // --- 4. タイトル入力欄 ---
+    new Setting(contentEl).setName('タイトル').addText((text) => {
+      inputTitleEl = text.inputEl;
+      this.setInputTitleLayout(inputTitleEl, prefix);
+      text.onChange((value) => {
+        inputTitle = value;
+        isTitleEdited = true; // ← ユーザーが手動入力したことを記録
+      });
+      text.inputEl.addEventListener('keydown', async (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          this.input.title = inputTitle.trim();
+          await this.handleSubmit();
+        }
+      });
+    });
+
+    // --- 5. 作成ボタン ---
+    new Setting(contentEl).addButton((btn) =>
+      btn
+        .setButtonText('作成')
+        .setCta()
+        .onClick(async () => {
+          this.input.title = inputTitle.trim();
+          await this.handleSubmit();
+        })
+    );
+
+    setTimeout(() => inputTitleEl.focus(), 0);
+  }
+
+  /**
+   * ExportTasks からタイトルリストを読込
+   */
+  private async loadTaskTitles(): Promise<ExportTask[]> {
+    try {
+      const tasks = await ExportTasks.load(this.app);
+      if (!tasks) {
+        logger.info('[NoteCreatorModal] export_tasks.json not found');
+        return [];
+      }
+      const list = tasks.toDisplayList();
+      logger.debug(`[NoteCreatorModal] loaded taskTitles=${list.length}`);
+      return list;
+    } catch (err) {
+      logger.error('[NoteCreatorModal] failed to load ExportTasks', err);
+      return [];
+    }
+  }
+
+  /**
+   * 入力検証＋作成処理呼び出し
+   */
+  async handleSubmit() {
+    if (!NoteCreator.validateInput(this.input)) {
+      logger.warn('[NoteCreatorModal.handleSubmit] 入力検証失敗');
+      return;
+    }
+    this.close();
+    this.onSubmit(this.input as NoteCreationInput);
+  }
+
+  /**
+   * 入力欄の前後にプレフィックス／拡張子を表示
+   */
+  setInputTitleLayout(textEl: HTMLInputElement, prefix: string) {
+    const container = textEl.parentElement;
+    if (!container) return;
+
+    textEl.placeholder = 'タイトルを入力';
+    textEl.addClass('long-text-input');
+
+    const prefixSpan = createEl('span', {
+      text: `${prefix}_`,
+      cls: 'filename-prefix',
+    });
+    prefixSpan.style.marginRight = '4px';
+    container.insertBefore(prefixSpan, textEl);
+
+    if (this.creationType === SerialNoteCreationType.FILE) {
+      const suffixSpan = createEl('span', {
+        text: '.md',
+        cls: 'filename-suffix',
+      });
+      suffixSpan.style.marginLeft = '4px';
+      container.appendChild(suffixSpan);
+    }
+  }
+
+  /**
+   * モーダルクローズ処理
+   */
+  onClose() {
+    this.contentEl.empty();
+  }
+}

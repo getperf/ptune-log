@@ -1,0 +1,11 @@
+{
+  "id": "tag-wrangler-ptune",
+  "name": "TagWrangler-ptune",
+  "version": "0.1.0",
+  "main": "main.js",
+  "minAppVersion": "0.15.0",
+  "description": "Fork of TagWrangler with UI suggestions",
+  "author": "Minoru Furusawa",
+  "authorUrl": "https://github.com/getperf/tag-wrangler-ptune",
+  "isDesktopOnly": false
+}
