@@ -66,7 +66,7 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   google_auth: {
     clientId: '',
     clientSecret: '',
-    useWinApp: false,
+    useWinApp: true,
   },
 };
 

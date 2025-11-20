@@ -36,6 +36,10 @@ export default class PtunePlugin extends Plugin {
     logger.setLevel(this.config.get('logLevel'));
     logger.info('ptune-log plugin loading...');
 
+    // --- 初期セットアップ ---
+    this.noteSetupHelper = new NoteSetupHelper(this.app);
+    this.noteSetupHelper.ensureResources();
+
     // --- LLMタギング ---
     this.llmTagGenerator = new LLMTagGenerator(
       this.app,
@@ -56,8 +60,6 @@ export default class PtunePlugin extends Plugin {
     // --- エディタ補完 ---
     this.registerEditorSuggest(new PomodoroSuggest(this.app));
 
-    // --- 初期セットアップ ---
-    this.noteSetupHelper = new NoteSetupHelper(this.app);
     this.requiredPluginChecker = new InitialSetupManager(
       this.app,
       this.noteSetupHelper
