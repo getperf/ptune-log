@@ -8,11 +8,13 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 import { NoteSummaries } from 'src/core/models/notes/NoteSummaries';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
 import { KPTMarkdownBuilder } from 'src/features/llm_tags/services/analysis/KPTMarkdownBuilder';
+import { ChecklistDecorator } from './ChecklistDecorator';
 
 export interface AppendOptions {
   headingMarker?: string;
   prepend?: boolean;
   reverse?: boolean;
+  enableChecklist?: boolean;
 }
 
 export const HEADER_REVIEW_LOG = '## 🙌 振り返りメモ';
@@ -21,6 +23,7 @@ const DEFAULT_OPTIONS: AppendOptions = {
   headingMarker: HEADER_REVIEW_LOG,
   prepend: false,
   reverse: true,
+  enableChecklist: true,
 };
 
 /**
@@ -60,7 +63,12 @@ export class DailyNoteUpdater {
       return;
     }
 
-    const summaryText = await this.buildSummaryText(summaries, forDate);
+    const summaryText = await this.buildSummaryText(
+      summaries,
+      forDate,
+      options
+    );
+
     try {
       await DailyNoteHelper.appendToSection(
         this.app,
@@ -81,40 +89,60 @@ export class DailyNoteUpdater {
    * - ノートごとの要約とタグの一覧を出力
    * - 当日生成タグ／未登録タグ候補もまとめて表示
    */
+
+  /** --- buildSummaryText */
   async buildSummaryText(
     summaries: NoteSummaries,
-    forDate: Date
+    forDate: Date,
+    opts: AppendOptions
   ): Promise<string> {
     const dateStr = DateUtil.localDate(forDate);
     const allTags = summaries.getAllTags();
     const newTags = summaries.getAllNewCandidates();
     const folders = summaries.getFoldersSorted();
-
     logger.debug(
       `[DailyNoteUpdater.buildSummaryText] folders=${folders.length} tags=${allTags.length}`
     );
+    const enableChecklist = opts.enableChecklist ?? true;
 
-    const lines: string[] = [`### 🏷 デイリーレポート（${dateStr}）\n`];
+    /** ✔ チェックボックス付与関数 */
+    const decorator = new ChecklistDecorator(
+      opts.enableChecklist ?? true,
+      '- [ ] '
+    );
+
+    const lines: string[] = [
+      `### 🏷 デイリーレポート（${dateStr}）`,
+      '',
+      enableChecklist
+        ? '※ 以下の項目はチェックし、必要に応じて修正してください。'
+        : '',
+      '',
+    ];
 
     for (const folder of folders) {
       lines.push(`\n#### ${folder.noteFolder}`);
 
-      // ⬇️ 共通タグセクション追加（空でなければ）
       const commonTags = (await folder.getCommonTags(this.app)) ?? [];
       if (commonTags.length > 0) {
-        lines.push(`共通タグ: ${commonTags.map((t) => `#${t}`).join(' ')}`);
+        const tagLine = `共通タグ: ${commonTags.map((t) => `#${t}`).join(' ')}`;
+        lines.push(tagLine);
       }
+
       const notes = folder.getNotes().sort((a, b) => {
         const getNum = (s: string) => parseInt(s.split('_')[0]) || 0;
         return getNum(a.notePath) - getNum(b.notePath);
       });
 
       for (const note of notes) {
-        lines.push(note.toMarkdownSummary());
+        const md = note.toMarkdownSummary(); // 複数行のこともある
+
+        const mdLines = md.split('\n').map((ln) => decorator.apply(ln));
+        lines.push(mdLines.join('\n'));
       }
     }
 
-    // --- KPTセクションを追加（あれば）
+    // --- KPT セクション
     if (summaries.kpt) {
       lines.push('\n');
       lines.push(KPTMarkdownBuilder.build(summaries.kpt));
