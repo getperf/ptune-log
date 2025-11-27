@@ -1,4 +1,9 @@
 export class DateUtil {
+  /** ローカル日付に正規化（時刻 00:00:00） */
+  static normalizeLocalDate(date: Date): Date {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
   /** UTC ISO文字列（例: 2025-11-11T00:00:00.000Z） */
   static utcString(date: Date = new Date()): string {
     return date.toISOString();
@@ -9,6 +14,11 @@ export class DateUtil {
     return date.toLocaleDateString('sv-SE');
   }
 
+  /** YYYY-MM-DD からローカル日付 00:00 の Date を作成 */
+  static localDateFromKey(key: string): Date {
+    const [y, m, d] = key.split('-').map(Number);
+    return new Date(y, m - 1, d); // ローカル 00:00 固定
+  }
   /** ローカル日時 ISO 風 YYYY-MM-DDTHH:mm:ss （タイムゾーン記号なし） */
   static localISOString(date: Date = new Date()): string {
     // Intl でゼロ埋めし、"YYYY-MM-DDTHH:mm:ss" を生成

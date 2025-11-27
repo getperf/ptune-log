@@ -19,40 +19,42 @@ export class NoteSearchService {
    * 2. YAML frontmatterで確定判定
    */
   async findByDate(date: Date): Promise<TFile[]> {
-    const dateKey = DateUtil.dateKey(date);
+    const targetKey = DateUtil.dateKey(date); // "YYYY-MM-DD"
     const results: TFile[] = [];
 
-    // --- ① 先にシステム日付フィルタリング
-    const start = new Date(date);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(date);
-    end.setHours(23, 59, 59, 999);
-
     const allFiles = this.app.vault.getMarkdownFiles();
+
+    // --- ① ctime(日付のみ)で事前フィルタリング
     const filtered = allFiles.filter((f) => {
-      const ctime = new Date(f.stat.ctime);
-      return ctime >= start && ctime <= end;
+      const ctime = new Date(f.stat.ctime); // OS依存 (UTC の可能性あり)
+
+      // ★ ローカル日付に正規化 → YYYY-MM-DD に変換
+      const ctimeKey = DateUtil.dateKey(ctime);
+
+      return ctimeKey === targetKey;
     });
 
     logger.debug(
       `[NoteSearchService.findByDate] pre-filtered=${filtered.length} files`
     );
 
-    // --- ② YAML frontmatter解析（対象候補のみ）
+    // --- ② YAML frontmatter解析（候補のみ）
     for (const file of filtered) {
       const fm = await NoteFrontmatterParser.parseFromFile(this.app, file);
+
       const dailynoteKey = fm.dailynote
         ? DateUtil.extractDateKeyFromLink(fm.dailynote)
         : undefined;
 
-      if (dailynoteKey === dateKey) {
+      if (dailynoteKey === targetKey) {
         results.push(file);
       }
     }
 
     logger.debug(
-      `[NoteSearchService.findByDate] ${dateKey} -> ${results.length} matched`
+      `[NoteSearchService.findByDate] ${targetKey} -> ${results.length} matched`
     );
+
     return results;
   }
 
