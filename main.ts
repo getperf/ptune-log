@@ -38,7 +38,7 @@ export default class PtunePlugin extends Plugin {
 
     // --- 初期セットアップ ---
     this.noteSetupHelper = new NoteSetupHelper(this.app);
-    this.noteSetupHelper.ensureResources();
+    await this.noteSetupHelper.ensureResources();
 
     // --- LLMタギング ---
     this.llmTagGenerator = new LLMTagGenerator(

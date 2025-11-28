@@ -161,21 +161,36 @@ export function renderLLMSettings(
         })
     );
 
+  // 振り返りレポートのチェックリスト有効化
+  new Setting(containerEl)
+    .setName('振り返りレポートでチェックリストを使用')
+    .setDesc(
+      '要約・目標をチェックボックス表示にして、チェックしない場合は分析対象から除外します。'
+    )
+    .addToggle((toggle) =>
+      toggle
+        .setValue(settings.llm.enableChecklist ?? true)
+        .onChange(async (value) => {
+          await config.update('llm.enableChecklist', value);
+        })
+    );
   // コマンド実行ボタンの追加（セクションの最後に追記）
   const notePath = '_templates/llm/tag_generate.md';
   new Setting(containerEl)
     .setName('プロンプトテンプレート選択')
     .setDesc(
       `LLMタグ生成プロンプトについて登録済みのテンプレートを選択して保存します。\n` +
-      `保存先は ${notePath}です。\n` +
-      `内容を参照・編集したい場合は、右記のボタンから開いてください。`
+        `保存先は ${notePath}です。\n` +
+        `内容を参照・編集したい場合は、右記のボタンから開いてください。`
     )
     .addButton((btn) =>
       btn
         .setButtonText('テンプレートを選択')
         .setCta()
         .onClick(() => {
-          (settingTab.app as any).commands.executeCommandById('ptune-log:llm-select-template');
+          (settingTab.app as any).commands.executeCommandById(
+            'ptune-log:llm-select-template'
+          );
           new Notice('テンプレート選択コマンドを実行しました');
         })
     )

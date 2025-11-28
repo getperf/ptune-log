@@ -12,11 +12,18 @@ export class ChecklistDecorator {
       return `${this.prefix}${line}`;
     }
 
-    // --- 要約行の強制的な一括整形
+    // --- 要約行の整形
     const summaryMatch = line.match(/^\s*[-*]?\s*要約\s*:(.*)$/);
     if (summaryMatch) {
-      const body = summaryMatch[1].trim(); // 「:」以降の本文
+      const body = summaryMatch[1].trim();
       return `- [ ] 要約: ${body}`;
+    }
+
+    // --- 目標行の整形
+    const goalMatch = line.match(/^\s*[-*]?\s*目標\s*:(.*)$/);
+    if (goalMatch) {
+      const body = goalMatch[1].trim();
+      return `- [ ] 目標: ${body}`;
     }
 
     return line;

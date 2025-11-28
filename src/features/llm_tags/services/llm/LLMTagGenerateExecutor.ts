@@ -55,6 +55,7 @@ export class LLMTagGenerateExecutor {
       new Notice('⚠️ APIキー未設定');
       return;
     }
+    const enableChecklist = this.client.settings.enableChecklist ?? true;
 
     const modal = new LLMTagGeneratorModal(this.app, {
       mode: 'date',
@@ -72,7 +73,8 @@ export class LLMTagGenerateExecutor {
 
         await new DailyNoteUpdater(this.app).appendTagResults(
           analyzed,
-          selectedDate
+          selectedDate,
+          { enableChecklist }
         );
         modal.showCompletionMessage('今日の振り返りが完了しました');
         setTimeout(() => modal.close(), 1500);

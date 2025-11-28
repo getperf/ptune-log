@@ -5,6 +5,8 @@ import { PrefixGenerator } from 'src/features/note_creator/services/PrefixGenera
 import { NoteCreator } from '../commands/NoteCreator';
 import { ExportTask, ExportTasks } from 'src/core/models/tasks/ExportTasks';
 import { logger } from 'src/core/services/logger/loggerInstance';
+import { GoalCategory, GoalCategoryLabels } from '../services/GoalCategory';
+import { GoalTemplateService } from '../services/GoalTemplateService';
 
 export enum SerialNoteCreationType {
   FILE = 'file',
@@ -21,6 +23,7 @@ export interface NoteCreationInput {
   prefix: string;
   creationType: SerialNoteCreationType;
   taskKey?: string;
+  goal?: string;
 }
 
 /**
@@ -114,7 +117,35 @@ export class NoteCreatorModal extends Modal {
       });
     });
 
-    // --- 5. 作成ボタン ---
+    let goalText = '';
+    let goalTextEl: HTMLInputElement;
+
+    // --- 5. 目的入力 ---
+    new Setting(contentEl).setName('目的カテゴリ').addDropdown((dropdown) => {
+      dropdown.addOption('', '(選択なし)');
+      for (const key of Object.values(GoalCategory)) {
+        dropdown.addOption(key, GoalCategoryLabels[key]);
+      }
+      dropdown.onChange((value) => {
+        if (!value) return;
+        const template = GoalTemplateService.getTemplate(value as GoalCategory);
+        goalText = template;
+        if (goalTextEl) goalTextEl.value = template;
+        this.input.goal = template;
+      });
+    });
+
+    // --- goal 入力欄 ---
+    new Setting(contentEl).setName('目標（1 行）').addText((text) => {
+      goalTextEl = text.inputEl;
+      text.setPlaceholder('例: API のレスポンス仕様を 2 パターン比較する');
+      text.onChange((value) => {
+        goalText = value;
+        this.input.goal = value.trim();
+      });
+    });
+
+    // --- 6. 作成ボタン ---
     new Setting(contentEl).addButton((btn) =>
       btn
         .setButtonText('作成')

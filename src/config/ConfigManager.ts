@@ -54,7 +54,8 @@ export const DEFAULT_SETTINGS: PluginSettings = {
     baseUrl: 'https://api.openai.com/v1',
     temperature: 0.2,
     maxTokens: 1024,
-    minSimilarityScore: 0.2,
+    minSimilarityScore: 0.4,
+    enableChecklist: true,
 
     // provider: "Gemini AI Chat",
     // apiKey: "",

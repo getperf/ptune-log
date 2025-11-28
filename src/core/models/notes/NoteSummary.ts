@@ -4,7 +4,7 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 /**
  * --- NoteSummary
  * 単一ノートの解析結果を保持するモデル。
- * createdAt, dailynote, taskKey などメタ情報を統一管理。
+ * createdAt, dailynote, taskKey, goal などメタ情報を統一管理。
  */
 export class NoteSummary {
   constructor(
@@ -17,11 +17,12 @@ export class NoteSummary {
     public readonly taskKey?: string,
     public noteFolder: string = 'ルート',
     public readonly updatedAt?: Date,
-    public readonly file?: TFile
-  ) { }
+    public readonly file?: TFile,
+    public readonly goal?: string
+  ) {}
 
   /** --- fromFileData
-   * TFileと解析データから NoteSummary を生成。
+   * TFileとfrontmatterデータから NoteSummary を生成。
    */
   static fromFileData(
     file: TFile,
@@ -32,6 +33,7 @@ export class NoteSummary {
       createdAt?: Date;
       dailynote?: string;
       taskKey?: string;
+      goal?: string;
     }
   ): NoteSummary {
     const summary = data.summary ?? '(要約なし)';
@@ -40,7 +42,9 @@ export class NoteSummary {
     const updatedAt = new Date(file.stat.mtime);
 
     logger.debug(
-      `[NoteSummary.fromFileData] created ${file.path}, tags=${tags.length}, dailynote=${data.dailynote ?? 'none'}, created=${data.createdAt}`
+      `[NoteSummary.fromFileData] created ${file.path}, tags=${
+        tags.length
+      }, goal=${data.goal ?? 'none'}`
     );
 
     return new NoteSummary(
@@ -53,13 +57,19 @@ export class NoteSummary {
       data.taskKey,
       'ルート',
       updatedAt,
-      file
+      file,
+      data.goal ?? undefined
     );
   }
 
   /** --- Markdown 要約を生成 */
   toMarkdownSummary(): string {
     const base = this.notePath.replace(/\.md$/, '').split('/').pop();
-    return `- [[${this.notePath.replace(/\.md$/, '')}|${base}]]\n  - 要約: ${this.summary}`;
+    const link = `[[${this.notePath.replace(/\.md$/, '')}|${base}]]`;
+
+    const summaryLine = `- 要約: ${this.summary}`;
+    const goalLine = this.goal ? `- 目標: ${this.goal}` : '';
+
+    return [`- ${link}`, summaryLine, goalLine].filter(Boolean).join('\n');
   }
 }

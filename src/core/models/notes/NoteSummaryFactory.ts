@@ -24,20 +24,22 @@ export class NoteSummaryFactory {
     newTags: string[]
   ): NoteSummary {
     const path = file.path;
-    const summary = mergedFrontmatter.summary ?? '(要約なし)';
 
+    const summary = mergedFrontmatter.summary ?? '(要約なし)';
     const createdAtStr: string | undefined = mergedFrontmatter.createdAt;
     const createdAt = createdAtStr ? new Date(createdAtStr) : new Date();
+
     const dailynote: string | undefined = mergedFrontmatter.dailynote;
     const taskKey: string | undefined = mergedFrontmatter.taskKey;
+    const goal: string | undefined = mergedFrontmatter.goal; // ← 追加
 
-    // 既存実装と互換性を優先し、noteFolder は一旦 "ルート" とする
     const noteFolder = 'ルート';
-
     const updatedAt = new Date(file.stat.mtime);
 
     logger.debug(
-      `[NoteSummaryFactory.createFromMergedFrontmatter] path=${path} tags=${normalizedTags.length} newTags=${newTags.length}`
+      `[NoteSummaryFactory.createFromMergedFrontmatter] path=${path} tags=${
+        normalizedTags.length
+      } goal=${goal ?? 'none'}`
     );
 
     return new NoteSummary(
@@ -50,7 +52,8 @@ export class NoteSummaryFactory {
       taskKey,
       noteFolder,
       updatedAt,
-      file
+      file,
+      goal
     );
   }
 
@@ -73,13 +76,8 @@ export class NoteSummaryFactory {
 
     const createdAt = new Date(file.stat.ctime);
     const updatedAt = new Date(file.stat.mtime);
-    const dailynote: string | undefined = undefined;
-    const taskKey: string | undefined = undefined;
-    const noteFolder = 'ルート';
 
-    logger.debug(
-      `[NoteSummaryFactory.createMinimal] path=${path} tags=${tags.length}`
-    );
+    logger.debug(`[NoteSummaryFactory.createMinimal] path=${path}`);
 
     return new NoteSummary(
       path,
@@ -87,11 +85,12 @@ export class NoteSummaryFactory {
       tags,
       newTags,
       createdAt,
-      dailynote,
-      taskKey,
-      noteFolder,
+      undefined,
+      undefined,
+      'ルート',
       updatedAt,
-      file
+      file,
+      undefined // goal 無し
     );
   }
 }

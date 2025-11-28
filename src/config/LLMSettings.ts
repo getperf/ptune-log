@@ -7,6 +7,7 @@ export interface LLMSettings {
   temperature: number;
   maxTokens: number;
   minSimilarityScore: number; // 類似タグ検索のスコア閾値
+  enableChecklist: boolean;
 }
 
 export const providerDefaults: Record<string, Partial<LLMSettings>> = {

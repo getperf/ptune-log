@@ -98,9 +98,11 @@ export class NoteCreationService {
       const frontmatter: Record<string, string> = { createdAt };
       if (dailyNote) frontmatter['dailynote'] = dailyNote;
 
-      // taskKey が指定されている場合のみセット
       if (input.taskKey && input.taskKey.trim() !== '') {
         frontmatter['taskKey'] = input.taskKey;
+      }
+      if (input.goal && input.goal.trim() !== '') {
+        frontmatter['goal'] = input.goal.trim();
       }
 
       await this.writer.update(file, frontmatter);

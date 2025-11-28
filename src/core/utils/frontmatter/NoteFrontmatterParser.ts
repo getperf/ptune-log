@@ -6,6 +6,7 @@ export interface ParsedFrontmatter {
   createdAt?: string;
   dailynote?: string;
   taskKey?: string;
+  goal?: string;
   summary?: string;
   tags?: string[];
 }
@@ -35,6 +36,7 @@ export class NoteFrontmatterParser {
       const dailynote =
         typeof fm?.dailynote === 'string' ? fm.dailynote : undefined;
       const taskKey = typeof fm?.taskKey === 'string' ? fm.taskKey : undefined;
+      const goal = typeof fm?.goal === 'string' ? fm.goal : undefined;
       const summary = typeof fm?.summary === 'string' ? fm.summary : '';
       const tags = Array.isArray(fm?.tags) ? fm.tags : [];
 
@@ -42,11 +44,12 @@ export class NoteFrontmatterParser {
         createdAt,
         dailynote,
         taskKey,
+        goal,
         summary,
         tags,
       });
 
-      return { createdAt, dailynote, taskKey, summary, tags };
+      return { createdAt, dailynote, taskKey, goal, summary, tags };
     } catch (e) {
       logger.warn('[NoteFrontmatterParser] Invalid YAML detected');
       return {};

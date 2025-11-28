@@ -71,11 +71,9 @@ export class NoteFinder {
   ): Promise<NoteSummary | null> {
     const fileName = file.name;
 
-    // --- snippet.md やテンプレート除外（拡張可能）
     const excludedNames = ['snippet.md', 'template.md'];
     if (excludedNames.includes(fileName)) return null;
 
-    // --- プレフィックス判定（数字 + アンダースコアで始まる）
     if (requirePrefix && !/^\d+_/.test(fileName)) {
       logger.debug(`[NoteFinder] skipped by prefix: ${file.path}`);
       return null;
@@ -87,9 +85,10 @@ export class NoteFinder {
     const createdAt = fm.createdAt
       ? new Date(fm.createdAt)
       : new Date(file.stat.ctime);
-    const dailynoteLink = fm.dailynote as string | undefined;
 
-    // --- createdAt や dailynote のいずれかが必要
+    const dailynoteLink = fm.dailynote as string | undefined;
+    const goal = fm.goal as string | undefined; // ← 追加
+
     if (!createdAt && !dailynoteLink) return null;
 
     const summary = NoteSummary.fromFileData(file, {
@@ -98,6 +97,7 @@ export class NoteFinder {
       createdAt,
       dailynote: dailynoteLink,
       taskKey: fm.taskKey,
+      goal, // ← 渡す
     });
 
     return summary;
