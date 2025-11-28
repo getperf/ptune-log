@@ -13,12 +13,12 @@ export class TasksWinImporter {
   private static readonly OUTPUT_FILE = 'import_tasks.json';
   private static readonly TASKLIST_NAME = 'Today';
 
-  constructor(private app: App) { }
+  constructor(private app: App) {}
 
   openImportModal(): void {
     logger.debug('[TasksWinImporter.openImportModal] start');
     const builder = new TaskSummaryReportBuilder(this.app, {} as any);
-    this.handleImport(builder);
+    void this.handleImport(builder);
   }
 
   private async handleImport(builder: TaskSummaryReportBuilder): Promise<void> {

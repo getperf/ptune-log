@@ -19,7 +19,7 @@ export class TagRankService {
 
     const registry = TagKindRegistry.getInstance();
     const tagLoader = new TagYamlIO();
-    tagLoader.ensure(this.app);
+    await tagLoader.ensure(this.app);
     const tags = await tagLoader.load(this.app.vault);
 
     logger.debug(

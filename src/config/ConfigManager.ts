@@ -1,3 +1,4 @@
+import { Plugin } from 'obsidian';
 import { Logger, LogLevel } from 'src/core/services/logger/Logger';
 import { LLMSettings } from './LLMSettings';
 import { PROJECT_NOTE_TEMPLATE } from 'src/core/templates/project_note_template';
@@ -16,7 +17,7 @@ export interface NoteSettings {
 }
 
 export interface SnippetSettings {
-  filename: string; // e.g. "snippet.md"
+  filename: string;
 }
 
 export interface GoogleAuthSettings {
@@ -72,13 +73,12 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 };
 
 export class ConfigManager {
-  private plugin: any;
-  private saveCallback: () => Promise<void>;
-  private logger: Logger;
-  settings: PluginSettings = DEFAULT_SETTINGS;
+  private plugin: Plugin;
+  settings: PluginSettings;
 
-  constructor(plugin: any) {
+  constructor(plugin: Plugin) {
     this.plugin = plugin;
+    this.settings = DEFAULT_SETTINGS;
   }
 
   async load(): Promise<void> {
@@ -110,39 +110,60 @@ export class ConfigManager {
     await this.plugin.saveData(this.settings);
   }
 
+  /** -------------------------------
+   * 型安全な設定取得
+   * ------------------------------- */
+  get<T>(key: string): T {
+    const parts = key.split('.');
+
+    let current: unknown = this.settings;
+
+    for (const p of parts) {
+      if (typeof current === 'object' && current !== null && p in current) {
+        current = (current as Record<string, unknown>)[p];
+      } else {
+        return undefined as unknown as T;
+      }
+    }
+
+    return current as T;
+  }
+
+  /** -------------------------------
+   * 型安全な階層更新
+   * ------------------------------- */
+  async update<T>(key: string, value: T): Promise<void> {
+    const parts = key.split('.');
+    let current: unknown = this.settings;
+
+    for (let i = 0; i < parts.length - 1; i++) {
+      const p = parts[i];
+
+      if (typeof current === 'object' && current !== null && p in current) {
+        current = (current as Record<string, unknown>)[p];
+      } else {
+        // 作成して進む
+        (current as Record<string, unknown>)[p] = {};
+        current = (current as Record<string, unknown>)[p];
+      }
+    }
+
+    const lastKey = parts[parts.length - 1];
+    if (typeof current === 'object' && current !== null) {
+      (current as Record<string, unknown>)[lastKey] = value;
+    }
+
+    await this.save();
+  }
+
   getPrefixType(creationType: SerialNoteCreationType): notePrefixType {
     switch (creationType) {
       case SerialNoteCreationType.FILE:
-        return this.get('note.notePrefix');
+        return this.get<notePrefixType>('note.notePrefix');
       case SerialNoteCreationType.FOLDER:
-        return this.get('note.folderPrefix');
+        return this.get<notePrefixType>('note.folderPrefix');
       default:
         return notePrefixType.SERIAL;
     }
-  }
-
-  // get<K extends keyof PluginSettings>(key: K): PluginSettings[K] {
-  //     return this.settings[key];
-  // }
-  get<T = unknown>(key: string): T {
-    return key
-      .split('.')
-      .reduce((obj: any, prop: string) => obj?.[prop], this.settings);
-  }
-
-  async update(key: string, value: any): Promise<void> {
-    const keys = key.split('.');
-    let obj: any = this.settings;
-
-    for (let i = 0; i < keys.length - 1; i++) {
-      const part = keys[i];
-      if (!(part in obj)) {
-        obj[part] = {}; // 必要なら途中オブジェクトを作成
-      }
-      obj = obj[part];
-    }
-
-    obj[keys[keys.length - 1]] = value;
-    await this.save();
   }
 }

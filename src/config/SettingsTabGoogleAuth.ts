@@ -13,7 +13,6 @@ export function renderGoogleAuthSettings(
   settings: PluginSettings
 ) {
   // ① 既存のセクション削除
-  // let section = containerEl.querySelector('.google-auth-section');
   const section = containerEl.querySelector(
     '.google-auth-section'
   ) as HTMLElement | null;
@@ -55,8 +54,8 @@ export function renderGoogleAuthSettings(
 
   // Client Secret
   new Setting(newSection)
-    .setName('Client Secret')
-    .setDesc('Google Cloud Console の OAuth2 Client Secret')
+    .setName('Client secret')
+    .setDesc('Google Cloud Console の OAuth2 Client secret')
     .addText((text) =>
       text
         .setPlaceholder('xxxxxxxxxxxxxxx')

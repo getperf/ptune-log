@@ -85,14 +85,6 @@ export default class PtunePlugin extends Plugin {
       await this.llmTagGenerator.register(this);
     });
 
-    // --- リボンアイコン ---
-    const ribbonIconEl = this.addRibbonIcon(
-      'dice',
-      'Sample Plugin',
-      async () => new Notice('This is a notice!')
-    );
-    ribbonIconEl.addClass('my-plugin-ribbon-class');
-
     // --- 設定タブ登録（A案）---
     // ① 全体設定タブ（従来と同じ）
     this.addSettingTab(new PtuneSettingTab(this.app, this, this.config));

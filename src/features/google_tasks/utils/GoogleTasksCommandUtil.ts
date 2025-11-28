@@ -28,7 +28,7 @@ export class GoogleTasksCommandUtil {
       } catch (e: any) {
         logger.error('[GoogleTasksCommandUtil.wrap] error', e);
         if (e.message?.includes('Google 認証設定')) {
-          new Notice('⚠️ GoogleのClient IDとSecretが設定されていません');
+          new Notice('⚠️ Google の Client ID と Secret が設定されていません');
         } else {
           new Notice(`Google Tasks API に失敗しました : ${e.message}`);
         }

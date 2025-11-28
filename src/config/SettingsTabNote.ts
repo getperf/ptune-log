@@ -17,7 +17,7 @@ export function renderNoteSettings(
   containerEl.createEl('h2', { text: 'ノート作成設定' });
 
   new Setting(containerEl)
-    .setName('Note Folder Prefix')
+    .setName('Note folder prefix')
     .setDesc('Prefix type for note folder')
     .addDropdown((dropdown) =>
       dropdown
@@ -32,7 +32,7 @@ export function renderNoteSettings(
     );
 
   new Setting(containerEl)
-    .setName('Note Prefix')
+    .setName('Note prefix')
     .setDesc('Prefix type for notes')
     .addDropdown((dropdown) =>
       dropdown
@@ -47,7 +47,7 @@ export function renderNoteSettings(
     );
 
   new Setting(containerEl)
-    .setName('Prefix Digits')
+    .setName('Prefix digits')
     .setDesc('Number of digits for the prefix')
     .addDropdown((dropdown) =>
       dropdown
@@ -67,7 +67,7 @@ export function renderNoteSettings(
     );
 
   new Setting(containerEl)
-    .setName('Note Template')
+    .setName('Note template')
     .setDesc('Enter the note template.')
     .addTextArea((text) => {
       text

@@ -41,16 +41,17 @@ export class Logger {
   private getLogPath(): string {
     const now = new Date();
     const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, "0");
-    const dd = String(now.getDate()).padStart(2, "0");
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
     const today = `${yyyy}-${mm}-${dd}`;
     return normalizePath(`${this.logDir}/ptune-log_${today}.log`);
   }
 
   private async writeToFile(level: string, message: string) {
     if (!this.enableFileOutput || !this.vault) return;
-    const line = `[${new Date().toLocaleTimeString()}][${this.prefix
-      }][${level}] ${message}\n`;
+    const line = `[${new Date().toLocaleTimeString()}][${
+      this.prefix
+    }][${level}] ${message}\n`;
     const path = this.getLogPath();
     await this.vault.adapter.append(path, line).catch(console.error);
   }
@@ -62,26 +63,31 @@ export class Logger {
 
   private async log(level: LogLevel, ...args: any[]) {
     if (!this.shouldLog(level)) return;
+
     const msg = args
       .map((a) => (typeof a === 'string' ? a : JSON.stringify(a)))
       .join(' ');
     const prefixMsg = `[${this.prefix}] ${msg}`;
+
     console[level === 'warn' ? 'warn' : level === 'error' ? 'error' : 'log'](
       prefixMsg
     );
-    await this.writeToFile(level, msg);
+
+    // --- Fire and Forget（非同期で裏実行）
+    void this.writeToFile(level, msg);
   }
 
+  // --- すべて同期APIにする
   debug(...args: any[]) {
-    this.log('debug', ...args);
+    void this.log('debug', ...args);
   }
   info(...args: any[]) {
-    this.log('info', ...args);
+    void this.log('info', ...args);
   }
   warn(...args: any[]) {
-    this.log('warn', ...args);
+    void this.log('warn', ...args);
   }
   error(...args: any[]) {
-    this.log('error', ...args);
+    void this.log('error', ...args);
   }
 }

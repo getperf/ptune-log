@@ -19,7 +19,7 @@ export class SetupWizardDialog extends Modal {
   }
 
   onOpen() {
-    this.render();
+    void this.render();
   }
 
   private async render(): Promise<void> {
@@ -30,7 +30,7 @@ export class SetupWizardDialog extends Modal {
         .setButtonText('更新')
         .setTooltip('現在のインストール状況を再確認します')
         .onClick(() => {
-          this.render(); // 自分自身を再描画
+          void this.render(); // 自分自身を再描画
         })
     );
     this.renderNoteInitializationSection(contentEl);

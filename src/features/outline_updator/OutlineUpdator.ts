@@ -42,7 +42,7 @@ export class OutlineUpdator {
         const contents = new OutlineContents(headings, startIndex, endIndex);
 
         new OutlineUpdatorModal(this.app, contents, (updated) => {
-          this.applyUpdate(file, updated);
+          void this.applyUpdate(file, updated);
         }).open();
       },
     });

@@ -5,6 +5,11 @@ import { renderLLMSettings } from './SettingTabLLM';
 import { renderNoteSettings } from './SettingsTabNote';
 import { renderSnippetSettings } from './SettingsTabSnippet';
 import { renderGoogleAuthSettings } from './SettingsTabGoogleAuth';
+import type { LogLevel } from 'src/core/services/logger/Logger';
+
+function isLogLevel(v: string): v is LogLevel {
+  return ['debug', 'info', 'warn', 'error', 'none'].includes(v);
+}
 
 export class PtuneSettingTab extends PluginSettingTab {
   private plugin: PtunePlugin;
@@ -34,9 +39,12 @@ export class PtuneSettingTab extends PluginSettingTab {
             error: 'Error',
             none: 'None',
           })
-          .setValue(this.config.get('logLevel'))
+          .setValue(this.config.get<LogLevel>('logLevel'))
           .onChange(async (value: string) => {
-            await this.config.update('logLevel', value as any);
+            // 型ガードで LogLevel に narrow
+            if (isLogLevel(value)) {
+              await this.config.update<LogLevel>('logLevel', value);
+            }
             this.display();
           })
       );

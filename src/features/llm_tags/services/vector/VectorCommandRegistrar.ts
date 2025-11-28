@@ -14,7 +14,7 @@ export class VectorCommandRegistrar {
 
     plugin.addCommand({
       id: 'test-embedding-api',
-      name: 'LLM Tags: Embedding API 接続テスト',
+      name: 'LLM tags: Embedding API 接続テスト',
       callback: async () => {
         if (!this.llmClient.hasValidApiKey()) {
           new Notice('⚠️ LLM APIキーが設定されていません');
@@ -32,20 +32,5 @@ export class VectorCommandRegistrar {
         }
       },
     });
-
-    // plugin.addCommand({
-    //   id: 'build-tag-vector-db',
-    //   name: 'LLM Tags: タグ辞書ベクトルDBを作成',
-    //   callback: async () => {
-    //     try {
-    //       const builder = new TagVectorBuilder(this.app, this.llmClient);
-    //       await builder.build();
-    //       new Notice('✅ ベクトルDBを再構築しました');
-    //     } catch (err) {
-    //       logger.error('[VectorCommandRegistrar] build failed', err);
-    //       new Notice('❌ ベクトルDB構築に失敗しました');
-    //     }
-    //   },
-    // });
   }
 }

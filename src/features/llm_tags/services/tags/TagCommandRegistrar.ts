@@ -16,7 +16,7 @@ export class TagCommandRegistrar {
 
     plugin.addCommand({
       id: 'rebuild-tag-db',
-      name: 'LLM Tags: タグ辞書を再構築',
+      name: 'LLM tags: タグ辞書を再構築',
       callback: async () => {
         new Notice('⏳ タグ辞書の再構築を開始しました', 8000);
         logger.info('[TagCommandRegistrar] rebuild-tag-db start');
@@ -37,7 +37,7 @@ export class TagCommandRegistrar {
 
     plugin.addCommand({
       id: 'merge-tag-aliases',
-      name: 'LLM Tags: エイリアス辞書にタグを登録・マージ',
+      name: 'LLM tags: エイリアス辞書にタグを登録・マージ',
       callback: async () => {
         const merger = new TagAliasMerger(this.app, this.llmClient);
         await merger.run();
