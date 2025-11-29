@@ -188,10 +188,9 @@ export function renderLLMSettings(
         .setButtonText('テンプレートを選択')
         .setCta()
         .onClick(() => {
-          (settingTab.app as any).commands.executeCommandById(
+          settingTab.app.commands.executeCommandById(
             'ptune-log:llm-select-template'
           );
-          new Notice('テンプレート選択コマンドを実行しました');
         })
     )
     .addButton((btn) =>
@@ -220,7 +219,7 @@ export function renderLLMSettings(
         .setCta()
         .onClick(() => {
           try {
-            (settingTab.app as any).commands.executeCommandById(
+            settingTab.app.commands.executeCommandById(
               'ptune-log:preview-llm-tag-prompt'
             );
             new Notice('プロンプトプレビューを開きます');

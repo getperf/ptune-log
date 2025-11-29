@@ -4,6 +4,7 @@ import { MyTaskList } from 'src/core/models/tasks/MyTaskList';
 import { MyTask } from 'src/core/models/tasks/MyTask';
 import { MyTaskFactory } from 'src/core/models/tasks/MyTaskFactory';
 import { TokenManager } from '../google_auth/TokenManager';
+import { Utils } from 'src/core/utils/common/Utils';
 
 /**
  * Google Tasks API クラス
@@ -55,9 +56,9 @@ export class GoogleTasksAPI {
       const data = await res.json();
       logger.debug('[GoogleTasksAPI.request] Response OK');
       return data;
-    } catch (e: any) {
-      const msg = `Google Tasks API 例外: ${e.message ?? e}`;
-      logger.error(`[GoogleTasksAPI.request] ${msg}`);
+    } catch (e: unknown) {
+      const msg = Utils.safeErrorMessage(e);
+      logger.error(`[GoogleTasksAPI.request]`, e);
       new Notice(msg, 8000);
       throw e;
     }

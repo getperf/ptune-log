@@ -3,16 +3,16 @@ import { MyTask } from './MyTask';
 import { PomodoroInfo } from './MyTask/PomodoroInfo';
 import { ParsedTask } from 'src/features/google_tasks/services/TasksExporter';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
+import { GoogleTaskDto } from './GoogleTaskDto';
 
 export class MyTaskFactory {
-  static fromApiData(task: any, tasklistId?: string): MyTask {
+  static fromApiData(task: GoogleTaskDto, tasklistId?: string): MyTask {
     // note から抽出
-    const pomodoroFromNote = this.parsePomodoroInfo(task.notes);
-    const startedFromNote = this.extractTimestamp('started', task.notes);
-    const completedFromNote = this.extractTimestamp('completed', task.notes);
+    const pomodoroFromNote = this.parsePomodoroInfo(task.note);
+    const startedFromNote = this.extractTimestamp('started', task.note);
+    const completedFromNote = this.extractTimestamp('completed', task.note);
     const completedFromApi = this.parseDate(task.completed);
 
-    // JSON直下の値をフォールバックとして利用
     const pomodoro =
       pomodoroFromNote ??
       (task.pomodoro
@@ -35,8 +35,8 @@ export class MyTaskFactory {
       task.id ?? '',
       task.title ?? '',
       tasklistId,
-      this.extractNoteBody(task.notes),
-      task.parent ?? undefined,
+      this.extractNoteBody(task.note),
+      task.parent,
       task.position,
       pomodoro,
       task.status ?? 'needsAction',
@@ -101,19 +101,26 @@ export class MyTaskFactory {
   }
 
   static copyTaskData(source: MyTask, target: MyTask): void {
-    for (const key of Object.keys(source)) {
-      if (key === 'id') continue;
-      const value = (source as any)[key];
-      if (value == null || value === '' || value === 0) continue;
+    if (source.title) target.title = source.title;
+    if (source.tasklist_id) target.tasklist_id = source.tasklist_id;
+    if (source.note) target.note = source.note;
+    if (source.parent) target.parent = source.parent;
+    if (source.position) target.position = source.position;
 
-      if (key === 'pomodoro' && value instanceof PomodoroInfo) {
-        if (!target.pomodoro) target.pomodoro = new PomodoroInfo(0);
-        if (value.planned) target.pomodoro.planned = value.planned;
-        if (value.actual) target.pomodoro.actual = value.actual;
-      } else {
-        (target as any)[key] = value;
-      }
+    if (source.pomodoro) {
+      target.pomodoro = new PomodoroInfo(
+        source.pomodoro.planned,
+        source.pomodoro.actual
+      );
     }
+
+    if (source.status) target.status = source.status;
+    if (source.subTasks) target.subTasks = [...source.subTasks];
+    if (source.due) target.due = source.due;
+    if (source.completed) target.completed = source.completed;
+    if (source.updated) target.updated = source.updated;
+    if (source.started) target.started = source.started;
+    target.deleted = source.deleted;
   }
 
   /**

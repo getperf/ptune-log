@@ -34,7 +34,7 @@ export class LLMTagCommandRegistrar {
                 logger.debug(
                   `[LLMTagCommandRegistrar] runOnFile: ${file.path}`
                 );
-                this.executor.runOnFile(file);
+                void this.executor.runOnFile(file);
               })
           );
         } else if (file instanceof TFolder) {
@@ -46,7 +46,7 @@ export class LLMTagCommandRegistrar {
                 logger.debug(
                   `[LLMTagCommandRegistrar] runOnFolder: ${file.path}`
                 );
-                this.executor.runOnFolder(file);
+                void this.executor.runOnFolder(file);
               })
           );
         }
@@ -61,7 +61,7 @@ export class LLMTagCommandRegistrar {
       name: 'タグ更新: 今日の振り返り（日付指定）',
       callback: () => {
         logger.debug('[LLMTagCommandRegistrar] command: runOnDate');
-        this.executor.runOnDate();
+        void this.executor.runOnDate();
       },
     });
 
@@ -72,7 +72,6 @@ export class LLMTagCommandRegistrar {
       callback: async () => {
         logger.debug('[LLMTagCommandRegistrar] command: select-template');
         await this.promptManager.updateTemplate();
-        new Notice('✅ テンプレートを更新しました');
       },
     });
 

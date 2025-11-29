@@ -10,7 +10,12 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 import { IAnalyzer } from './IAnalyzer';
 import { CommonTagGenerator } from 'src/features/note_creator/services/CommonTagGenerator';
 
-export class CommonTagAnalyzer implements IAnalyzer {
+/** CommonTagAnalyzer のオプション型 */
+export interface CommonTagAnalyzerOptions {
+  force?: boolean;
+}
+
+export class CommonTagAnalyzer implements IAnalyzer<CommonTagAnalyzerOptions> {
   /** 遅延生成する内部 generator */
   private generator: CommonTagGenerator | null = null;
 
@@ -31,16 +36,14 @@ export class CommonTagAnalyzer implements IAnalyzer {
    */
   async analyze(
     summaries: NoteSummaries,
-    options?: { force?: boolean }
+    options?: CommonTagAnalyzerOptions
   ): Promise<void> {
     const force = options?.force ?? false;
-
     logger.debug(`[CommonTagAnalyzer] start force=${force}`);
 
     for (const folder of summaries.getFoldersSorted()) {
       const existing = (await folder.getCommonTags(this.app)) ?? [];
 
-      // 既に index.md に共通タグがあればスキップ
       if (!force && existing.length > 0) {
         logger.debug(
           `[CommonTagAnalyzer] skip folder=${folder.noteFolder} (common tags exist)`

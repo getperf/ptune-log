@@ -1,4 +1,4 @@
-import { App, normalizePath, TFile, TFolder, Vault } from 'obsidian';
+import { App, normalizePath, TFile, Vault } from 'obsidian';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { RequiredPluginInfo } from 'src/features/setup/InitialSetupManager';
 
@@ -8,15 +8,14 @@ import { RequiredPluginInfo } from 'src/features/setup/InitialSetupManager';
  * Vaultパス、テーマ設定、プラグイン状態、ファイル抽出などを提供。
  */
 export class Utils {
-  /** --- Vaultホームパスを返す（Windows対応） */
+  /** Vaultホームパスを返す（Windows対応） */
   static resolveVaultHome(app: App): string {
-    const adapter = app.vault.adapter as any;
-    const basePath = adapter?.basePath ?? '';
+    const basePath = app.vault.adapter.basePath ?? '';
     logger.debug(`[Utils.resolveVaultHome] basePath=${basePath}`);
     return basePath;
   }
 
-  /** --- 現在のObsidianテーマ名を取得する */
+  /** 現在のObsidianテーマ名を取得する */
   static async getCurrentTheme(app: App): Promise<string | null> {
     const path = normalizePath('.obsidian/appearance.json');
     logger.debug(`[Utils.getCurrentTheme] reading ${path}`);
@@ -33,12 +32,11 @@ export class Utils {
     }
   }
 
-  /** --- 指定プラグインが有効かどうか判定する */
+  /** 指定プラグインが有効かどうか判定する */
   static isPluginEnabled(app: App, pluginId: string, isCore: boolean): boolean {
-    const anyApp = app as any;
     const enabled = isCore
-      ? anyApp.internalPlugins?.plugins?.[pluginId]?.enabled ?? false
-      : anyApp.plugins?.enabledPlugins?.has(pluginId) ?? false;
+      ? app.internalPlugins?.plugins?.[pluginId]?.enabled ?? false
+      : app.plugins?.enabledPlugins?.has(pluginId) ?? false;
 
     logger.debug(
       `[Utils.isPluginEnabled] plugin=${pluginId}, core=${isCore}, enabled=${enabled}`
@@ -46,26 +44,24 @@ export class Utils {
     return enabled;
   }
 
-  /** --- プラグインIDから Obsidian プラグイン情報を取得する */
-  static getAnyPlugin(app: App, pluginId: string, isCore: boolean): any | null {
-    const anyApp = app as any;
-
+  /** プラグインIDから Obsidian プラグイン情報を取得する */
+  static getAnyPlugin(
+    app: App,
+    pluginId: string,
+    isCore: boolean
+  ): unknown | null {
     if (isCore) {
-      const corePlugin = anyApp.internalPlugins?.plugins?.[pluginId];
+      const corePlugin = app.internalPlugins?.plugins?.[pluginId];
       if (!corePlugin) {
-        logger.warn(
-          `[Utils.getAnyPlugin] コアプラグイン "${pluginId}" は存在しません`
-        );
+        logger.warn(`[Utils.getAnyPlugin] コア "${pluginId}" は存在しません`);
         return null;
       }
       logger.debug(`[Utils.getAnyPlugin] コアプラグイン取得: ${pluginId}`);
       return corePlugin;
     } else {
-      const pluginInstance = anyApp.plugins?.plugins?.[pluginId];
+      const pluginInstance = app.plugins?.plugins?.[pluginId];
       if (!pluginInstance) {
-        logger.warn(
-          `[Utils.getAnyPlugin] カスタムプラグイン "${pluginId}" はロードされていません`
-        );
+        logger.warn(`[Utils.getAnyPlugin] プラグイン "${pluginId}" 未ロード`);
         return null;
       }
       logger.debug(`[Utils.getAnyPlugin] カスタムプラグイン取得: ${pluginId}`);
@@ -73,7 +69,7 @@ export class Utils {
     }
   }
 
-  /** --- 必須プラグインの公式URLを返す */
+  /** 必須プラグインURL */
   static getPluginUrl(plugin: RequiredPluginInfo): string {
     const url = plugin.isCore
       ? `https://help.obsidian.md/Plugins/${encodeURIComponent(plugin.name)}`
@@ -82,7 +78,7 @@ export class Utils {
     return url;
   }
 
-  /** --- テーマ検索URLを生成する */
+  /** テーマ検索URL */
   static getThemeUrl(themeName: string): string {
     const url = `https://obsidian.md/themes?search=${encodeURIComponent(
       themeName
@@ -91,7 +87,7 @@ export class Utils {
     return url;
   }
 
-  /** --- 現在日時から日付プレフィックスを返す（例: 20250604153000） */
+  /** 日付プレフィックス */
   static getDatePrefix(): string {
     const now = new Date();
     const yyyy = now.getFullYear();
@@ -105,38 +101,29 @@ export class Utils {
     return result;
   }
 
-  /** --- ファイルエクスプローラ上でノートをフォーカスする */
+  /** ノートをエクスプローラでフォーカス */
   static focusFileInExplorer(app: App, file: TFile): void {
     logger.debug(`[Utils.focusFileInExplorer] reveal ${file.path}`);
     app.workspace.trigger('reveal', file);
   }
 
-  /** --- ファイルの全行を読み込む */
+  /** ファイル全行読み込み */
   static async readFileLines(app: App, file: TFile): Promise<string[]> {
     const content = await app.vault.read(file);
-    const lines = content.split(/\r?\n/);
-    logger.debug(
-      `[Utils.readFileLines] file=${file.path}, lines=${lines.length}`
-    );
-    return lines;
+    return content.split(/\r?\n/);
   }
 
-  /** --- 指定キーワードを含む見出しセクションを抽出する */
+  /** 指定キーワードを含むセクションを抽出 */
   static async readSectionLines(
     app: App,
     file: TFile,
     headingKeyword: string
   ): Promise<string[]> {
-    logger.debug(
-      `[Utils.readSectionLines] file=${file.path}, keyword=${headingKeyword}`
-    );
     const lines = await Utils.readFileLines(app, file);
-    const section = Utils.extractSectionLines(lines, headingKeyword);
-    logger.debug(`[Utils.readSectionLines] extracted lines=${section.length}`);
-    return section;
+    return Utils.extractSectionLines(lines, headingKeyword);
   }
 
-  /** --- 行配列から見出し〜次見出し／水平線までのブロックを抽出する */
+  /** 行配列からセクション抽出 */
   static extractSectionLines(
     lines: string[],
     headingKeyword: string
@@ -154,12 +141,7 @@ export class Utils {
       }
     }
 
-    if (startIndex === -1) {
-      logger.debug(
-        `[Utils.extractSectionLines] heading not found: ${headingKeyword}`
-      );
-      return [];
-    }
+    if (startIndex === -1) return [];
 
     let endIndex = lines.length;
     for (let i = startIndex; i < lines.length; i++) {
@@ -169,9 +151,17 @@ export class Utils {
       }
     }
 
-    logger.debug(
-      `[Utils.extractSectionLines] start=${startIndex}, end=${endIndex}`
-    );
     return lines.slice(startIndex, endIndex);
+  }
+
+  /** --- 例外オブジェクトを安全に文字列化する */
+  static safeErrorMessage(e: unknown): string {
+    if (e instanceof Error) return e.message;
+    if (typeof e === 'string') return e;
+    try {
+      return JSON.stringify(e);
+    } catch {
+      return String(e);
+    }
   }
 }

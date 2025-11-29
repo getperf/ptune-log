@@ -6,10 +6,11 @@ import { LLMClientError } from './clients/LLMClientError';
 import { TagVectors } from 'src/core/models/vectors/TagVectors';
 import { logger } from '../logger/loggerInstance';
 import { LLMSettings } from 'src/config/LLMSettings';
+import { LLMClientBase } from './clients/LLMClientBase';
 
 /** LLMサービスの統合クライアント */
 export class LLMClient {
-  constructor(private app: App, public settings: LLMSettings) { }
+  constructor(private app: App, public settings: LLMSettings) {}
 
   hasValidApiKey(): boolean {
     return !!this.settings.apiKey?.trim();
@@ -76,12 +77,13 @@ export class LLMClient {
   async embedBatch(inputs: string[]): Promise<number[][]> {
     this.ensureEmbeddingSupported();
     const client = this.createClient();
-    if (!('callEmbeddingBatch' in client)) {
+
+    if (!client.callEmbeddingBatch) {
       throw new LLMClientError('This client does not support batch embeddings');
     }
 
     try {
-      return await (client as any).callEmbeddingBatch(inputs);
+      return await client.callEmbeddingBatch(inputs);
     } catch (e) {
       logger.error('[LLMClient.embedBatch] failed', e);
       return [];
@@ -89,12 +91,16 @@ export class LLMClient {
   }
 
   /** モデル名からクライアント選択 */
-  private createClient() {
+  private createClient(): LLMClientBase {
     const model = this.settings.model ?? '';
+
     if (model.startsWith('gpt-') || model.startsWith('text-embedding'))
       return new OpenAIClient(this.settings);
+
     if (model.startsWith('gemini-')) return new GeminiClient(this.settings);
+
     if (model.startsWith('claude-')) return new ClaudeClient(this.settings);
+
     throw new LLMClientError(`Unsupported model: ${model}`);
   }
 }

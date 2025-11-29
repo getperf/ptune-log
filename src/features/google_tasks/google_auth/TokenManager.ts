@@ -1,6 +1,22 @@
-import { Notice, type Plugin } from 'obsidian';
+import { Notice, Plugin } from 'obsidian';
 import { GoogleAuthSettings } from 'src/config/ConfigManager';
 import { logger } from 'src/core/services/logger/loggerInstance';
+import { Utils } from 'src/core/utils/common/Utils';
+
+export interface TokenResponse {
+  access_token: string;
+  refresh_token?: string;
+  expires_in: number;
+  token_type: string;
+  scope?: string;
+}
+
+export interface TokenStore {
+  access_token: string | null;
+  refresh_token: string | null;
+  expires_in: number | null;
+  obtained_at: number | null;
+}
 
 /** Google OAuthトークンの管理（保存・期限チェック・リフレッシュ） */
 export class TokenManager {
@@ -16,42 +32,60 @@ export class TokenManager {
     logger.debug('[TokenManager.constructor] initialized', { clientId });
   }
 
+  /** Plugin の保存データを安全に取得 */
+  private async loadStore(): Promise<TokenStore | null> {
+    const data = (await this.plugin.loadData()) as TokenStore | null;
+    if (!data) return null;
+
+    return {
+      access_token: data.access_token ?? null,
+      refresh_token: data.refresh_token ?? null,
+      expires_in: data.expires_in ?? null,
+      obtained_at: data.obtained_at ?? null,
+    };
+  }
+
+  private async saveStore(store: TokenStore): Promise<void> {
+    await this.plugin.saveData(store);
+  }
+
   /** 有効なアクセストークンを取得する */
   async getValidAccessToken(): Promise<string | null> {
-    const data = await this.plugin.loadData();
-    if (!data) {
-      logger.warn('[TokenManager.getValidAccessToken] no token data found');
+    const store = await this.loadStore();
+
+    if (!store) {
+      logger.warn('[TokenManager.getValidAccessToken] no token data');
       return null;
     }
 
     if (
-      data?.access_token &&
-      data?.expires_in &&
-      data?.obtained_at &&
-      !this.isTokenExpired(data.obtained_at, data.expires_in)
+      store.access_token &&
+      store.expires_in &&
+      store.obtained_at &&
+      !this.isTokenExpired(store.obtained_at, store.expires_in)
     ) {
       logger.debug('[TokenManager.getValidAccessToken] using cached token');
-      return data.access_token;
+      return store.access_token;
     }
 
-    if (data?.refresh_token) {
+    if (store.refresh_token) {
       logger.debug('[TokenManager.getValidAccessToken] refreshing token');
-      return await this.refreshAccessToken(data.refresh_token);
+      return await this.refreshAccessToken(store.refresh_token);
     }
 
-    logger.warn('[TokenManager.getValidAccessToken] no valid token available');
+    logger.warn('[TokenManager.getValidAccessToken] no valid token');
     return null;
   }
 
-  /** トークンの有効期限を確認する */
+  /** 有効期限チェック */
   private isTokenExpired(obtainedAt: number, expiresIn: number): boolean {
     const now = Date.now();
     const expired = now > obtainedAt + expiresIn * 1000 - 60000;
-    logger.debug('[TokenManager.isTokenExpired] check', { expired });
+    logger.debug('[TokenManager.isTokenExpired]', { expired });
     return expired;
   }
 
-  /** リフレッシュトークンを使ってアクセストークンを再取得する */
+  /** リフレッシュトークンでアクセストークン再取得 */
   private async refreshAccessToken(
     refreshToken: string
   ): Promise<string | null> {
@@ -71,57 +105,65 @@ export class TokenManager {
 
       if (!res.ok) {
         const text = await res.text();
-        const msg = `Google Auth HTTP error (${res.status}): ${text}`;
         logger.error('[TokenManager.refreshAccessToken] HTTP error', {
           status: res.status,
           text,
         });
-        new Notice(msg, 8000);
+        new Notice(`Google Auth error (${res.status})`, 8000);
         return null;
       }
 
-      const tokens = await res.json();
+      const tokens = (await res.json()) as TokenResponse;
 
       if (tokens.access_token) {
-        await this.plugin.saveData({
-          ...tokens,
-          obtained_at: Date.now(),
+        const store: TokenStore = {
+          access_token: tokens.access_token,
           refresh_token: refreshToken,
-        });
-        logger.info('[TokenManager.refreshAccessToken] token refreshed');
+          expires_in: tokens.expires_in,
+          obtained_at: Date.now(),
+        };
+        await this.saveStore(store);
+        logger.info('[TokenManager.refreshAccessToken] refreshed');
         return tokens.access_token;
-      } else {
-        const msg = `Google Auth failed: ${JSON.stringify(tokens)}`;
-        logger.error('[TokenManager.refreshAccessToken] token missing', tokens);
-        new Notice(msg, 8000);
-        return null;
       }
-    } catch (e: any) {
+
+      logger.error('[TokenManager.refreshAccessToken] token missing', tokens);
+      new Notice('Google Auth: access_token missing', 8000);
+      return null;
+    } catch (e: unknown) {
       logger.error('[TokenManager.refreshAccessToken] exception', e);
-      const msg = `Google Auth exception: ${e.message ?? e}`;
-      new Notice(msg, 8000);
+      const msg = Utils.safeErrorMessage(e);
+      new Notice(`Google Auth exception: ${msg}`, 8000);
       return null;
     }
   }
 
-  /** 初回トークンを保存する */
-  async saveInitialTokens(tokens: any) {
-    if (tokens.access_token) {
-      await this.plugin.saveData({
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token,
-        expires_in: tokens.expires_in,
-        obtained_at: Date.now(),
-      });
-      logger.info('[TokenManager.saveInitialTokens] tokens saved');
-    } else {
-      logger.warn('[TokenManager.saveInitialTokens] no access token found');
+  /** 初回トークン保存 */
+  async saveInitialTokens(tokens: TokenResponse): Promise<void> {
+    if (!tokens.access_token) {
+      logger.warn('[TokenManager.saveInitialTokens] no access_token');
+      return;
     }
+
+    const store: TokenStore = {
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token ?? null,
+      expires_in: tokens.expires_in,
+      obtained_at: Date.now(),
+    };
+
+    await this.saveStore(store);
+    logger.info('[TokenManager.saveInitialTokens] saved');
   }
 
-  /** トークンをリセット（削除）する */
+  /** トークンリセット */
   async resetTokens(): Promise<void> {
-    await this.plugin.saveData({});
-    logger.info('[TokenManager.resetTokens] tokens reset');
+    await this.saveStore({
+      access_token: null,
+      refresh_token: null,
+      expires_in: null,
+      obtained_at: null,
+    });
+    logger.info('[TokenManager.resetTokens] reset');
   }
 }

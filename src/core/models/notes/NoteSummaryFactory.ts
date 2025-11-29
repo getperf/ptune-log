@@ -2,6 +2,7 @@
 import { App, TFile } from 'obsidian';
 import { NoteSummary } from 'src/core/models/notes/NoteSummary';
 import { logger } from 'src/core/services/logger/loggerInstance';
+import { FrontmatterSummaryData } from './FrontmatterSummaryData';
 
 /**
  * --- NoteSummaryFactory
@@ -19,7 +20,7 @@ export class NoteSummaryFactory {
   static createFromMergedFrontmatter(
     app: App,
     file: TFile,
-    mergedFrontmatter: Record<string, any>,
+    mergedFrontmatter: FrontmatterSummaryData,
     normalizedTags: string[],
     newTags: string[]
   ): NoteSummary {
@@ -31,7 +32,7 @@ export class NoteSummaryFactory {
 
     const dailynote: string | undefined = mergedFrontmatter.dailynote;
     const taskKey: string | undefined = mergedFrontmatter.taskKey;
-    const goal: string | undefined = mergedFrontmatter.goal; // ← 追加
+    const goal: string | undefined = mergedFrontmatter.goal;
 
     const noteFolder = 'ルート';
     const updatedAt = new Date(file.stat.mtime);

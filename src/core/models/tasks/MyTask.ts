@@ -1,5 +1,6 @@
 import { MyTaskFactory } from './MyTaskFactory';
 import { PomodoroInfo } from './MyTask/PomodoroInfo';
+import { MyTaskApiData } from './MyTaskApiData';
 
 export class MyTask {
   constructor(
@@ -47,8 +48,13 @@ export class MyTask {
     }
   }
 
-  toApiData(): Record<string, any> {
-    const notes = [this.note];
+  toApiData(): MyTaskApiData {
+    const notes: string[] = [];
+
+    if (this.note) {
+      notes.push(this.note);
+    }
+
     if (this.pomodoro) {
       let tomato = `🍅x${this.pomodoro.planned}`;
       if (this.pomodoro.actual !== undefined) {
@@ -57,15 +63,15 @@ export class MyTask {
       notes.push(tomato);
     }
 
-    const body: Record<string, any> = {
+    const body: MyTaskApiData = {
       title: this.title,
       notes: notes.filter(Boolean).join(' ').trim(),
-      status: this.status || 'needsAction',
+      status: this.status ?? 'needsAction',
     };
 
-    if (this.id) body['id'] = this.id;
-    if (this.parent) body['parent'] = this.parent;
-    if (this.due) body['due'] = this.due;
+    if (this.id) body.id = this.id;
+    if (this.parent) body.parent = this.parent;
+    if (this.due) body.due = this.due;
 
     return body;
   }

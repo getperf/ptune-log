@@ -61,33 +61,33 @@ export class Logger {
     return levels.indexOf(level) >= levels.indexOf(this.level);
   }
 
-  private async log(level: LogLevel, ...args: any[]) {
+  private async log(level: LogLevel, ...args: unknown[]) {
     if (!this.shouldLog(level)) return;
 
     const msg = args
       .map((a) => (typeof a === 'string' ? a : JSON.stringify(a)))
       .join(' ');
+
     const prefixMsg = `[${this.prefix}] ${msg}`;
 
     console[level === 'warn' ? 'warn' : level === 'error' ? 'error' : 'log'](
       prefixMsg
     );
 
-    // --- Fire and Forget（非同期で裏実行）
+    // Fire and Forget
     void this.writeToFile(level, msg);
   }
 
-  // --- すべて同期APIにする
-  debug(...args: any[]) {
+  debug(...args: unknown[]) {
     void this.log('debug', ...args);
   }
-  info(...args: any[]) {
+  info(...args: unknown[]) {
     void this.log('info', ...args);
   }
-  warn(...args: any[]) {
+  warn(...args: unknown[]) {
     void this.log('warn', ...args);
   }
-  error(...args: any[]) {
+  error(...args: unknown[]) {
     void this.log('error', ...args);
   }
 }

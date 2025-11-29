@@ -67,15 +67,18 @@ export class LLMTagGenerateExecutor {
           forceRegenerate
         );
 
+        // --- ② CommonTagAnalyzer/KPTAnalyzer の統合実行 ---
         const analyzed = await this.analysis.analyze(summaries, {
-          force: forceRegenerate,
+          forceCommonTags: forceRegenerate,
         });
 
+        // --- ③ デイリーノートへ結果反映 ---
         await new DailyNoteUpdater(this.app).appendTagResults(
           analyzed,
           selectedDate,
           { enableChecklist }
         );
+
         modal.showCompletionMessage('今日の振り返りが完了しました');
         setTimeout(() => modal.close(), 1500);
       },

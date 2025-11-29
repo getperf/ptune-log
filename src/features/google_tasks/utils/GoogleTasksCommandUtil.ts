@@ -4,6 +4,7 @@ import type { GoogleAuthSettings } from '../../../config/ConfigManager';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { MyTask } from 'src/core/models/tasks/MyTask';
 import { TokenManager } from '../google_auth/TokenManager';
+import { Utils } from 'src/core/utils/common/Utils';
 
 /**
  * Google Tasks コマンド共通ユーティリティ
@@ -25,13 +26,10 @@ export class GoogleTasksCommandUtil {
         const api = new GoogleTasksAPI(tokenManager);
         await runner(api);
         logger.debug('[GoogleTasksCommandUtil.wrap] done');
-      } catch (e: any) {
+      } catch (e: unknown) {
         logger.error('[GoogleTasksCommandUtil.wrap] error', e);
-        if (e.message?.includes('Google 認証設定')) {
-          new Notice('⚠️ Google の Client ID と Secret が設定されていません');
-        } else {
-          new Notice(`Google Tasks API に失敗しました : ${e.message}`);
-        }
+        const msg = Utils.safeErrorMessage(e);
+        new Notice(`Google Tasks API に失敗しました : ${msg}`, 8000);
       }
     };
   }

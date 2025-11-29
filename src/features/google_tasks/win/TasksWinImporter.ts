@@ -17,7 +17,7 @@ export class TasksWinImporter {
 
   openImportModal(): void {
     logger.debug('[TasksWinImporter.openImportModal] start');
-    const builder = new TaskSummaryReportBuilder(this.app, {} as any);
+    const builder = new TaskSummaryReportBuilder(this.app);
     void this.handleImport(builder);
   }
 

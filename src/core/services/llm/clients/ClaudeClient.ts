@@ -2,9 +2,10 @@ import { LLMSettings } from 'src/config/LLMSettings';
 import https from 'https';
 import { LLMClientError } from './LLMClientError';
 import { logger } from '../../logger/loggerInstance';
+import { LLMClientBase } from './LLMClientBase';
 
 /** Claudeモデルクライアント */
-export class ClaudeClient {
+export class ClaudeClient implements LLMClientBase {
   constructor(private settings: LLMSettings) {}
 
   /** Chat 呼び出し

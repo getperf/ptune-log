@@ -131,7 +131,7 @@ export class GoogleTasksFeature {
               MyTaskFactory.fromApiData(t, taskListId)
             );
 
-            const builder = new TaskSummaryReportBuilder(this.app, api);
+            const builder = new TaskSummaryReportBuilder(this.app);
             await builder.buildFromMyTasks(myTasks);
           }
         )();
@@ -160,7 +160,10 @@ export class GoogleTasksFeature {
         );
         for (const note of notes) {
           logger.debug(
-            `[DebugFindNotes] ${note.notePath} → dailynote=${note.dailynote}, updated=${note.updatedAt ? DateUtil.utcString(note.updatedAt) : 'none'
+            `[DebugFindNotes] ${note.notePath} → dailynote=${
+              note.dailynote
+            }, updated=${
+              note.updatedAt ? DateUtil.utcString(note.updatedAt) : 'none'
             }`
           );
         }

@@ -4,7 +4,6 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 import { MyTask } from 'src/core/models/tasks/MyTask';
 import { TaskJsonUtils } from 'src/core/utils/task/TaskJsonUtils';
 
-/** 日報セクションの見出し */
 export const HEADER_TIME_LOG = '## 🕒 タイムログ／メモ';
 
 export interface TaskSummaryReportOptions {
@@ -16,23 +15,15 @@ export interface TaskSummaryReportOptions {
 export interface TaskTree {
   task: MyTask;
   children: TaskTree[];
-  order: number; // ← 元の parsed.index 等を外部から渡す
+  order: number;
 }
 
-/**
- * TaskSummaryReportBuilder
- * - MyTask[] → TaskTree[] を構築
- * - 階層付きタスク表とバックログをMarkdown化
- * - デイリーノートへ追記
- */
 export class TaskSummaryReportBuilder {
   constructor(
     private app: App,
-    private api: any,
-    private orderMap: Map<string, number> = new Map() // ← 追加
+    private orderMap: Map<string, number> = new Map()
   ) {}
 
-  /** 見出し生成 */
   static createProgressHeader(date: Date): string {
     const yyyy = date.getFullYear();
     const mm = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -40,7 +31,6 @@ export class TaskSummaryReportBuilder {
     return `## タスク振り返り (${yyyy}-${mm}-${dd})`;
   }
 
-  /** MyTask から階層化レポートを生成してデイリーノートに追記 */
   async buildFromMyTasks(tasks: MyTask[]): Promise<void> {
     logger.info('[TaskSummaryReportBuilder.buildFromMyTasks] start');
 
@@ -53,19 +43,16 @@ export class TaskSummaryReportBuilder {
       logger.debug(
         `[TaskSummaryReportBuilder] input[${i}] id=${t.id} parent=${
           t.parent ?? 'none'
-        } ` + `status=${t.status} started=${t.started ?? ''} title=${t.title}`
+        } status=${t.status} started=${t.started ?? ''} title=${t.title}`
       );
     });
-    // --- ① TaskTree を構築（orderMap 付き） ---
+
     const tree = this.buildHierarchy(tasks.filter((t) => !t.deleted));
 
     const date = new Date();
     const heading = TaskSummaryReportBuilder.createProgressHeader(date);
 
-    // --- ② 階層タスク表 ---
     const table = this.buildTaskTableFromTree(tree);
-
-    // --- ③ 未完了バックログ ---
     const backlog = this.buildBacklogSectionFromTree(tree);
 
     const content = [heading, table, backlog].filter(Boolean).join('\n\n');
@@ -77,7 +64,6 @@ export class TaskSummaryReportBuilder {
       content
     );
 
-    // JSON 保存
     const exporter = new TaskJsonUtils(this.app);
     await exporter.save(tasks, date);
 
@@ -85,11 +71,9 @@ export class TaskSummaryReportBuilder {
     logger.info('[TaskSummaryReportBuilder.buildFromMyTasks] completed');
   }
 
-  /** MyTask[] → TaskTree[] を構築（orderMap を付与） */
   private buildHierarchy(tasks: MyTask[]): TaskTree[] {
     const map = new Map<string, TaskTree>();
 
-    // --- 各タスクに order を付与してノード化 ---
     tasks.forEach((t) => {
       const order = this.orderMap.get(t.id) ?? Number.MAX_SAFE_INTEGER;
       map.set(t.id, { task: t, children: [], order });
@@ -99,20 +83,12 @@ export class TaskSummaryReportBuilder {
 
     for (const task of tasks) {
       const node = map.get(task.id);
-      if (!node) {
-        logger.warn(
-          `[TaskSummaryReportBuilder.buildHierarchy] missing node for task id=${task.id}`
-        );
-        continue;
-      }
+      if (!node) continue;
 
       if (task.parent) {
         const parent = map.get(task.parent);
-        if (parent) {
-          parent.children.push(node);
-        } else {
-          roots.push(node);
-        }
+        if (parent) parent.children.push(node);
+        else roots.push(node);
       } else {
         roots.push(node);
       }
@@ -121,28 +97,14 @@ export class TaskSummaryReportBuilder {
     return roots;
   }
 
-  /** order 優先でソートする */
   private sortNode(a: TaskTree, b: TaskTree): number {
-    // 1) order を優先
     if (a.order !== b.order) return a.order - b.order;
 
-    // 2) started が空欄の場合は後ろへ
-    const aKey =
-      a.task.started && a.task.started.trim().length > 0
-        ? a.task.started
-        : '9999-12-31T23:59:59Z';
-
-    const bKey =
-      b.task.started && b.task.started.trim().length > 0
-        ? b.task.started
-        : '9999-12-31T23:59:59Z';
+    const aKey = a.task.started?.trim() || '9999-12-31T23:59:59Z';
+    const bKey = b.task.started?.trim() || '9999-12-31T23:59:59Z';
 
     return aKey.localeCompare(bKey);
   }
-
-  // =========================================================================
-  // ▼▼▼ 階層付きタスク表の Markdown 生成
-  // =========================================================================
 
   private buildTaskTableFromTree(tree: TaskTree[]): string {
     const header =
@@ -153,11 +115,11 @@ export class TaskSummaryReportBuilder {
 
     const sortedRoots = tree.slice().sort((a, b) => this.sortNode(a, b));
 
-    // ★ ルートノード順序ログ
     sortedRoots.forEach((node, i) => {
       logger.debug(
-        `[TaskSummaryReportBuilder] root[${i}] order=${node.order ?? -1} ` +
-          `started=${node.task.started ?? ''} title=${node.task.title}`
+        `[TaskSummaryReportBuilder] root[${i}] order=${node.order} started=${
+          node.task.started ?? ''
+        } title=${node.task.title}`
       );
     });
 
@@ -173,22 +135,17 @@ export class TaskSummaryReportBuilder {
   ): void {
     rows.push(this.formatTaskRow(node.task, level));
 
-    const sortedChildren = node.children
-      .slice()
-      .sort((a, b) => this.sortNode(a, b));
+    const children = node.children.slice().sort((a, b) => this.sortNode(a, b));
 
-    sortedChildren.forEach((child, i) => {
+    children.forEach((child, i) => {
       logger.debug(
-        `[TaskSummaryReportBuilder] child level=${level} idx=${i} ` +
-          `order=${child.order ?? -1} started=${
-            child.task.started ?? ''
-          } title=${child.task.title}`
+        `[TaskSummaryReportBuilder] child level=${level} idx=${i} order=${
+          child.order
+        } started=${child.task.started ?? ''} title=${child.task.title}`
       );
     });
 
-    sortedChildren.forEach((child) =>
-      this.walkTreeForTable(child, level + 1, rows)
-    );
+    children.forEach((child) => this.walkTreeForTable(child, level + 1, rows));
   }
 
   private formatTaskRow(task: MyTask, level: number): string {
@@ -202,10 +159,6 @@ export class TaskSummaryReportBuilder {
 
     return `| ${status} | ${indent}${task.title} | ${planned} | ${actual} | ${start} | ${end} |`;
   }
-
-  // =========================================================================
-  // ▼▼▼ 未完了バックログ生成
-  // =========================================================================
 
   private buildBacklogSectionFromTree(tree: TaskTree[]): string {
     const lines: string[] = [];
@@ -232,10 +185,6 @@ export class TaskSummaryReportBuilder {
     if (lines.length === 0) return '';
     return `### 未完了タスク\n${lines.join('\n')}`;
   }
-
-  // =========================================================================
-  // ▼▼▼ 日時フォーマット
-  // =========================================================================
 
   private toTime(utc?: string): string {
     if (!utc) return '';

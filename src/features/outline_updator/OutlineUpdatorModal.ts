@@ -6,9 +6,9 @@ export class OutlineUpdatorModal extends Modal {
   private isSelecting = false;
 
   // 追加: 選択管理
-  private cursorIndex = 0;               // 非Shiftカーソル移動の基準
-  private selectionAnchorIndex: number;  // 範囲選択の起点
-  private focusIndex: number;            // 範囲選択の終点（動く側）
+  private cursorIndex = 0; // 非Shiftカーソル移動の基準
+  private selectionAnchorIndex: number; // 範囲選択の起点
+  private focusIndex: number; // 範囲選択の終点（動く側）
 
   private keyHandler: (e: KeyboardEvent) => void;
   private mouseUpHandler: (e: MouseEvent) => void;
@@ -43,7 +43,9 @@ export class OutlineUpdatorModal extends Modal {
     startEl?.scrollIntoView({ block: 'center', behavior: 'auto' });
     this.applySelection(this.selectionAnchorIndex, this.focusIndex);
 
-    document.addEventListener('mouseup', this.mouseUpHandler, { passive: true });
+    document.addEventListener('mouseup', this.mouseUpHandler, {
+      passive: true,
+    });
     document.addEventListener('keydown', this.keyHandler, { capture: true });
 
     new Setting(contentEl)
@@ -52,13 +54,13 @@ export class OutlineUpdatorModal extends Modal {
         btn.setButtonText('🔼 レベル+1').onClick(() => {
           this.contents.incrementLevel();
           this.updateOutlineLineTexts();
-        }),
+        })
       )
       .addButton((btn) =>
         btn.setButtonText('🔽 レベル-1').onClick(() => {
           this.contents.decrementLevel();
           this.updateOutlineLineTexts();
-        }),
+        })
       )
       .addButton((btn) =>
         btn
@@ -67,13 +69,16 @@ export class OutlineUpdatorModal extends Modal {
           .onClick(() => {
             this.onExecute(this.contents);
             this.close();
-          }),
+          })
       );
   }
 
   onClose(): void {
-    document.removeEventListener('keydown', this.keyHandler, { capture: true } as any);
-    document.removeEventListener('mouseup', this.mouseUpHandler as any);
+    // --- 修正: capture:true を明示
+    document.removeEventListener('keydown', this.keyHandler, { capture: true });
+    document.removeEventListener('mouseup', this.mouseUpHandler, {
+      capture: true,
+    });
   }
 
   private onMouseUp(_: MouseEvent) {
@@ -93,7 +98,11 @@ export class OutlineUpdatorModal extends Modal {
       let next = this.focusIndex + delta;
       next = Math.max(0, Math.min(next, max));
       // 変化が無ければ何もしない
-      if (next === this.focusIndex) { e.preventDefault(); e.stopPropagation(); return; }
+      if (next === this.focusIndex) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
 
       this.focusIndex = next;
       this.applySelection(this.selectionAnchorIndex, this.focusIndex);
@@ -102,7 +111,11 @@ export class OutlineUpdatorModal extends Modal {
       // 通常カーソル移動: 範囲リセットして単一選択
       let next = this.cursorIndex + delta;
       next = Math.max(0, Math.min(next, max));
-      if (next === this.cursorIndex) { e.preventDefault(); e.stopPropagation(); return; }
+      if (next === this.cursorIndex) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
 
       this.cursorIndex = next;
       this.selectionAnchorIndex = next;
@@ -111,7 +124,9 @@ export class OutlineUpdatorModal extends Modal {
     }
 
     // スクロール追従
-    const target = this.lineContainerEl.children[this.focusIndex] as HTMLElement;
+    const target = this.lineContainerEl.children[
+      this.focusIndex
+    ] as HTMLElement;
     target?.scrollIntoView({ block: 'nearest' });
 
     e.preventDefault();
@@ -144,7 +159,10 @@ export class OutlineUpdatorModal extends Modal {
     const lines = this.contents.toList();
 
     lines.forEach((text, index) => {
-      const lineEl = this.lineContainerEl.createDiv({ text, cls: 'outline-line' });
+      const lineEl = this.lineContainerEl.createDiv({
+        text,
+        cls: 'outline-line',
+      });
       lineEl.dataset.lineIndex = String(index);
 
       lineEl.addEventListener('mousedown', (ev) => {

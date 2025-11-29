@@ -1,9 +1,10 @@
 import { LLMSettings } from 'src/config/LLMSettings';
 import { LLMClientError } from './LLMClientError';
 import { logger } from '../../logger/loggerInstance';
+import { LLMClientBase } from './LLMClientBase';
 
 /** Geminiモデルクライアント */
-export class GeminiClient {
+export class GeminiClient implements LLMClientBase {
   constructor(private settings: LLMSettings) {}
 
   /** Chat呼び出し */

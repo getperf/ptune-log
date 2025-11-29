@@ -36,7 +36,7 @@ export abstract class YamlIOBase {
     try {
       await vault.adapter.write(path, yaml);
       logger.debug(`[YamlIOBase.writeYamlFile] success ${path}`);
-    } catch (e: any) {
+    } catch (e: unknown) {
       logger.error(`[YamlIOBase.writeYamlFile] write failed: ${path}`, e);
       throw e;
     }
