@@ -1,3 +1,19 @@
+/* 通常表示 */
+.tasks-export-status {
+  color: var(--text-normal);
+}
+
+/* エラー表示 */
+.tasks-export-status-error {
+  color: var(--text-error);
+  /* Obsidian のテーマに連動した赤 */
+}
+
+/* 警告用 */
+.tasks-export-warning {
+  color: var(--text-warning);
+}
+
 /* ファイルエクスプローラ階層インデントを狭くする */
 .nav-folder-children {
   margin-left: 1px !important;
@@ -45,13 +61,24 @@
   max-width: 600px;
 }
 
-/* 新規ノート作成モーダル画面のフォントサイズ調整 */
+/* 新規ノート作成モーダル — prefix/suffix */
 .filename-prefix,
 .filename-suffix {
   font-family: monospace;
   font-size: 0.9em;
   color: var(--text-muted);
 }
+
+/* prefix の左側余白（TS側 .style.marginRight を排除した代替） */
+.filename-prefix {
+  margin-right: 4px;
+}
+
+/* suffix の右側余白（TS側 .style.marginLeft を排除した代替） */
+.filename-suffix {
+  margin-left: 4px;
+}
+
 
 .my-template-textarea {
   width: 100%;
@@ -136,6 +163,7 @@
   margin-top: 1em;
   font-size: 0.9em;
 }
+
 .hidden {
   display: none;
 }
@@ -163,4 +191,10 @@
 
 .tag-candidate-item:hover {
   background-color: var(--background-modifier-hover);
+}
+
+/* Tag Edit Dialog input layout */
+.tag-edit-input-wide {
+  width: 100%;
+  box-sizing: border-box;
 }

@@ -1,15 +1,14 @@
 import { App, Plugin, Notice } from 'obsidian';
 import { LLMClient } from 'src/core/services/llm/LLMClient';
-import { TagVectorBuilder } from './TagVectorBuilder';
 import { logger } from 'src/core/services/logger/loggerInstance';
 
 export class VectorCommandRegistrar {
   constructor(
     private readonly app: App,
     private readonly llmClient: LLMClient
-  ) {}
+  ) { }
 
-  async register(plugin: Plugin): Promise<void> {
+  register(plugin: Plugin) {
     logger.debug('[VectorCommandRegistrar.register] start');
 
     plugin.addCommand({

@@ -12,8 +12,6 @@ export function renderNoteSettings(
   config: ConfigManager,
   settings: PluginSettings
 ) {
-  const note = settings.note;
-
   containerEl.createEl('h2', { text: 'ノート作成設定' });
 
   new Setting(containerEl)

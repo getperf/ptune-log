@@ -9,9 +9,9 @@ export class TagCommandRegistrar {
   constructor(
     private readonly app: App,
     private readonly llmClient: LLMClient
-  ) {}
+  ) { }
 
-  async register(plugin: Plugin): Promise<void> {
+  register(plugin: Plugin) {
     logger.debug('[TagCommandRegistrar.register] start');
 
     plugin.addCommand({

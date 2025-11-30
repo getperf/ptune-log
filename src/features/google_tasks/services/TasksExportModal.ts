@@ -30,7 +30,10 @@ export class TasksExportModal extends Modal {
       });
     }
 
-    this.statusEl = contentEl.createEl('div', { text: '確認待ち…' });
+    this.statusEl = contentEl.createEl('div', {
+      text: '確認待ち…',
+      cls: 'tasks-export-status',
+    });
 
     new Setting(contentEl)
       .addButton((btn) =>
@@ -49,15 +52,18 @@ export class TasksExportModal extends Modal {
 
   setProgress(msg: string) {
     this.statusEl.setText(`⏳ ${msg}`);
+    this.statusEl.removeClass('tasks-export-status-error');
   }
 
   setCompleted(msg: string) {
     this.statusEl.setText(`✅ ${msg}`);
+    this.statusEl.removeClass('tasks-export-status-error');
     setTimeout(() => this.close(), 1500);
   }
 
   setError(msg: string) {
     this.statusEl.setText(msg);
-    this.statusEl.style.color = 'var(--text-error)'; // Obsidian風の赤色
+    // 直接 style.color を使わず、CSS クラスで色変更
+    this.statusEl.addClass('tasks-export-status-error');
   }
 }

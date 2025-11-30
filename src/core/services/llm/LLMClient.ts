@@ -44,7 +44,7 @@ export class LLMClient {
   }
 
   /** Embedding検索が利用可能か */
-  async isVectorSearchAvailable(): Promise<boolean> {
+  isVectorSearchAvailable(): boolean {
     logger.debug('[LLMClient] check vector search available');
     if (!this.hasEmbeddingModel()) return false;
     return this.hasVectorDB();

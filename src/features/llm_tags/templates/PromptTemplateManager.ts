@@ -7,7 +7,7 @@ export class PromptTemplateManager {
   private readonly userPath = `${this.folderPath}/tag_generate.md`;
   private readonly systemPath = `${this.folderPath}/system/tag_generate_system.md`;
 
-  constructor(private app: App) {}
+  constructor(private app: App) { }
 
   async initializeTemplate(): Promise<void> {
     const vault = this.app.vault;
@@ -38,41 +38,44 @@ export class PromptTemplateManager {
     }
   }
 
-  async updateTemplate(): Promise<void> {
+  updateTemplate() {
     const modal = new SelectPromptTemplateModal(
       this.app,
-      async (templateId) => {
-        const userContent = PromptTemplate.getUser(templateId);
-        const systemContent = PromptTemplate.getSystem(templateId);
+      (templateId) => {
+        // ハンドラは Promise を返さないようにする
+        void (async () => {
+          const userContent = PromptTemplate.getUser(templateId);
+          const systemContent = PromptTemplate.getSystem(templateId);
 
-        if (!userContent || !systemContent) {
-          new Notice('❌ テンプレートが見つかりませんでした');
-          return;
-        }
+          if (!userContent || !systemContent) {
+            new Notice('❌ テンプレートが見つかりませんでした');
+            return;
+          }
 
-        const vault = this.app.vault;
+          const vault = this.app.vault;
 
-        // user 側を更新
-        const userFile = vault.getAbstractFileByPath(
-          normalizePath(this.userPath)
-        );
-        if (userFile instanceof TFile) {
-          await vault.modify(userFile, userContent);
-        } else {
-          await vault.create(normalizePath(this.userPath), userContent);
-        }
+          // user 側を更新
+          const userFile = vault.getAbstractFileByPath(
+            normalizePath(this.userPath)
+          );
+          if (userFile instanceof TFile) {
+            await vault.modify(userFile, userContent);
+          } else {
+            await vault.create(normalizePath(this.userPath), userContent);
+          }
 
-        // system 側を更新
-        const systemFile = vault.getAbstractFileByPath(
-          normalizePath(this.systemPath)
-        );
-        if (systemFile instanceof TFile) {
-          await vault.modify(systemFile, systemContent);
-        } else {
-          await vault.create(normalizePath(this.systemPath), systemContent);
-        }
+          // system 側を更新
+          const systemFile = vault.getAbstractFileByPath(
+            normalizePath(this.systemPath)
+          );
+          if (systemFile instanceof TFile) {
+            await vault.modify(systemFile, systemContent);
+          } else {
+            await vault.create(normalizePath(this.systemPath), systemContent);
+          }
 
-        new Notice(`✅ ${templateId} のテンプレートを更新しました`);
+          new Notice(`✅ ${templateId} のテンプレートを更新しました`);
+        })();
       }
     );
 

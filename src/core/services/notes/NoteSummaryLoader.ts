@@ -1,5 +1,4 @@
-import { App, TFolder, TFile } from 'obsidian';
-import { NoteSummary } from 'src/core/models/notes/NoteSummary';
+import { App, TFolder } from 'obsidian';
 import { NoteSummaries } from 'src/core/models/notes/NoteSummaries';
 import { logger } from '../logger/loggerInstance';
 import { NoteFinder } from 'src/core/utils/note/NoteFinder';
@@ -10,7 +9,7 @@ import { NoteFinder } from 'src/core/utils/note/NoteFinder';
  * NoteSummary群（NoteSummaries）を生成するローダクラス。
  */
 export class NoteSummaryLoader {
-  constructor(private readonly app: App) {}
+  constructor(private readonly app: App) { }
 
   /**
    * --- loadFromFolder

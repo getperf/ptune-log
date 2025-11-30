@@ -3,8 +3,6 @@ import { FolderNameTagSuggestionStrategy } from '../strategies/FolderNameTagSugg
 import { LLMClient } from 'src/core/services/llm/LLMClient';
 import { TagVectorSearcher } from 'src/core/services/vector/TagVectorSearcher';
 import { logger } from 'src/core/services/logger/loggerInstance';
-import { LLMSettings } from 'src/config/LLMSettings';
-import { NoteSummaryLoader } from 'src/core/services/notes/NoteSummaryLoader';
 import { FolderIndexWriterService } from 'src/core/services/notes/FolderIndexWriterService';
 import { TagAliases } from 'src/core/models/tags/TagAliases';
 
@@ -45,7 +43,7 @@ export class CommonTagGenerator {
 
     const aliases = new TagAliases();
     await aliases.load(this.app.vault);
-    const { normalized, newTags } =
+    const { normalized } =
       aliases.normalizeAndRegisterWithDiff(rawTags);
 
     await indexWriter.updateTags(folderPath, normalized);

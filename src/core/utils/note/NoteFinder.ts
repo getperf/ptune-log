@@ -9,7 +9,7 @@ import { DateUtil } from 'src/core/utils/date/DateUtil';
  * Vault 内のノートを frontmatter または作成日・ファイル名プレフィックスで検索するユーティリティ。
  */
 export class NoteFinder {
-  constructor(private readonly app: App) {}
+  constructor(private readonly app: App) { }
 
   /**
    * --- 指定日付に一致するノートを検索
@@ -86,8 +86,8 @@ export class NoteFinder {
       ? new Date(fm.createdAt)
       : new Date(file.stat.ctime);
 
-    const dailynoteLink = fm.dailynote as string | undefined;
-    const goal = fm.goal as string | undefined; // ← 追加
+    const dailynoteLink = fm.dailynote ?? undefined;
+    const goal = fm.goal ?? undefined;
 
     if (!createdAt && !dailynoteLink) return null;
 

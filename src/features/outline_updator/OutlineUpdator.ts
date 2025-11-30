@@ -16,7 +16,7 @@ export class OutlineUpdator {
     this.plugin.addCommand({
       id: 'edit-outline-heading-level',
       name: 'ノートの見出しレベル一括変更',
-      editorCallback: async (editor, view) => {
+      editorCallback: (editor, view) => {
         if (!view.file) {
           logger.warn('[OutlineUpdator.regist] no active file');
           return;

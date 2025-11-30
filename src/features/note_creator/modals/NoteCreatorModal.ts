@@ -108,16 +108,17 @@ export class NoteCreatorModal extends Modal {
         inputTitle = value;
         isTitleEdited = true; // ← ユーザーが手動入力したことを記録
       });
-      text.inputEl.addEventListener('keydown', async (e) => {
+      text.inputEl.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
           this.input.title = inputTitle.trim();
-          await this.handleSubmit();
+          void (async () => {
+            await this.handleSubmit();
+          })();
         }
       });
     });
 
-    let goalText = '';
     let goalTextEl: HTMLInputElement;
 
     // --- 5. 目的入力 ---
@@ -129,7 +130,6 @@ export class NoteCreatorModal extends Modal {
       dropdown.onChange((value) => {
         if (!value) return;
         const template = GoalTemplateService.getTemplate(value as GoalCategory);
-        goalText = template;
         if (goalTextEl) goalTextEl.value = template;
         this.input.goal = template;
       });
@@ -140,7 +140,6 @@ export class NoteCreatorModal extends Modal {
       goalTextEl = text.inputEl;
       text.setPlaceholder('例: API のレスポンス仕様を 2 パターン比較する');
       text.onChange((value) => {
-        goalText = value;
         this.input.goal = value.trim();
       });
     });
@@ -186,8 +185,9 @@ export class NoteCreatorModal extends Modal {
       logger.warn('[NoteCreatorModal.handleSubmit] 入力検証失敗');
       return;
     }
+
     this.close();
-    this.onSubmit(this.input as NoteCreationInput);
+    await Promise.resolve(this.onSubmit(this.input as NoteCreationInput));
   }
 
   /**
@@ -204,7 +204,6 @@ export class NoteCreatorModal extends Modal {
       text: `${prefix}_`,
       cls: 'filename-prefix',
     });
-    prefixSpan.style.marginRight = '4px';
     container.insertBefore(prefixSpan, textEl);
 
     if (this.creationType === SerialNoteCreationType.FILE) {
@@ -212,7 +211,6 @@ export class NoteCreatorModal extends Modal {
         text: '.md',
         cls: 'filename-suffix',
       });
-      suffixSpan.style.marginLeft = '4px';
       container.appendChild(suffixSpan);
     }
   }

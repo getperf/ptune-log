@@ -70,9 +70,9 @@ export class LLMTagGenerator {
     await registry.ensure();
 
     // --- コマンド登録を各領域に分離
-    await this.llmRegistrar.register(plugin);
-    await this.tagRegistrar.register(plugin);
-    await this.vectorRegistrar.register(plugin);
+    this.llmRegistrar.register(plugin);
+    this.tagRegistrar.register(plugin);
+    this.vectorRegistrar.register(plugin);
 
     logger.debug('[LLMTagGenerator.register] complete');
   }

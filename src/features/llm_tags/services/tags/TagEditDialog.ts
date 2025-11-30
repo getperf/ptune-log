@@ -66,14 +66,16 @@ export class TagEditDialog extends Modal {
     // --- To 入力欄
     this.inputEl = contentEl.createEl('input', {
       type: 'text',
-      cls: 'tag-edit-input',
+      cls: 'tag-edit-input tag-edit-input-wide',
       attr: { placeholder: '変更後のタグを入力または選択' },
       value: this.ctx.to ?? '',
     });
-    this.inputEl.style.width = '100%';
+
     this.inputEl.addEventListener('input', async (ev) => {
       const keyword = (ev.target as HTMLInputElement).value.trim();
-      await this.updateCandidates(keyword);
+      void (async () => {
+        await this.updateCandidates(keyword);
+      })();
     });
 
     // --- タブバー

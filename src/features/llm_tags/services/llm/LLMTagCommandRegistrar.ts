@@ -1,4 +1,4 @@
-import { App, Plugin, TFile, TFolder, Notice } from 'obsidian';
+import { App, Plugin, TFile, TFolder } from 'obsidian';
 import { LLMTagGenerateExecutor } from './LLMTagGenerateExecutor';
 import { LLMPromptPreviewer } from './LLMPromptPreviewer';
 import { PromptTemplateManager } from '../../templates/PromptTemplateManager';
@@ -19,7 +19,7 @@ export class LLMTagCommandRegistrar {
     this.promptManager = new PromptTemplateManager(app);
   }
 
-  async register(plugin: Plugin): Promise<void> {
+  register(plugin: Plugin) {
     logger.debug('[LLMTagCommandRegistrar.register] start');
 
     // --- ファイルメニュー登録 ---
@@ -71,7 +71,7 @@ export class LLMTagCommandRegistrar {
       name: 'タグ更新: LLMタグ生成テンプレートを選択',
       callback: async () => {
         logger.debug('[LLMTagCommandRegistrar] command: select-template');
-        await this.promptManager.updateTemplate();
+        this.promptManager.updateTemplate();
       },
     });
 

@@ -57,9 +57,11 @@ export class SetupWizardDialog extends Modal {
       'title',
       'ノート関連のディレクトリとテンプレートを作成します'
     );
-    initBtn.addEventListener('click', async () => {
-      await this.noteHelper.ensureResources();
-      new Notice('ノート関連のディレクトリとテンプレートを初期化しました');
+    initBtn.addEventListener('click', () => {
+      void (async () => {
+        await this.noteHelper.ensureResources();
+        new Notice('ノート関連のディレクトリとテンプレートを初期化しました');
+      })();
     });
   }
 

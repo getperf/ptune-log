@@ -38,10 +38,10 @@ export class PrefixGenerator {
   }
 
   /** --- フォルダ内のファイルから次の連番プレフィックスを生成する */
-  static async getNextFilePrefix(
+  static getNextFilePrefix(
     folder: TFolder,
     digits: number
-  ): Promise<string> {
+  ): string {
     const files = folder.children
       .filter((f) => f instanceof TFile)
       .map((f) => f.name);
@@ -75,10 +75,10 @@ export class PrefixGenerator {
   }
 
   /** --- フォルダ内のフォルダから次の連番プレフィックスを生成する */
-  static async getNextFolderPrefix(
+  static getNextFolderPrefix(
     folder: TFolder,
     digits: number
-  ): Promise<string> {
+  ): string {
     const folders = folder.children
       .filter((f) => f instanceof TFolder)
       .map((f) => f.name);
@@ -89,12 +89,12 @@ export class PrefixGenerator {
   }
 
   /** --- フォルダ作成時のプレフィックスを返す（日付／連番対応） */
-  static async getFolderPrefix(
+  static getFolderPrefix(
     vault: Vault,
     parentPath: string,
     prefix: notePrefixType,
     digits = 2
-  ): Promise<string> {
+  ): string {
     logger.debug(
       `[PrefixGenerator.getFolderPrefix] path=${parentPath}, prefixType=${prefix}`
     );

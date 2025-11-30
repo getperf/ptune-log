@@ -43,7 +43,7 @@ export class TagSuggestionService {
   /**
    * LLMClient がベクトル検索可能かどうか
    */
-  async isVectorSearchAvailable(): Promise<boolean> {
+  isVectorSearchAvailable(): boolean {
     const available = !!this.llmClient?.isVectorSearchAvailable();
     logger.debug(`[TagSuggestionService] vectorSearchAvailable=${available}`);
     return available;
@@ -71,17 +71,17 @@ export class TagSuggestionService {
     if (mode === 'vector') {
       return await this.vectorSearcher.search(keyword, { limit });
     } else {
-      return await this.searchTextCandidates(keyword, limit);
+      return this.searchTextCandidates(keyword, limit);
     }
   }
 
   /**
    * 通常検索：Tagsモデルの検索
    */
-  private async searchTextCandidates(
+  private searchTextCandidates(
     keyword: string,
     limit: number
-  ): Promise<TagCandidate[]> {
+  ): TagCandidate[] {
     const key = keyword.split('/').pop()?.toLowerCase() ?? '';
     const matched = this.tags.searchByKeyword(keyword, limit);
 

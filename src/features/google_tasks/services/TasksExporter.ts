@@ -20,7 +20,7 @@ export class TasksExporter {
   constructor(
     private api: GoogleTasksAPI,
     private tasklistTitle: string = 'Today'
-  ) {}
+  ) { }
 
   /**
    * 親→子順で登録し、MyTask[] を返す
@@ -51,20 +51,33 @@ export class TasksExporter {
     for (const task of parents) {
       const myTask = this.toMyTask(task);
       const created = await this.api.addTask(myTask, tasklistId);
-      myTask.id = created.id!;
+
+      if (!created.id) {
+        throw new Error(`タスクIDが取得できませんでした: ${task.title}`);
+      }
+
+      myTask.id = created.id;
       exportedTasks.push(myTask);
-      indexToId.set(task.index, created.id!);
+      indexToId.set(task.index, created.id);
     }
 
     for (const task of children) {
       const myTask = this.toMyTask(task);
       const created = await this.api.addTask(myTask, tasklistId);
-      const parentId = indexToId.get(task.parent_index!);
+
+      if (!created.id) {
+        throw new Error(`子タスクIDが取得できませんでした: ${task.title}`);
+      }
+
+      const parentIndex = task.parent_index;
+      const parentId = parentIndex !== undefined ? indexToId.get(parentIndex) : undefined;
+
       if (parentId) {
-        await this.api.moveTask(created.id!, tasklistId, parentId);
+        await this.api.moveTask(created.id, tasklistId, parentId);
         myTask.parent = parentId;
       }
-      myTask.id = created.id!;
+
+      myTask.id = created.id;
       exportedTasks.push(myTask);
     }
 

@@ -1,4 +1,4 @@
-import { App, Notice, Plugin, normalizePath } from 'obsidian';
+import { App, Notice, Platform, Plugin, normalizePath } from 'obsidian';
 import { logger } from 'src/core/services/logger/loggerInstance';
 
 import { SetupWizardDialog } from './SetupWizardDialog';
@@ -109,7 +109,8 @@ export class InitialSetupManager {
    * Windows 環境のみ有効
    */
   async checkPtuneSync(): Promise<{ available: boolean; verified: boolean }> {
-    const isWindows = navigator.userAgent.includes('Windows');
+    const isWindows = Platform.isWin;
+
     if (!isWindows) {
       logger.info(
         '[InitialSetup] 非Windows環境のため、PtuneSync確認をスキップします。'

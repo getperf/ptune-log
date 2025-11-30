@@ -37,7 +37,7 @@ export class NoteCreationService {
 
     const templateText = this.config.get<string>('note.templateText');
     const content = templateText
-      ? await this.applyTemplate(templateText, input.title)
+      ? this.applyTemplate(templateText, input.title)
       : '';
 
     const file = await vault.create(newFilePath, content);
@@ -73,10 +73,10 @@ export class NoteCreationService {
   }
 
   /** --- テンプレート適用（{{title}}のみ置換） --- */
-  private async applyTemplate(
+  private applyTemplate(
     template: string,
     title: string
-  ): Promise<string> {
+  ): string {
     return template.replace(/{{title}}/g, title);
   }
 
@@ -108,8 +108,7 @@ export class NoteCreationService {
       await this.writer.update(file, frontmatter);
 
       logger.info(
-        `[NoteCreationService] frontmatter updated: taskKey=${
-          input.taskKey ?? 'none'
+        `[NoteCreationService] frontmatter updated: taskKey=${input.taskKey ?? 'none'
         }, createdAt=${createdAt}, dailyNote=${dailyNote ?? 'none'}`
       );
     } catch (err) {

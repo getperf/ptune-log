@@ -1,5 +1,5 @@
 import { Plugin } from 'obsidian';
-import { Logger, LogLevel } from 'src/core/services/logger/Logger';
+import { LogLevel } from 'src/core/services/logger/Logger';
 import { LLMSettings } from './LLMSettings';
 import { PROJECT_NOTE_TEMPLATE } from 'src/core/templates/project_note_template';
 import { SerialNoteCreationType } from 'src/features/note_creator/modals/NoteCreatorModal';

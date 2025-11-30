@@ -51,7 +51,7 @@ export class NoteFrontmatterParser {
 
       return { createdAt, dailynote, taskKey, goal, summary, tags };
     } catch (e) {
-      logger.warn('[NoteFrontmatterParser] Invalid YAML detected');
+      logger.warn('[NoteFrontmatterParser] Invalid YAML detected', e);
       return {};
     }
   }

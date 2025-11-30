@@ -16,7 +16,7 @@ import { TagAliasUpdater } from 'src/features/llm_tags/services/tags/TagAliasUpd
  * - TagAliasUpdater による辞書更新も連携
  */
 export class TagRenamer {
-  constructor(private app: App, private updater?: TagAliasUpdater) {}
+  constructor(private app: App, private updater?: TagAliasUpdater) { }
 
   /** タグ名を新しい名前にリネーム */
   async rename(tagName: string, newName: string): Promise<void> {
@@ -32,7 +32,7 @@ export class TagRenamer {
     const newTag = new Tag(newName);
     const replace = new Replacement(oldTag, newTag);
 
-    const targets = await this.findTargets(oldTag);
+    const targets = this.findTargets(oldTag);
     if (!targets.length) {
       logger.info(`[TagRenamer.rename] no target files found for #${tagName}`);
       new Notice(`対象ファイルが見つかりません: #${tagName}`);
@@ -61,7 +61,7 @@ export class TagRenamer {
   }
 
   /** 対象ファイルを検索 */
-  private async findTargets(tag: Tag) {
+  private findTargets(tag: Tag) {
     logger.debug(`[TagRenamer.findTargets] search start: ${tag.tag}`);
 
     const targets: any[] = [];

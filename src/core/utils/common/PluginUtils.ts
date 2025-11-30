@@ -17,7 +17,7 @@ export class PluginUtils {
   }
 
   /** 任意プラグイン情報を返す */
-  static getPlugin(app: App, pluginId: string, isCore: boolean): unknown | null {
+  static getPlugin(app: App, pluginId: string, isCore: boolean) {
     if (isCore) {
       return app.internalPlugins?.plugins?.[pluginId] ?? null;
     }
