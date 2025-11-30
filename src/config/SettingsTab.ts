@@ -25,7 +25,7 @@ export class PtuneSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    new Setting(containerEl).setName("ptune-log Settings").setHeading();
+    new Setting(containerEl).setName("基本設定").setHeading();
     new Setting(containerEl)
       .setName('Log level')
       .setDesc('Set the logging verbosity')
@@ -50,7 +50,7 @@ export class PtuneSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Enable log file')
       .setDesc(
-        'Write logs to .obsidian/plugins/ptune-log/logs/ptune-log_YYYY-MM-DD.log'
+        'Write logs to {vault config}/plugins/ptune-log/logs/ptune-log_YYYY-MM-DD.log'
       )
       .addToggle((toggle) =>
         toggle

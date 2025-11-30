@@ -1,6 +1,7 @@
 import moment from 'moment';
 import { normalizePath, Vault } from 'obsidian';
 import { logger } from 'src/core/services/logger/loggerInstance';
+import { VaultUtils } from '../common/VaultUtils';
 
 interface DailyNoteSettings {
   folder: string;
@@ -60,7 +61,8 @@ export class DailyNoteConfig {
   static async getDailyNoteSettingsFromJson(
     vault: Vault
   ): Promise<DailyNoteSettings> {
-    const path = normalizePath('.obsidian/daily-notes.json');
+    // const path = normalizePath('.obsidian/daily-notes.json');
+    const path = VaultUtils.getConfigPathFromVault(vault, 'daily-notes.json')
     logger.debug(`[DailyNoteConfig] loading settings from ${path}`);
 
     try {

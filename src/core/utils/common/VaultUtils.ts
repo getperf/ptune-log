@@ -1,5 +1,5 @@
 // File: src/core/utils/common/VaultUtils.ts
-import { App, normalizePath } from 'obsidian';
+import { App, normalizePath, Vault } from 'obsidian';
 import { logger } from 'src/core/services/logger/loggerInstance';
 
 export class VaultUtils {
@@ -21,6 +21,11 @@ export class VaultUtils {
     const path = normalizePath(`${VaultUtils.getConfigDir(app)}/${relative}`);
     logger.debug(`[VaultUtils.getConfigPath] ${path}`);
     return path;
+  }
+
+  static getConfigPathFromVault(vault: Vault, relative: string): string {
+    const cfg = normalizePath(vault.configDir);
+    return normalizePath(`${cfg}/${relative}`);
   }
 
   /** appearance.json のパス */

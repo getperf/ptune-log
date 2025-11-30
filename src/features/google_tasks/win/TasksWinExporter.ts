@@ -9,10 +9,15 @@ import { FileUtils } from 'src/core/utils/common/FileUtils';
  * WinUIアプリ経由でGoogle Tasksへエクスポートする処理
  */
 export class TasksWinExporter {
-  private readonly workDir = '.obsidian/plugins/ptune-log/work';
   private readonly fileName = 'tasks.md';
 
   constructor(private app: App) { }
+
+  /** 動的 work ディレクトリ */
+  private getWorkDir(): string {
+    const configDir = this.app.vault.configDir; // 例: ".obsidian"
+    return normalizePath(`${configDir}/plugins/ptune-log/work`);
+  }
 
   /**
    * 今日のデイリーノートからタスクを抽出し、WinUIアプリへ渡す
@@ -39,7 +44,7 @@ export class TasksWinExporter {
       return false;
     }
 
-    const filePath = normalizePath(`${this.workDir}/${this.fileName}`);
+    const filePath = normalizePath(`${this.getWorkDir()}/${this.fileName}`);
     const content = [
       '# 今日の予定タスク',
       ...lines,

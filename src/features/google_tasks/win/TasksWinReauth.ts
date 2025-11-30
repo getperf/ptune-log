@@ -1,4 +1,4 @@
-import { App, Notice } from 'obsidian';
+import { App, normalizePath, Notice } from 'obsidian';
 import { WinAppLauncher } from './WinAppLauncher';
 import { WinAppUriBuilder } from './WinAppUriBuilder';
 import { logger } from 'src/core/services/logger/loggerInstance';
@@ -8,15 +8,20 @@ import { logger } from 'src/core/services/logger/loggerInstance';
  * - token.json を削除し、WinUI アプリを /auth で起動
  */
 export class TasksWinReauth {
-  private readonly TOKEN_FILE = '.obsidian/plugins/ptune-log/work/token.json';
+  private readonly tokenFile: string;
 
-  constructor(private app: App) {}
+  constructor(private app: App) {
+    const configDir = app.vault.configDir; // 例: ".obsidian"
+    this.tokenFile = normalizePath(
+      `${configDir}/plugins/ptune-log/work/token.json`
+    );
+  }
 
   async execute(): Promise<void> {
     logger.info('[TasksWinReauth.execute] start');
 
     try {
-      await this.app.vault.adapter.remove(this.TOKEN_FILE);
+      await this.app.vault.adapter.remove(this.tokenFile);
       logger.debug(`[TasksWinReauth] token.json removed`);
     } catch (e) {
       logger.warn(`[TasksWinReauth] token.json not found or failed`, e);
@@ -43,3 +48,4 @@ export class TasksWinReauth {
     }
   }
 }
+

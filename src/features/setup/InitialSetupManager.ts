@@ -1,9 +1,8 @@
-import { App, Notice, Plugin } from 'obsidian';
+import { App, Notice, Plugin, normalizePath } from 'obsidian';
 import { logger } from 'src/core/services/logger/loggerInstance';
 
 import { SetupWizardDialog } from './SetupWizardDialog';
 import { NoteSetupHelper } from './NoteSetupHelper';
-// import { Utils } from 'src/core/utils/common/Utils';
 import { WinAppLauncher } from '../google_tasks/win/WinAppLauncher';
 import { VaultUtils } from 'src/core/utils/common/VaultUtils';
 import { PluginUtils } from 'src/core/utils/common/PluginUtils';
@@ -17,9 +16,6 @@ export interface RequiredPluginInfo {
 }
 
 export class InitialSetupManager {
-  // private app: App;
-  // 必須プラグインの定義（id と種類）
-
   private requiredPlugins: RequiredPluginInfo[] = [
     { id: 'bases', isCore: true, name: 'Bases', version: '1.0.0' },
     { id: 'outline', isCore: true, name: 'Outline', version: '1.0.0' },
@@ -97,11 +93,14 @@ export class InitialSetupManager {
   }
 
   /**
-   * デイリーノートの設定ファイル (.obsidian/daily-notes.json) の存在を確認
+   * デイリーノートの設定ファイル (configDir/daily-notes.json) の存在を確認
    */
   async isDailyNoteConfigured(): Promise<boolean> {
     const adapter = this.app.vault.adapter;
-    const path = '.obsidian/daily-notes.json';
+
+    // ← 修正ポイント（app.vault.configDir を使用）
+    const path = normalizePath(`${this.app.vault.configDir}/daily-notes.json`);
+
     return await adapter.exists(path);
   }
 
@@ -149,7 +148,6 @@ export class InitialSetupManager {
     const hasError =
       missingPlugins.length > 0 || themeError || !isDailyNoteConfigured;
 
-    // ✅ エラーがあればまとめて通知
     if (hasError) {
       new Notice(
         '必須の設定に問題があります。詳細はコマンド『ノートの初期セットアップ』で確認してください。',

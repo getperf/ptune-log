@@ -19,13 +19,18 @@ interface StatusFile {
  * - 起動成功後、status.json の status: success/error まで監視（完了検知）
  */
 export class WinAppLauncher {
-  private readonly STATUS_FILE = '.obsidian/plugins/ptune-log/work/status.json';
+  private readonly STATUS_FILE: string;
   private readonly START_RETRY_MAX = 4;
   private readonly POLL_INTERVAL_MS = 1000;
   private readonly COMPLETE_TIMEOUT_MS = 90000;
   private readonly START_WAIT_MS = 1000;
 
-  constructor(private vault: Vault) {}
+  constructor(private vault: Vault) {
+    const configDir = vault.configDir; // 例: ".obsidian"
+    this.STATUS_FILE = normalizePath(
+      `${configDir}/plugins/ptune-log/work/status.json`
+    );
+  }
 
   /**
    * メイン実行：WinUI アプリを URI で起動し、完了まで監視
