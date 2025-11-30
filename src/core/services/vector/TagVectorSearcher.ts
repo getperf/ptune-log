@@ -37,11 +37,22 @@ export class TagVectorSearcher {
   /** 利用可能判定 */
   async isAvailable(): Promise<boolean> {
     await this.ensure();
-    const available =
+
+    const hasVectors =
       !!this.vectors &&
-      this.vectors.size() > 0 &&
-      this.llmClient.isVectorSearchAvailable();
-    logger.debug(`[TagVectorSearcher] isAvailable=${available}`);
+      this.vectors.size() > 0;
+
+    // LLM側のベクトル検索可否は Promise の可能性があるため await
+    const llmAvailable = await this.llmClient.isVectorSearchAvailable();
+
+    const available = hasVectors && llmAvailable;
+
+    // boolean を明示的に出力
+    logger.debug(
+      `[TagVectorSearcher.isAvailable] available=${String(available)}, ` +
+      `hasVectors=${hasVectors}, llmAvailable=${llmAvailable}`
+    );
+
     return available;
   }
 

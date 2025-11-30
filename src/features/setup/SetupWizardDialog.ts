@@ -1,10 +1,9 @@
 import { Plugin, App, Modal, Notice, Setting } from 'obsidian';
 import type {
   InitialSetupManager,
-  RequiredPluginInfo,
 } from './InitialSetupManager';
-import { Utils } from 'src/core/utils/common/Utils';
 import { NoteSetupHelper } from './NoteSetupHelper';
+import { PluginUtils } from 'src/core/utils/common/PluginUtils';
 
 export class SetupWizardDialog extends Modal {
   app: App;
@@ -125,7 +124,7 @@ export class SetupWizardDialog extends Modal {
               .setTooltip('公式ページを開く')
               .setIcon('link')
               .onClick(() => {
-                const url = Utils.getPluginUrl(plugin);
+                const url = PluginUtils.getPluginUrl(plugin);
                 window.open(url, '_blank');
               })
           );

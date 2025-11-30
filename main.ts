@@ -1,4 +1,4 @@
-import { Notice, Plugin } from 'obsidian';
+import { Plugin } from 'obsidian';
 import { ConfigManager } from './src/config/ConfigManager';
 import { PtuneSettingTab } from './src/config/SettingsTab';
 import { LayoutRelocator } from 'src/app/LayoutRelocator';

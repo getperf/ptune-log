@@ -13,10 +13,10 @@ import { TasksExport } from './services/TasksExport';
 import { TasksWinReauth } from './win/TasksWinReauth';
 import { GoogleAuth } from './google_auth/GoogleAuth';
 import { GoogleTasksExportModal } from './win/GoogleTasksExportModal';
-import { Utils } from 'src/core/utils/common/Utils';
 import { MarkdownTaskParser } from './services/MarkdownTaskParser';
 import { ExportTasks } from 'src/core/models/tasks/ExportTasks';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
+import { FileUtils } from 'src/core/utils/common/FileUtils';
 
 /**
  * Google Tasks 同期コマンド登録クラス
@@ -160,10 +160,8 @@ export class GoogleTasksFeature {
         );
         for (const note of notes) {
           logger.debug(
-            `[DebugFindNotes] ${note.notePath} → dailynote=${
-              note.dailynote
-            }, updated=${
-              note.updatedAt ? DateUtil.utcString(note.updatedAt) : 'none'
+            `[DebugFindNotes] ${note.notePath} → dailynote=${note.dailynote
+            }, updated=${note.updatedAt ? DateUtil.utcString(note.updatedAt) : 'none'
             }`
           );
         }
@@ -186,7 +184,7 @@ export class GoogleTasksFeature {
       return false;
     }
 
-    const lines = await Utils.readSectionLines(
+    const lines = await FileUtils.readSection(
       this.app,
       file,
       '今日の予定タスク'

@@ -9,7 +9,7 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 /** --- デイリーノート操作のユーティリティクラス */
 export class DailyNoteHelper {
   /** --- 指定日付のノートパスを解決 */
-  static async resolveDailyNotePath(app: App, date: Date): Promise<string> {
+  static resolveDailyNotePath(app: App, date: Date): string {
     const settings = getDailyNoteSettings();
     const dateStr = moment(date).format(settings.format);
     const path = normalizePath(`${settings.folder}/${dateStr}.md`);
@@ -19,7 +19,7 @@ export class DailyNoteHelper {
 
   /** --- 指定日付のノートを取得。なければ新規作成 */
   static async getOrOpenDailyNoteForDate(app: App, date: Date): Promise<TFile> {
-    const path = await this.resolveDailyNotePath(app, date);
+    const path = this.resolveDailyNotePath(app, date);
     const file = app.vault.getAbstractFileByPath(path);
 
     if (file instanceof TFile) {

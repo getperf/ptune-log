@@ -35,7 +35,7 @@ export class DailyNoteUpdater {
   /** --- constructor
    * App インスタンスを受け取り、デイリーノート操作に利用する。
    */
-  constructor(private readonly app: App) {}
+  constructor(private readonly app: App) { }
 
   /** --- appendTagResults
    * NoteSummaries を指定日のデイリーノートに追記する。

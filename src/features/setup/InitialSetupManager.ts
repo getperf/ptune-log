@@ -3,8 +3,10 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 
 import { SetupWizardDialog } from './SetupWizardDialog';
 import { NoteSetupHelper } from './NoteSetupHelper';
-import { Utils } from 'src/core/utils/common/Utils';
+// import { Utils } from 'src/core/utils/common/Utils';
 import { WinAppLauncher } from '../google_tasks/win/WinAppLauncher';
+import { VaultUtils } from 'src/core/utils/common/VaultUtils';
+import { PluginUtils } from 'src/core/utils/common/PluginUtils';
 
 export interface RequiredPluginInfo {
   id: string;
@@ -43,7 +45,7 @@ export class InitialSetupManager {
     },
   ];
 
-  constructor(private app: App, private noteHelper: NoteSetupHelper) {}
+  constructor(private app: App, private noteHelper: NoteSetupHelper) { }
 
   getInvalidCorePlugins(): RequiredPluginInfo[] {
     return this.getInvalidPlugins().filter((p) => p.isCore);
@@ -56,7 +58,7 @@ export class InitialSetupManager {
   getInvalidPlugins(): RequiredPluginInfo[] {
     const invalid: RequiredPluginInfo[] = [];
     for (const p of this.requiredPlugins) {
-      const isEnabled = Utils.isPluginEnabled(this.app, p.id, p.isCore);
+      const isEnabled = PluginUtils.isEnabled(this.app, p.id, p.isCore);
       if (p.mustBeDisabled) {
         if (isEnabled) invalid.push(p);
       } else {
@@ -77,7 +79,7 @@ export class InitialSetupManager {
   }
 
   async getMissingTheme(): Promise<string | null> {
-    const theme = await Utils.getCurrentTheme(this.app);
+    const theme = await VaultUtils.getCurrentTheme(this.app);
     return theme !== 'Minimal' ? 'Minimal' : null;
   }
 
@@ -85,7 +87,7 @@ export class InitialSetupManager {
    * テーマがMinimalでなければエラーメッセージを返す
    */
   async checkTheme(): Promise<string | null> {
-    const theme = await Utils.getCurrentTheme(this.app);
+    const theme = await VaultUtils.getCurrentTheme(this.app);
 
     if (theme !== 'Minimal') {
       return `外観 > テーマ > コミュニティテーマ で Minimal を検索してインストールしてください。\nGitHub: https://github.com/kepano/obsidian-minimal`;
@@ -134,7 +136,7 @@ export class InitialSetupManager {
     const missingPlugins: string[] = [];
 
     for (const plugin of this.requiredPlugins) {
-      const enabled = Utils.isPluginEnabled(this.app, plugin.id, plugin.isCore);
+      const enabled = PluginUtils.isEnabled(this.app, plugin.id, plugin.isCore);
       if (plugin.mustBeDisabled) {
         if (enabled) missingPlugins.push(plugin.name);
       } else {

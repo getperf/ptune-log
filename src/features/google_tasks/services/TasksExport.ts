@@ -1,6 +1,5 @@
 import { App, Notice, TFile } from 'obsidian';
 import { TasksExportModal } from './TasksExportModal';
-import { Utils } from 'src/core/utils/common/Utils';
 import { GoogleTasksAPI } from 'src/features/google_tasks/utils/GoogleTasksAPI';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { TasksReset } from './TasksReset';
@@ -8,6 +7,7 @@ import { ParsedTask, TasksExporter } from './TasksExporter';
 import { MarkdownTaskParser } from './MarkdownTaskParser';
 import { TaskJsonUtils } from 'src/core/utils/task/TaskJsonUtils';
 import { MyTask } from 'src/core/models/tasks/MyTask';
+import { FileUtils } from 'src/core/utils/common/FileUtils';
 
 export class TasksExport {
   constructor(
@@ -15,7 +15,7 @@ export class TasksExport {
     private file: TFile,
     private api: GoogleTasksAPI,
     private taskListName: string = 'Today'
-  ) {}
+  ) { }
 
   async confirmAndRun(): Promise<void> {
     logger.info('[TasksExport.confirmAndRun] start');
@@ -31,7 +31,7 @@ export class TasksExport {
   }
 
   private async extractTasks(): Promise<ParsedTask[]> {
-    const lines = await Utils.readSectionLines(
+    const lines = await FileUtils.readSection(
       this.app,
       this.file,
       '今日の予定タスク'

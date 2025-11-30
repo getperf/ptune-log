@@ -1,7 +1,7 @@
-import { Notice, Plugin } from 'obsidian';
+import { Notice, Plugin, requestUrl } from 'obsidian';
 import { GoogleAuthSettings } from 'src/config/ConfigManager';
 import { logger } from 'src/core/services/logger/loggerInstance';
-import { Utils } from 'src/core/utils/common/Utils';
+import { ErrorUtils } from 'src/core/utils/common/ErrorUtils';
 
 export interface TokenResponse {
   access_token: string;
@@ -92,28 +92,30 @@ export class TokenManager {
     const { clientId, clientSecret } = this.authSettings;
 
     try {
-      const res = await fetch('https://oauth2.googleapis.com/token', {
+      const body = new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        refresh_token: refreshToken,
+        grant_type: 'refresh_token',
+      }).toString();
+
+      const res = await requestUrl({
+        url: 'https://oauth2.googleapis.com/token',
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          client_id: clientId,
-          client_secret: clientSecret,
-          refresh_token: refreshToken,
-          grant_type: 'refresh_token',
-        }),
+        body,
       });
 
-      if (!res.ok) {
-        const text = await res.text();
+      if (res.status < 200 || res.status >= 300) {
         logger.error('[TokenManager.refreshAccessToken] HTTP error', {
           status: res.status,
-          text,
+          text: res.text,
         });
         new Notice(`Google Auth error (${res.status})`, 8000);
         return null;
       }
 
-      const tokens = (await res.json()) as TokenResponse;
+      const tokens = res.json as TokenResponse;
 
       if (tokens.access_token) {
         const store: TokenStore = {
@@ -130,9 +132,10 @@ export class TokenManager {
       logger.error('[TokenManager.refreshAccessToken] token missing', tokens);
       new Notice('Google Auth: access_token missing', 8000);
       return null;
+
     } catch (e: unknown) {
-      logger.error('[TokenManager.refreshAccessToken] exception', e);
-      const msg = Utils.safeErrorMessage(e);
+      const msg = ErrorUtils.toMessage(e);
+      logger.error('[TokenManager.refreshAccessToken] exception', msg);
       new Notice(`Google Auth exception: ${msg}`, 8000);
       return null;
     }

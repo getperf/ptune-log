@@ -29,9 +29,7 @@ export class PomodoroSuggest extends EditorSuggest<string> {
   /** --- サジェスト候補の描画処理 */
   renderSuggestion(suggestion: string, el: HTMLElement): void {
     if (suggestion === '🚫') {
-      const label = el.createEl('div', { text: '繰り越しなし' });
-      label.style.fontWeight = 'bold';
-      label.style.marginTop = '0.2em';
+      el.createEl('div', { text: '繰り越しなし' });
     }
     el.createSpan({ text: suggestion });
   }

@@ -15,7 +15,7 @@ export function renderGoogleAuthSettings(
   // ① 既存のセクション削除
   const section = containerEl.querySelector(
     '.google-auth-section'
-  ) as HTMLElement | null;
+  );
   if (section) section.remove();
 
   // ② 新しいセクションを作成

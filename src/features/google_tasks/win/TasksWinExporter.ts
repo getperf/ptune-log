@@ -1,9 +1,9 @@
 import { App, Notice, TFile, normalizePath } from 'obsidian';
-import { Utils } from 'src/core/utils/common/Utils';
 import { WinAppUriBuilder } from './WinAppUriBuilder';
 import { WinAppLauncher, LauncherProgress } from './WinAppLauncher';
 import { DailyNoteConfig } from 'src/core/utils/daily_note/DailyNoteConfig';
 import { logger } from 'src/core/services/logger/loggerInstance';
+import { FileUtils } from 'src/core/utils/common/FileUtils';
 
 /**
  * WinUIアプリ経由でGoogle Tasksへエクスポートする処理
@@ -12,7 +12,7 @@ export class TasksWinExporter {
   private readonly workDir = '.obsidian/plugins/ptune-log/work';
   private readonly fileName = 'tasks.md';
 
-  constructor(private app: App) {}
+  constructor(private app: App) { }
 
   /**
    * 今日のデイリーノートからタスクを抽出し、WinUIアプリへ渡す
@@ -28,7 +28,7 @@ export class TasksWinExporter {
       return false;
     }
 
-    const lines = await Utils.readSectionLines(
+    const lines = await FileUtils.readSection(
       this.app,
       dailyNote,
       '今日の予定タスク'

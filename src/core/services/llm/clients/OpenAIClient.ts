@@ -1,3 +1,4 @@
+import { requestUrl } from 'obsidian';
 import { LLMSettings } from 'src/config/LLMSettings';
 import { LLMClientError } from './LLMClientError';
 import { logger } from '../../logger/loggerInstance';
@@ -6,7 +7,7 @@ import type { OpenAIEmbeddingResponse } from './OpenAIResponse';
 
 /** OpenAI系モデル（Chat / Embedding） */
 export class OpenAIClient implements LLMClientBase {
-  constructor(private settings: LLMSettings) {}
+  constructor(private settings: LLMSettings) { }
 
   /** Chat 呼び出し */
   async callChat(system: string, user: string): Promise<string | null> {
@@ -14,7 +15,8 @@ export class OpenAIClient implements LLMClientBase {
     logger.debug(`[OpenAIClient.callChat] model=${model}`);
 
     try {
-      const res = await fetch(`${baseUrl}/chat/completions`, {
+      const res = await requestUrl({
+        url: `${baseUrl}/chat/completions`,
         method: 'POST',
         headers: {
           Authorization: `Bearer ${apiKey}`,
@@ -31,11 +33,15 @@ export class OpenAIClient implements LLMClientBase {
         }),
       });
 
-      if (!res.ok) throw new LLMClientError(`OpenAI Chat error: ${res.status}`);
-      const json = await res.json();
-      return json.choices?.[0]?.message?.content ?? null;
+      if (res.status < 200 || res.status >= 300) {
+        throw new LLMClientError(`OpenAI Chat error: ${res.status} - ${res.text}`);
+      }
+
+      const content = res.json?.choices?.[0]?.message?.content ?? null;
+      return content;
     } catch (err) {
-      logger.error('[OpenAIClient.callChat] failed', err);
+      const e = err instanceof Error ? err : new Error(String(err));
+      logger.error('[OpenAIClient.callChat] failed', e);
       return null;
     }
   }
@@ -46,7 +52,8 @@ export class OpenAIClient implements LLMClientBase {
     logger.debug('[OpenAIClient.callEmbedding] start');
 
     try {
-      const res = await fetch(`${baseUrl}/embeddings`, {
+      const res = await requestUrl({
+        url: `${baseUrl}/embeddings`,
         method: 'POST',
         headers: {
           Authorization: `Bearer ${apiKey}`,
@@ -58,13 +65,15 @@ export class OpenAIClient implements LLMClientBase {
         }),
       });
 
-      if (!res.ok)
-        throw new LLMClientError(`OpenAI Embedding error: ${res.status}`);
+      if (res.status < 200 || res.status >= 300) {
+        throw new LLMClientError(`OpenAI Embedding error: ${res.status} - ${res.text}`);
+      }
 
-      const json: OpenAIEmbeddingResponse = await res.json();
-      return json.data[0]?.embedding ?? null;
+      const json = res.json as OpenAIEmbeddingResponse;
+      return json.data?.[0]?.embedding ?? null;
     } catch (err) {
-      logger.error('[OpenAIClient.callEmbedding] failed', err);
+      const e = err instanceof Error ? err : new Error(String(err));
+      logger.error('[OpenAIClient.callEmbedding] failed', e);
       return null;
     }
   }
@@ -77,7 +86,8 @@ export class OpenAIClient implements LLMClientBase {
     if (inputs.length === 0) return [];
 
     try {
-      const res = await fetch(`${baseUrl}/embeddings`, {
+      const res = await requestUrl({
+        url: `${baseUrl}/embeddings`,
         method: 'POST',
         headers: {
           Authorization: `Bearer ${apiKey}`,
@@ -89,12 +99,13 @@ export class OpenAIClient implements LLMClientBase {
         }),
       });
 
-      if (!res.ok) {
-        const text = await res.text();
-        throw new LLMClientError(`EmbeddingBatch error ${res.status}: ${text}`);
+      if (res.status < 200 || res.status >= 300) {
+        throw new LLMClientError(
+          `EmbeddingBatch error ${res.status}: ${res.text}`
+        );
       }
 
-      const json: OpenAIEmbeddingResponse = await res.json();
+      const json = res.json as OpenAIEmbeddingResponse;
       const vectors = json.data.map((d) => d.embedding);
 
       logger.debug(
@@ -103,7 +114,8 @@ export class OpenAIClient implements LLMClientBase {
 
       return vectors;
     } catch (err) {
-      logger.error('[OpenAIClient.callEmbeddingBatch] failed', err);
+      const e = err instanceof Error ? err : new Error(String(err));
+      logger.error('[OpenAIClient.callEmbeddingBatch] failed', e);
       return [];
     }
   }

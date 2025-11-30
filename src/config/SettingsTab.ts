@@ -25,8 +25,7 @@ export class PtuneSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl('h2', { text: 'ptune-log Settings' });
-
+    new Setting(containerEl).setName("ptune-log Settings").setHeading();
     new Setting(containerEl)
       .setName('Log level')
       .setDesc('Set the logging verbosity')

@@ -1,6 +1,6 @@
 import type { App } from 'obsidian';
-import { Utils } from 'src/core/utils/common/Utils';
 import { logger } from 'src/core/services/logger/loggerInstance';
+import { VaultUtils } from 'src/core/utils/common/VaultUtils';
 
 export type UriParams = Record<string, string | undefined>;
 
@@ -20,7 +20,7 @@ export class WinAppUriBuilder {
    */
   static build(app: App, action: string, params: UriParams = {}): string {
     logger.debug(`[WinAppUriBuilder.build] action=${action}`);
-    const vaultHome = params.vault_home ?? Utils.resolveVaultHome(app);
+    const vaultHome = params.vault_home ?? VaultUtils.resolveVaultHome(app);
     const query = new URLSearchParams({ ...params, vault_home: vaultHome });
     const uri = `${this.SCHEME}:/${action}?${query.toString()}`;
     logger.debug(`[WinAppUriBuilder.build] uri=${uri}`);

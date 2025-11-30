@@ -10,7 +10,7 @@ import { LLMClientBase } from './clients/LLMClientBase';
 
 /** LLMサービスの統合クライアント */
 export class LLMClient {
-  constructor(private app: App, public settings: LLMSettings) {}
+  constructor(private app: App, public settings: LLMSettings) { }
 
   hasValidApiKey(): boolean {
     return !!this.settings.apiKey?.trim();
@@ -27,7 +27,7 @@ export class LLMClient {
   }
 
   /** ベクトルDBが存在するか */
-  async hasVectorDB(): Promise<boolean> {
+  hasVectorDB(): boolean {
     const path = TagVectors.getVectorDbPath();
     const file = this.app.vault.getAbstractFileByPath(path);
     return !!file;
@@ -47,7 +47,7 @@ export class LLMClient {
   async isVectorSearchAvailable(): Promise<boolean> {
     logger.debug('[LLMClient] check vector search available');
     if (!this.hasEmbeddingModel()) return false;
-    return await this.hasVectorDB();
+    return this.hasVectorDB();
   }
 
   /** Chat補完実行 */

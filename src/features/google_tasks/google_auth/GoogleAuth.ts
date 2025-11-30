@@ -1,4 +1,4 @@
-import { Notice, Plugin } from 'obsidian';
+import { Notice, Plugin, requestUrl } from 'obsidian';
 import { TokenManager } from './TokenManager';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { GoogleAuthSettings } from 'src/config/ConfigManager';
@@ -73,21 +73,30 @@ export class GoogleAuth {
     try {
       logger.debug('[GoogleAuth.ensureAccessToken] exchanging token');
 
-      const res = await fetch('https://oauth2.googleapis.com/token', {
+      const body = new URLSearchParams({
+        code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+        grant_type: 'authorization_code',
+        code_verifier: codeVerifier,
+      }).toString();
+
+      const res = await requestUrl({
+        url: 'https://oauth2.googleapis.com/token',
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          code,
-          client_id: clientId,
-          client_secret: clientSecret,
-          redirect_uri: redirectUri,
-          grant_type: 'authorization_code',
-          code_verifier: codeVerifier,
-        }),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body,
       });
 
-      const tokens = await res.json();
-      if (tokens.access_token) {
+      if (res.status < 200 || res.status >= 300) {
+        throw new Error(`Token exchange failed: ${res.status} - ${res.text}`);
+      }
+
+      const tokens = res.json;
+      if (tokens?.access_token) {
         await tokenManager.saveInitialTokens(tokens);
         logger.info('[GoogleAuth.ensureAccessToken] token obtained');
         return tokens.access_token;
@@ -101,10 +110,12 @@ export class GoogleAuth {
       });
       new Notice(`Google 認証エラー: ${err}\n${desc}`);
       return null;
+
     } catch (e) {
+      const error = e instanceof Error ? e : new Error(String(e));
       logger.error(
         '[GoogleAuth.ensureAccessToken] exception during token exchange',
-        e
+        error
       );
       new Notice('トークン交換中にエラーが発生しました。');
       return null;

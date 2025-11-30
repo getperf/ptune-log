@@ -6,7 +6,7 @@ import { LLMClientBase } from './LLMClientBase';
 
 /** Claudeモデルクライアント */
 export class ClaudeClient implements LLMClientBase {
-  constructor(private settings: LLMSettings) {}
+  constructor(private settings: LLMSettings) { }
 
   /** Chat 呼び出し
    * 注意点:
@@ -50,7 +50,7 @@ export class ClaudeClient implements LLMClientBase {
                 const json = JSON.parse(data);
                 resolve(json.content?.[0]?.text ?? null);
               } catch (e) {
-                reject(e);
+                reject(e instanceof Error ? e : new Error(String(e)));
               }
             } else {
               reject(
@@ -62,7 +62,11 @@ export class ClaudeClient implements LLMClientBase {
           });
         }
       );
-      req.on('error', reject);
+
+      req.on('error', (e) =>
+        reject(e instanceof Error ? e : new Error(String(e)))
+      );
+
       req.write(body);
       req.end();
     });

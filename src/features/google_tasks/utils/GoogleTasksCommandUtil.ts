@@ -4,7 +4,7 @@ import type { GoogleAuthSettings } from '../../../config/ConfigManager';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { MyTask } from 'src/core/models/tasks/MyTask';
 import { TokenManager } from '../google_auth/TokenManager';
-import { Utils } from 'src/core/utils/common/Utils';
+import { ErrorUtils } from 'src/core/utils/common/ErrorUtils';
 
 /**
  * Google Tasks コマンド共通ユーティリティ
@@ -28,7 +28,7 @@ export class GoogleTasksCommandUtil {
         logger.debug('[GoogleTasksCommandUtil.wrap] done');
       } catch (e: unknown) {
         logger.error('[GoogleTasksCommandUtil.wrap] error', e);
-        const msg = Utils.safeErrorMessage(e);
+        const msg = ErrorUtils.toMessage(e);
         new Notice(`Google Tasks API に失敗しました : ${msg}`, 8000);
       }
     };
