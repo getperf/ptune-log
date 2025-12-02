@@ -17,7 +17,7 @@ import { LLMClient } from 'src/core/services/llm/LLMClient';
  * UI層：メニュー登録・入力検証・モーダル制御を担当。
  */
 export class NoteCreator {
-  constructor(private app: App, private config: ConfigManager) { }
+  constructor(private app: App, private config: ConfigManager) {}
 
   /** --- タイトル検証 --- */
   static isValidNoteTitle(title: string): boolean {
@@ -40,7 +40,7 @@ export class NoteCreator {
 
   /** --- メニュー登録 --- */
   registerFileMenuCallback(): EventRef {
-    const eventRef = this.app.workspace.on("file-menu", (menu: Menu, file) => {
+    const eventRef = this.app.workspace.on('file-menu', (menu: Menu, file) => {
       if (!(file instanceof TFolder)) return;
 
       const service = new NoteCreationService(this.app, this.config);
@@ -48,8 +48,8 @@ export class NoteCreator {
       // --- ノート作成メニュー ---
       menu.addItem((item: MenuItem) => {
         item
-          .setTitle("連番付きでノート作成")
-          .setIcon("document")
+          .setTitle('連番付きでノート作成')
+          .setIcon('document')
           .onClick(() => {
             const modal = new NoteCreatorModal(
               this.app,
@@ -78,8 +78,8 @@ export class NoteCreator {
       // --- フォルダ作成メニュー ---
       menu.addItem((item: MenuItem) => {
         item
-          .setTitle("連番付きでフォルダ作成")
-          .setIcon("document")
+          .setTitle('連番付きでフォルダ作成')
+          .setIcon('document')
           .onClick(() => {
             const modal = new NoteCreatorModal(
               this.app,
@@ -100,11 +100,14 @@ export class NoteCreator {
       // --- index.md に共通タグを追加 ---
       menu.addItem((item: MenuItem) => {
         item
-          .setTitle("index.md に共通タグを追加")
-          .setIcon("tag")
+          .setTitle('index.md に共通タグを追加')
+          .setIcon('tag')
           .onClick(() => {
             void (async () => {
-              const llmClient = new LLMClient(this.app, this.config.settings.llm);
+              const llmClient = new LLMClient(
+                this.app,
+                this.config.settings.llm
+              );
               const generator = new CommonTagGenerator(this.app, llmClient);
               await generator.applyTagsToIndex(file);
             })();
@@ -114,8 +117,8 @@ export class NoteCreator {
       // --- スニペットコピー ---
       menu.addItem((item: MenuItem) => {
         item
-          .setTitle("スニペットをコピー")
-          .setIcon("paste")
+          .setTitle('スニペットをコピー')
+          .setIcon('paste')
           .onClick(() => {
             void (async () => {
               const snippetCreator = new SnippetCreator(this.app, this.config);
@@ -127,5 +130,4 @@ export class NoteCreator {
 
     return eventRef;
   }
-
 }
