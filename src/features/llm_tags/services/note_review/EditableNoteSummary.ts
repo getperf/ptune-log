@@ -11,7 +11,12 @@ export interface EditableTagItem {
 export interface EditableNoteSummary {
   summary: string;
   tags: EditableTagItem[];
+
+  /** 保存時に dailynote を今日のデイリーノートリンクに更新するかどうか */
   updateDailyNote: boolean;
+
+  /** 後から割り当てるタスクキー（任意） */
+  taskKey?: string;
 }
 
 /**
@@ -31,6 +36,7 @@ export class EditableNoteSummaryFactory {
       summary: baseSummary,
       tags,
       updateDailyNote: true,
+      taskKey: undefined,
     };
   }
 }

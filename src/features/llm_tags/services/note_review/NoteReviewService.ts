@@ -23,6 +23,9 @@ export class NoteReviewService {
     this.fmWriter = new FrontmatterWriter(app.vault);
   }
 
+  /**
+   * LLM解析結果のプレビューを取得（frontmatter 更新なし）
+   */
   async getPreview(
     file: TFile,
     prompt: string,
@@ -31,12 +34,18 @@ export class NoteReviewService {
     return this.processor.preview(file, prompt, aliases);
   }
 
+  /**
+   * UI 編集用モデルを生成
+   */
   createEditable(summary: NoteSummary): EditableNoteSummary {
     return EditableNoteSummaryFactory.fromNoteSummary(summary);
   }
 
   /**
-   * 保存処理（summary, tags, dailynote）
+   * 保存処理（UI 編集結果 → frontmatter 更新）
+   * - 無効化されたタグは除外して保存
+   * - updateDailyNote が true の場合、dailynote を今日のデイリーノート Wiki リンクに更新
+   * - taskKey が選択されていれば taskKey を保存
    */
   async saveResult(file: TFile, editable: EditableNoteSummary): Promise<void> {
     logger.info(
@@ -52,7 +61,7 @@ export class NoteReviewService {
       tags: enabledTags,
     };
 
-    // --- dailynote 更新処理（Wikiリンク形式で保存）
+    // --- dailynote 更新（Wikiリンク形式）
     if (editable.updateDailyNote) {
       const settings = await DailyNoteConfig.getDailyNoteSettingsFromJson(
         this.app.vault
@@ -60,11 +69,18 @@ export class NoteReviewService {
 
       const today = DateUtil.formatDate(new Date(), settings.format);
       const folder = settings.folder || '_journal';
-
       const wikiLink = `[[${folder}/${today}|${today}]]`;
-      newData['dailynote'] = wikiLink;
 
+      newData['dailynote'] = wikiLink;
       logger.info(`[NoteReviewService.saveResult] set dailynote=${wikiLink}`);
+    }
+
+    // --- taskKey 保存（任意）
+    if (editable.taskKey && editable.taskKey.trim().length > 0) {
+      newData['taskKey'] = editable.taskKey.trim();
+      logger.info(
+        `[NoteReviewService.saveResult] set taskKey=${editable.taskKey.trim()}`
+      );
     }
 
     await this.fmWriter.update(file, newData);
