@@ -1,12 +1,6 @@
-// src/features/note_creator/strategies/ITagSuggestionStrategy.ts
-
-import { NoteSummary } from 'src/core/models/notes/NoteSummary';
-
-export interface SuggestedTag {
-  name: string;
-  score: number;
-}
+import type { TFolder } from 'obsidian';
+import type { TagCandidate } from 'src/core/models/tags/TagCandidate';
 
 export interface ITagSuggestionStrategy {
-  suggest(notes: NoteSummary[], folderName: string): Promise<SuggestedTag[]>;
+  suggestTags(folder: TFolder): Promise<TagCandidate[]>;
 }

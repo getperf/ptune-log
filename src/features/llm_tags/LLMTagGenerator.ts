@@ -14,6 +14,7 @@ import { VectorCommandRegistrar } from './services/vector/VectorCommandRegistrar
 // --- 実行・処理系 ---
 import { LLMTagGenerationRunner } from './services/llm/LLMTagGenerationRunner';
 import { LLMTagGenerateExecutor } from './services/llm/LLMTagGenerateExecutor';
+import { NoteReviewCommandRegistrar } from './services/note_review/NoteReviewCommandRegistrar';
 
 /**
  * --- LLMタグ生成のエントリーポイント
@@ -29,6 +30,7 @@ export class LLMTagGenerator {
   private llmRegistrar: LLMTagCommandRegistrar;
   private tagRegistrar: TagCommandRegistrar;
   private vectorRegistrar: VectorCommandRegistrar;
+  private reviewRegistrar: NoteReviewCommandRegistrar;
 
   constructor(private readonly app: App, settings: LLMSettings) {
     logger.debug('[LLMTagGenerator] initializing');
@@ -54,6 +56,7 @@ export class LLMTagGenerator {
     this.llmRegistrar = new LLMTagCommandRegistrar(app, this.executor);
     this.tagRegistrar = new TagCommandRegistrar(app, this.llmClient);
     this.vectorRegistrar = new VectorCommandRegistrar(app, this.llmClient);
+    this.reviewRegistrar = new NoteReviewCommandRegistrar(app, this.llmClient);
 
     logger.debug('[LLMTagGenerator] initialized successfully');
   }
@@ -73,6 +76,7 @@ export class LLMTagGenerator {
     this.llmRegistrar.register(plugin);
     this.tagRegistrar.register(plugin);
     this.vectorRegistrar.register(plugin);
+    this.reviewRegistrar.register(plugin);
 
     logger.debug('[LLMTagGenerator.register] complete');
   }

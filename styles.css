@@ -198,3 +198,30 @@
   width: 100%;
   box-sizing: border-box;
 }
+
+/* NoteReviewModal: Summary 編集用テキストエリア */
+.ptune-review-summary-fullwidth {
+  width: 100%;
+  min-height: 8em; /* 6〜8行を推奨 */
+  max-height: 300px;
+
+  box-sizing: border-box;
+  font-family: var(--font-text);
+  line-height: 1.5;
+
+  padding: 8px;
+  resize: vertical;
+
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--background-primary);
+}
+
+/* 見出しとノートパス用のスタイル（強調控えめ） */
+.ptune-review-note-header {
+  font-size: 0.9em;
+  color: var(--text-muted);
+  margin-bottom: 0.5em;
+  word-break: break-all;
+}
+
