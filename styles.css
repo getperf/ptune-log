@@ -247,3 +247,8 @@
 .ptune-tag-link:hover {
   text-decoration: underline;
 }
+
+.ptune-review-daily-toggle {
+  margin-top: 4px;
+  margin-bottom: 8px;
+}

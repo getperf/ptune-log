@@ -134,6 +134,18 @@ export class NoteReviewModal extends Modal {
       this.editable!.summary = (ev.target as HTMLTextAreaElement).value;
     });
 
+    // --- Daily Note トグル ---
+    new Setting(contentEl)
+      .setName('今日のデイリーノートとして扱う')
+      .setDesc(
+        '有効にすると frontmatter の dailynote が今日の日付に更新されます。'
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.editable!.updateDailyNote)
+          .onChange((v) => (this.editable!.updateDailyNote = v))
+      );
+
     // --- Tags ---
     contentEl.createEl('h3', { text: 'タグ一覧' });
 

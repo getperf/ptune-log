@@ -11,6 +11,7 @@ export interface EditableTagItem {
 export interface EditableNoteSummary {
   summary: string;
   tags: EditableTagItem[];
+  updateDailyNote: boolean;
 }
 
 /**
@@ -29,6 +30,7 @@ export class EditableNoteSummaryFactory {
     return {
       summary: baseSummary,
       tags,
+      updateDailyNote: true,
     };
   }
 }
