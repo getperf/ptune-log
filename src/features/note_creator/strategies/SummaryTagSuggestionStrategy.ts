@@ -1,3 +1,5 @@
+// File: src/features/note_creator/strategies/SummaryTagSuggestionStrategy.ts
+
 import { App, TFile, TFolder } from 'obsidian';
 import { TagCandidate } from 'src/core/models/tags/TagCandidate';
 import { TagVectorSearcher } from 'src/core/services/vector/TagVectorSearcher';
@@ -9,7 +11,8 @@ import { NoteFrontmatterParser } from 'src/core/utils/frontmatter/NoteFrontmatte
 export class SummaryTagSuggestionStrategy implements ITagSuggestionStrategy {
   constructor(
     private readonly app: App,
-    private readonly vectorSearcher: TagVectorSearcher
+    private readonly vectorSearcher: TagVectorSearcher,
+    private readonly minScore?: number
   ) {}
 
   async suggestTags(folder: TFolder): Promise<TagCandidate[]> {
@@ -21,10 +24,13 @@ export class SummaryTagSuggestionStrategy implements ITagSuggestionStrategy {
 
     for (const file of mdFiles) {
       const fm = await NoteFrontmatterParser.parseFromFile(this.app, file);
+      logger.debug(`[debug] FM keys=${Object.keys(fm)}`);
+      logger.debug(`[debug] FM.summary=${fm.summary}`);
+      logger.debug(`[debug] Raw FM=${JSON.stringify(fm)}`);
       const summary = fm.summary?.trim();
       if (!summary) {
         logger.debug(
-          `[NoteContentTagSuggestionStrategy] skip (no summary): ${file.path}`
+          `[SummaryTagSuggestionStrategy] skip (no summary): ${file.path}`
         );
         continue;
       }
@@ -32,15 +38,15 @@ export class SummaryTagSuggestionStrategy implements ITagSuggestionStrategy {
       const sentences = SentenceSplitter.split(summary);
 
       for (const sentence of sentences) {
+        // ★ minScore を TagVectorSearcher に委譲する
         const results = await this.vectorSearcher.search(sentence, {
           limit: 5,
+          minScore: this.minScore, // undefined の場合は LLM 設定が利用される
         });
 
         for (const result of results) {
-          if (!result.score || result.score < 0.5) continue;
-
           const cur = agg.get(result.name) ?? { total: 0, count: 0 };
-          cur.total += result.score;
+          cur.total += result.score ?? 0;
           cur.count += 1;
           agg.set(result.name, cur);
         }

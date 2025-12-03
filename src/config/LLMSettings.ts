@@ -17,7 +17,7 @@ export const providerDefaults: Record<string, Partial<LLMSettings>> = {
     baseUrl: 'https://api.openai.com/v1',
     temperature: 0.2,
     maxTokens: 1024,
-    minSimilarityScore: 0.2,
+    minSimilarityScore: 0.5,
   },
   Gemini: {
     model: 'gemini-2.5-flash-lite',
@@ -25,7 +25,7 @@ export const providerDefaults: Record<string, Partial<LLMSettings>> = {
     baseUrl: 'https://generativelanguage.googleapis.com/v1beta/models',
     temperature: 0.2,
     maxTokens: 2048,
-    minSimilarityScore: 0.15,
+    minSimilarityScore: 0.5,
   },
   'Anthropic Claude': {
     model: 'claude-3-5-haiku-20241022',
@@ -33,7 +33,7 @@ export const providerDefaults: Record<string, Partial<LLMSettings>> = {
     baseUrl: 'https://api.anthropic.com/v1',
     temperature: 0.2,
     maxTokens: 1024,
-    minSimilarityScore: 0.2,
+    minSimilarityScore: 0.5,
   },
   Custom: {
     model: '',
@@ -41,6 +41,6 @@ export const providerDefaults: Record<string, Partial<LLMSettings>> = {
     baseUrl: '',
     temperature: 0.2,
     maxTokens: 1024,
-    minSimilarityScore: 0.2,
+    minSimilarityScore: 0.5,
   },
 };
