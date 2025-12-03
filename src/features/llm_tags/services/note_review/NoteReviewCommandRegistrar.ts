@@ -35,6 +35,20 @@ export class NoteReviewCommandRegistrar {
         }
       },
     });
+    plugin.registerEvent(
+      this.app.workspace.on('file-menu', (menu, file) => {
+        if (file instanceof TFile && file.extension === 'md') {
+          menu.addItem((item) =>
+            item
+              .setTitle('LLMでノートレビュー（解析・確認）')
+              .setIcon('bot')
+              .onClick(() => {
+                this.openReviewModal(file);
+              })
+          );
+        }
+      })
+    );
   }
 
   /**
@@ -42,6 +56,6 @@ export class NoteReviewCommandRegistrar {
    */
   private openReviewModal(file: TFile): void {
     logger.debug(`[NoteReview] open modal only: ${file.path}`);
-    new NoteReviewModal(this.app, this.reviewService, file).open();
+    new NoteReviewModal(this.app, this.reviewService, this.client, file).open();
   }
 }

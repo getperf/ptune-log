@@ -25,19 +25,7 @@ export class LLMTagCommandRegistrar {
     // --- ファイルメニュー登録 ---
     plugin.registerEvent(
       this.app.workspace.on('file-menu', (menu, file) => {
-        if (file instanceof TFile && file.extension === 'md') {
-          menu.addItem((item) =>
-            item
-              .setTitle('LLMでタグを自動生成')
-              .setIcon('bot')
-              .onClick(() => {
-                logger.debug(
-                  `[LLMTagCommandRegistrar] runOnFile: ${file.path}`
-                );
-                void this.executor.runOnFile(file);
-              })
-          );
-        } else if (file instanceof TFolder) {
+        if (file instanceof TFolder) {
           menu.addItem((item) =>
             item
               .setTitle('LLMでこのフォルダ配下を一括タグ生成')

@@ -225,3 +225,25 @@
   word-break: break-all;
 }
 
+/* NoteReviewModal: タグ一覧 */
+.ptune-tag-list {
+  margin-top: 6px;
+}
+
+.ptune-tag-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 0;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.ptune-tag-link {
+  color: var(--text-accent);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.ptune-tag-link:hover {
+  text-decoration: underline;
+}
