@@ -1,7 +1,7 @@
-import moment from 'moment';
 import { normalizePath, Vault } from 'obsidian';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { VaultUtils } from '../common/VaultUtils';
+import { DateUtil } from '../date/DateUtil';
 
 interface DailyNoteSettings {
   folder: string;
@@ -20,8 +20,9 @@ export class DailyNoteConfig {
       return null;
     }
 
-    const dateStr = moment().format(settings.format);
+    const dateStr = DateUtil.mNow().format(settings.format);
     const link = `[[${settings.folder}/${dateStr}|${dateStr}]]`;
+
     logger.debug(
       `[DailyNoteConfig] generated today link: folder=${settings.folder}, format=${settings.format}, link=${link}`
     );
@@ -36,9 +37,10 @@ export class DailyNoteConfig {
     const settings = await this.getDailyNoteSettingsFromJson(vault);
     if (!settings) return null;
 
-    const targetDate = moment().subtract(daysAgo, 'days');
-    const dateStr = targetDate.format(settings.format);
+    const targetMoment = DateUtil.mNow().subtract(daysAgo, 'days');
+    const dateStr = targetMoment.format(settings.format);
     const path = normalizePath(`${settings.folder}/${dateStr}.md`);
+
     logger.debug(`[DailyNoteConfig.getDailyNotePath] ${path}`);
     return path;
   }
@@ -51,8 +53,9 @@ export class DailyNoteConfig {
     const settings = await this.getDailyNoteSettingsFromJson(vault);
     if (!settings) return null;
 
-    const dateStr = moment(targetDate).format(settings.format);
+    const dateStr = DateUtil.m(targetDate).format(settings.format);
     const path = normalizePath(`${settings.folder}/${dateStr}.md`);
+
     logger.debug(`[DailyNoteConfig.getNotePathForDate] ${path}`);
     return path;
   }
@@ -61,8 +64,7 @@ export class DailyNoteConfig {
   static async getDailyNoteSettingsFromJson(
     vault: Vault
   ): Promise<DailyNoteSettings> {
-    // const path = normalizePath('.obsidian/daily-notes.json');
-    const path = VaultUtils.getConfigPathFromVault(vault, 'daily-notes.json')
+    const path = VaultUtils.getConfigPathFromVault(vault, 'daily-notes.json');
     logger.debug(`[DailyNoteConfig] loading settings from ${path}`);
 
     try {

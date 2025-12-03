@@ -1,4 +1,31 @@
+// File: src/core/utils/date/DateUtil.ts
+import { moment as obsidianMoment } from 'obsidian';
+
 export class DateUtil {
+  /** Obsidian の moment を callable にした共通ラッパー */
+  private static readonly callMoment =
+    obsidianMoment as unknown as (d?: Date | string | number) => moment.Moment;
+
+  /** moment() 現在日時の MomentLike */
+  static mNow(): moment.Moment {
+    return DateUtil.callMoment();
+  }
+
+  /** moment(date) 任意日付の MomentLike */
+  static m(date: Date | string | number): moment.Moment {
+    return DateUtil.callMoment(date);
+  }
+
+  /** フォーマット付き日付文字列（デフォルト: YYYY-MM-DD） */
+  static formatDate(date: Date | string, fmt = 'YYYY-MM-DD'): string {
+    return DateUtil.m(date).format(fmt);
+  }
+
+  /** N日前の日付文字列（デフォルト: YYYY-MM-DD） */
+  static dateDaysAgo(daysAgo: number, fmt = 'YYYY-MM-DD'): string {
+    return DateUtil.mNow().subtract(daysAgo, 'days').format(fmt);
+  }
+
   /** ローカル日付に正規化（時刻 00:00:00） */
   static normalizeLocalDate(date: Date): Date {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -17,11 +44,11 @@ export class DateUtil {
   /** YYYY-MM-DD からローカル日付 00:00 の Date を作成 */
   static localDateFromKey(key: string): Date {
     const [y, m, d] = key.split('-').map(Number);
-    return new Date(y, m - 1, d); // ローカル 00:00 固定
+    return new Date(y, m - 1, d);
   }
+
   /** ローカル日時 ISO 風 YYYY-MM-DDTHH:mm:ss （タイムゾーン記号なし） */
   static localISOString(date: Date = new Date()): string {
-    // Intl でゼロ埋めし、"YYYY-MM-DDTHH:mm:ss" を生成
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const d = String(date.getDate()).padStart(2, '0');
@@ -55,7 +82,7 @@ export class DateUtil {
   /** ISO形式の日付文字列を YYYY-MM-DD に変換 */
   static dateKey(date: Date | string): string {
     const d = typeof date === 'string' ? new Date(date) : date;
-    return d.toISOString().split('T')[0];
+    return d.toLocaleDateString('sv-SE');
   }
 
   /** dailynote リンクから日付キーを抽出 */

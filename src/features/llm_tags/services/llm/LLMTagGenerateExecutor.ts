@@ -41,8 +41,9 @@ export class LLMTagGenerateExecutor {
       mode: 'folder',
       initialFiles: files,
       onConfirm: async (modal, files) => {
-        await this.runner.runOnFiles(files, modal);
-        modal.close();
+        void this.runner.runOnFiles(files, modal).then(() => {
+          modal.close();
+        });
       },
     });
 
@@ -60,27 +61,27 @@ export class LLMTagGenerateExecutor {
     const modal = new LLMTagGeneratorModal(this.app, {
       mode: 'date',
       initialDate: new Date(),
-      onConfirm: async (modal, files, selectedDate, forceRegenerate) => {
-        const summaries = await this.runner.runOnFiles(
-          files,
-          modal,
-          forceRegenerate
-        );
-
-        // --- ② CommonTagAnalyzer/KPTAnalyzer の統合実行 ---
-        const analyzed = await this.analysis.analyze(summaries, {
-          forceCommonTags: forceRegenerate,
-        });
-
-        // --- ③ デイリーノートへ結果反映 ---
-        await new DailyNoteUpdater(this.app).appendTagResults(
-          analyzed,
-          selectedDate,
-          { enableChecklist }
-        );
-
-        modal.showCompletionMessage('今日の振り返りが完了しました');
-        setTimeout(() => modal.close(), 1500);
+      onConfirm: (modal, files, selectedDate, forceRegenerate) => {
+        void this.runner
+          .runOnFiles(files, modal, forceRegenerate)
+          .then((summaries) => {
+            // --- ② CommonTagAnalyzer/KPTAnalyzer の統合実行 ---
+            return this.analysis.analyze(summaries, {
+              forceCommonTags: forceRegenerate,
+            });
+          })
+          .then((analyzed) => {
+            // --- ③ デイリーノートへ結果反映 ---
+            return new DailyNoteUpdater(this.app).appendTagResults(
+              analyzed,
+              selectedDate,
+              { enableChecklist }
+            );
+          })
+          .then(() => {
+            modal.showCompletionMessage('今日の振り返りが完了しました');
+            setTimeout(() => modal.close(), 1500);
+          });
       },
     });
 

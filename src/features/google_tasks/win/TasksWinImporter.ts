@@ -5,6 +5,7 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 import { MyTaskFactory } from 'src/core/models/tasks/MyTaskFactory';
 import { WinAppUriBuilder } from './WinAppUriBuilder';
 import { WinAppLauncher } from './WinAppLauncher';
+import { ErrorUtils } from 'src/core/utils/common/ErrorUtils';
 
 /**
  * WinUI アプリからタスクをインポートしてデイリーノートに出力
@@ -13,7 +14,7 @@ export class TasksWinImporter {
   private static readonly OUTPUT_FILE = 'import_tasks.json';
   private static readonly TASKLIST_NAME = 'Today';
 
-  constructor(private app: App) {}
+  constructor(private app: App) { }
 
   openImportModal(): void {
     logger.debug('[TasksWinImporter.openImportModal] start');
@@ -56,8 +57,9 @@ export class TasksWinImporter {
       );
       logger.info(`[TasksWinImporter] updated daily note: ${notePath}`);
     } catch (err) {
+      const msg = ErrorUtils.toMessage(err);
       logger.error('[TasksWinImporter] import error', err);
-      new Notice(`❌ インポート処理でエラーが発生しました: ${err}`);
+      new Notice(`❌ インポート処理でエラーが発生しました: ${msg}`);
     }
   }
 }

@@ -5,6 +5,7 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 import { TagSuggestionService } from 'src/features/llm_tags/services/tags/TagSuggestionService';
 import { TagAliasUpdater } from 'src/features/llm_tags/services/tags/TagAliasUpdater';
 import { TagEditDialog } from 'src/features/llm_tags/services/tags/TagEditDialog';
+import { ErrorUtils } from 'src/core/utils/common/ErrorUtils';
 
 /**
  * Tagアクション共通サービス
@@ -39,9 +40,10 @@ export class TagActionService {
           await updater.save();
           new Notice(`Renamed #${from} → #${to}`);
           logger.info(`[TagActionService.rename] success: ${from} → ${to}`);
-        } catch (e) {
-          logger.error(`[TagActionService.rename] failed: ${e}`);
-          new Notice(`Rename failed: ${e}`);
+        } catch (err) {
+          const msg = ErrorUtils.toMessage(err);
+          logger.error(`[TagActionService.rename] failed: ${msg}`);
+          new Notice(`Rename failed: ${msg}`);
         }
       },
     });
@@ -61,9 +63,10 @@ export class TagActionService {
 
       new Notice(`#${tagName} を無効化しました（#1 に置換）`);
       logger.info(`[TagActionService.disable] success: ${tagName} → #1`);
-    } catch (e) {
-      logger.error(`[TagActionService.disable] failed: ${e}`);
-      new Notice(`無効化失敗: ${e}`);
+    } catch (err) {
+      const msg = ErrorUtils.toMessage(err);
+      logger.error(`[TagActionService.disable] failed: ${msg}`);
+      new Notice(`無効化失敗: ${msg}`);
     }
   }
 }

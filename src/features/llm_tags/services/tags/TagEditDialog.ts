@@ -55,7 +55,7 @@ export class TagEditDialog extends Modal {
     logger.debug(`[TagEditDialog.onOpen] mode=${this.ctx.mode}`);
 
     // --- Embedding有効チェック
-    this.hasEmbedding = await this.llmClient.isVectorSearchAvailable();
+    this.hasEmbedding = this.llmClient.isVectorSearchAvailable();
 
     // --- From 表示
     contentEl.createEl('p', {

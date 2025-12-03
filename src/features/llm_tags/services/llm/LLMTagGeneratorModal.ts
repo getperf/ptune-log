@@ -1,7 +1,7 @@
 import { App, Modal, Setting, TFile } from 'obsidian';
-import moment from 'moment';
 import { LLMTagGenerationRunner } from './LLMTagGenerationRunner';
 import { IProgressReporter } from './IProgressReporter';
+import { DateUtil } from 'src/core/utils/date/DateUtil';
 
 export class LLMTagGeneratorModal extends Modal implements IProgressReporter {
   private isRunning = false;
@@ -30,6 +30,8 @@ export class LLMTagGeneratorModal extends Modal implements IProgressReporter {
     super(app);
     this.runner = new LLMTagGenerationRunner(app);
     this.files = options.initialFiles ?? [];
+
+    // 初期値は今日
     this.selectedDate = options.initialDate ?? new Date();
   }
 
@@ -50,30 +52,32 @@ export class LLMTagGeneratorModal extends Modal implements IProgressReporter {
         .setName('対象日（タグ抽出＆保存）')
         .setDesc('過去7日間から選択してください')
         .addDropdown((drop) => {
-          const today = moment().startOf('day');
+          // const today = DateUtil.mNow().startOf('day');
           const options: Record<string, string> = {};
+
           for (let i = 0; i < 7; i++) {
-            const date = today.clone().subtract(i, 'days');
+            const date = DateUtil.mNow().subtract(i, 'days'); // clone は不要
             const dateStr = date.format('YYYY-MM-DD');
             options[dateStr] = dateStr;
           }
-          const selected = moment(this.selectedDate).format('YYYY-MM-DD');
+
+          const selected = DateUtil.m(this.selectedDate).format('YYYY-MM-DD');
+
           drop.addOptions(options);
           drop.setValue(selected);
+
           drop.onChange(async (value) => {
             this.selectedDate = new Date(value);
             this.files = await this.runner.findFilesByDate(this.selectedDate);
             this.updateCountText();
-            // this.files = this.runner.findFilesByDate(this.selectedDate);
-            // this.updateCountText();
           });
         });
 
       // 件数表示
       this.countTextEl = contentEl.createEl('p');
-      // this.files = this.runner.findFilesByDate(this.selectedDate);
       this.files = await this.runner.findFilesByDate(this.selectedDate);
       this.updateCountText();
+
     } else {
       // フォルダ一括モード（そのまま実行）
       contentEl.createEl('p', {
@@ -88,7 +92,7 @@ export class LLMTagGeneratorModal extends Modal implements IProgressReporter {
 
     this.messageEl = contentEl.createEl('div', { text: '' });
 
-    // 実行ボタン
+    // 解析済みも再実行
     new Setting(contentEl)
       .setName('解析済みノートも再実行する')
       .setDesc('summary/tags があるノートも LLM で再解析します')
@@ -97,6 +101,7 @@ export class LLMTagGeneratorModal extends Modal implements IProgressReporter {
         toggle.onChange((value) => (this.forceRegenerate = value));
       });
 
+    // 実行ボタン
     new Setting(contentEl)
       .addButton((btn) =>
         btn
@@ -135,24 +140,20 @@ export class LLMTagGeneratorModal extends Modal implements IProgressReporter {
     this.messageEl.setText(`⏳ 処理中: ${file.path}`);
   }
 
-  /** IProgressReporter 実装: 全体開始 */
   onStart(total: number): void {
     this.progressBarEl.max = total;
     this.progressBarEl.value = 0;
     this.messageEl.setText(`⏳ 処理開始 (${total} 件)`);
   }
 
-  /** IProgressReporter 実装: 進行更新 */
   onProgress(index: number, file: TFile): void {
-    this.reportProgress(index, file); // 既存メソッドを活かす
+    this.reportProgress(index, file);
   }
 
-  /** IProgressReporter 実装: 完了 */
   onFinish(success: number, errors: number): void {
     this.messageEl.setText(`完了: 成功 ${success} 件 / エラー ${errors} 件`);
   }
 
-  /** IProgressReporter 実装: 進行更新 */
   onPhaseDone(name: string): void {
     this.messageEl.setText(name);
   }

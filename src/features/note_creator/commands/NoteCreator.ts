@@ -63,7 +63,7 @@ export class NoteCreator {
 
                   const noteFile = await service.createNote(result);
                   await this.app.workspace.getLeaf().openFile(noteFile);
-                  await Utils.focusFileInExplorer(this.app, noteFile);
+                  Utils.focusFileInExplorer(this.app, noteFile);
 
                   logger.info(
                     `[NoteCreator] note created and opened: ${noteFile.path}`

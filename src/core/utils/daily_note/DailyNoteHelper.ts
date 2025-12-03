@@ -3,16 +3,17 @@ import {
   getDailyNoteSettings,
   createDailyNote,
 } from 'obsidian-daily-notes-interface';
-import moment from 'moment';
 import { logger } from 'src/core/services/logger/loggerInstance';
+import { DateUtil } from 'src/core/utils/date/DateUtil';
 
 /** --- デイリーノート操作のユーティリティクラス */
 export class DailyNoteHelper {
   /** --- 指定日付のノートパスを解決 */
   static resolveDailyNotePath(app: App, date: Date): string {
     const settings = getDailyNoteSettings();
-    const dateStr = moment(date).format(settings.format);
+    const dateStr = DateUtil.m(date).format(settings.format);
     const path = normalizePath(`${settings.folder}/${dateStr}.md`);
+
     logger.debug(`[DailyNoteHelper.resolveDailyNotePath] ${path}`);
     return path;
   }
@@ -28,7 +29,7 @@ export class DailyNoteHelper {
     }
 
     logger.info(`[DailyNoteHelper] creating new daily note for ${path}`);
-    const note = await createDailyNote(moment(date));
+    const note = await createDailyNote(DateUtil.m(date));
     return note;
   }
 
@@ -41,6 +42,7 @@ export class DailyNoteHelper {
     prepend = false
   ): Promise<void> {
     logger.debug(`[DailyNoteHelper.appendToSection] start heading=${heading}`);
+
     const vault = app.vault;
     const original = await vault.read(file);
     const lines = original.split('\n');
@@ -56,7 +58,7 @@ export class DailyNoteHelper {
       let insertPos = insertIndex + 1;
 
       if (!prepend) {
-        // 同レベルの次の見出しを探索
+        // 次の同レベル見出しを探索
         for (let i = insertIndex + 1; i < lines.length; i++) {
           if (lines[i].startsWith('## ')) {
             insertPos = i;
@@ -86,6 +88,7 @@ export class DailyNoteHelper {
   ): Promise<void> {
     const file = await this.getOrOpenDailyNoteForDate(app, date);
     const vault = app.vault;
+
     const current = await vault.read(file);
     const updated = `${current.trim()}\n\n${content.trim()}\n`;
 
@@ -94,7 +97,7 @@ export class DailyNoteHelper {
     logger.info(`[DailyNoteHelper] content appended to ${file.path}`);
   }
 
-  /** --- 見出し直後にテキストを挿入 */
+  /** --- 見出し直後にテキストを挿入（内部用） */
   private static insertAfterHeading(
     content: string,
     heading: string,
@@ -126,8 +129,10 @@ export class DailyNoteHelper {
     );
     const file = await this.getOrOpenDailyNoteForDate(app, date);
     const vault = app.vault;
+
     const current = await vault.read(file);
     const updated = this.insertAfterHeading(current, sectionHeading, content);
+
     await vault.modify(file, updated);
     logger.info(
       `[DailyNoteHelper] section "${sectionHeading}" updated in ${file.path}`

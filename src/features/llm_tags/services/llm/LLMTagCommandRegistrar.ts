@@ -69,7 +69,7 @@ export class LLMTagCommandRegistrar {
     plugin.addCommand({
       id: 'llm-select-template',
       name: 'タグ更新: LLMタグ生成テンプレートを選択',
-      callback: async () => {
+      callback: () => {
         logger.debug('[LLMTagCommandRegistrar] command: select-template');
         this.promptManager.updateTemplate();
       },

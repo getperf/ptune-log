@@ -43,7 +43,7 @@ export class TagVectorSearcher {
       this.vectors.size() > 0;
 
     // LLM側のベクトル検索可否は Promise の可能性があるため await
-    const llmAvailable = await this.llmClient.isVectorSearchAvailable();
+    const llmAvailable = this.llmClient.isVectorSearchAvailable();
 
     const available = hasVectors && llmAvailable;
 

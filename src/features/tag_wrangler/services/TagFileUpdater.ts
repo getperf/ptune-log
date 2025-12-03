@@ -3,6 +3,7 @@ import { Replacement } from '../models/Replacement';
 import { TagPosition } from '../models/TagPosition';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { TagAliasUpdater } from 'src/features/llm_tags/services/tags/TagAliasUpdater';
+import { ErrorUtils } from 'src/core/utils/common/ErrorUtils';
 
 /**
  * ノートファイル内のタグ置換サービス
@@ -18,7 +19,7 @@ export class TagFileUpdater {
     private tagPositions: TagPosition[],
     private hasFrontMatter: boolean,
     private aliasUpdater?: TagAliasUpdater
-  ) {}
+  ) { }
 
   /** タグ置換を実行 */
   async update(replace: Replacement): Promise<boolean> {
@@ -127,9 +128,10 @@ export class TagFileUpdater {
     let data: any;
     try {
       data = parseYaml(yamlText) || {};
-    } catch (e) {
+    } catch (err) {
+      const msg = ErrorUtils.toMessage(err);
       logger.error(
-        `[TagFileUpdater.replaceInFrontMatter] YAML parse error: ${this.filename}, ${e}`
+        `[TagFileUpdater.replaceInFrontMatter] YAML parse error: ${this.filename}, ${msg}`
       );
       new Notice(`YAML parse error in ${this.filename}`);
       return text;

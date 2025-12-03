@@ -1,6 +1,5 @@
 // File: src/core/services/notes/DailyNoteUpdater.ts
-import { App, Notice, TFile } from 'obsidian';
-import moment from 'moment';
+import { App, Notice, TFile, moment } from 'obsidian';
 import { createDailyNote } from 'obsidian-daily-notes-interface';
 import { DailyNoteHelper } from 'src/core/utils/daily_note/DailyNoteHelper';
 import { DailyNoteConfig } from 'src/core/utils/daily_note/DailyNoteConfig';
@@ -166,7 +165,7 @@ export class DailyNoteUpdater {
     return lines.join('\n') + '\n';
   }
 
-  /** --- getOrCreateDailyNote
+  /** 
    * DailyNoteConfig を利用して日付に対応するデイリーノートを取得し、
    * 未作成の場合は obsidian-daily-notes-interface により作成する。
    */
@@ -177,6 +176,7 @@ export class DailyNoteUpdater {
     const file = this.app.vault.getAbstractFileByPath(path);
     if (file instanceof TFile) return file;
 
-    return await createDailyNote(moment(date));
+    const m = moment as unknown as (d: unknown) => moment.Moment;
+    return await createDailyNote(m(date));
   }
 }
