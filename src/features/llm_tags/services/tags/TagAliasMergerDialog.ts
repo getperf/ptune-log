@@ -116,7 +116,7 @@ export class TagAliasMergerDialog extends Modal {
   /**
    * サマリ領域の再描画
    */
-  private async renderSummary() {
+  private renderSummary(): void {
     if (!this.summaryContainer) return;
     this.summaryContainer.empty();
 

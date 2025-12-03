@@ -1,10 +1,8 @@
 import { App, Plugin, TFile, Notice } from 'obsidian';
 import { LLMPromptService } from 'src/core/services/llm/LLMPromptService';
 import { LLMClient } from 'src/core/services/llm/LLMClient';
-import { TagAliases } from 'src/core/models/tags/TagAliases';
 import { NoteReviewService } from './NoteReviewService';
 import { NoteReviewModal } from './NoteReviewModal';
-import { TagRankService } from '../tags/TagRankService';
 import { logger } from 'src/core/services/logger/loggerInstance';
 
 export class NoteReviewCommandRegistrar {
@@ -42,10 +40,8 @@ export class NoteReviewCommandRegistrar {
   /**
    * review modal 実行（preview → UI）
    */
-  private async openReviewModal(file: TFile): Promise<void> {
+  private openReviewModal(file: TFile): void {
     logger.debug(`[NoteReview] open modal only: ${file.path}`);
-
-    // --- プロンプトなどはモーダル内で生成するため渡さない
     new NoteReviewModal(this.app, this.reviewService, file).open();
   }
 }

@@ -71,11 +71,9 @@ export class TagEditDialog extends Modal {
       value: this.ctx.to ?? '',
     });
 
-    this.inputEl.addEventListener('input', async (ev) => {
+    this.inputEl.addEventListener('input', (ev) => {
       const keyword = (ev.target as HTMLInputElement).value.trim();
-      void (async () => {
-        await this.updateCandidates(keyword);
-      })();
+      void this.updateCandidates(keyword);
     });
 
     // --- タブバー

@@ -52,12 +52,12 @@ export class PrefixGenerator {
   }
 
   /** --- ファイル作成時のプレフィックスを返す（日付／連番対応） */
-  static async getFilePrefix(
+  static getFilePrefix(
     vault: Vault,
     parentPath: string,
     prefix: notePrefixType,
     digits = 2
-  ): Promise<string> {
+  ): string {
     logger.debug(
       `[PrefixGenerator.getFilePrefix] path=${parentPath}, prefixType=${prefix}`
     );

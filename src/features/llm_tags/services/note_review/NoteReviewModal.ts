@@ -8,7 +8,7 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 
 export class NoteReviewModal extends Modal {
   private editable?: EditableNoteSummary;
-  private loading: boolean = false;
+  private loading = false;
 
   private promptService: LLMPromptService;
 
@@ -21,11 +21,11 @@ export class NoteReviewModal extends Modal {
     this.promptService = new LLMPromptService(app.vault);
   }
 
-  async onOpen() {
-    await this.render();
+  onOpen() {
+    this.render();
   }
 
-  private async render() {
+  private render() {
     const { contentEl } = this;
     contentEl.empty();
 
@@ -118,9 +118,11 @@ export class NoteReviewModal extends Modal {
       cls: 'ptune-review-summary-fullwidth',
     });
 
-    summaryEl.value = this.editable!.summary ?? '';
+    summaryEl.value = this.editable?.summary ?? '';
     summaryEl.addEventListener('input', (ev) => {
-      this.editable!.summary = (ev.target as HTMLTextAreaElement).value;
+      if (this.editable) {
+        this.editable.summary = (ev.target as HTMLTextAreaElement).value;
+      }
     });
 
     // --- Tag チェックボックス
