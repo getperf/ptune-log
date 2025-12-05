@@ -1,6 +1,6 @@
 import { Notice, PluginSettingTab, Setting, TFile } from 'obsidian';
 import type { PluginSettings, ConfigManager } from './ConfigManager';
-import { providerDefaults } from './LLMSettings';
+import { providerDefaults } from './settings/LLMSettings';
 
 /**
  * LLM設定セクションを描画
