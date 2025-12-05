@@ -1,8 +1,12 @@
 import { Plugin } from 'obsidian';
 import { LogLevel } from 'src/core/services/logger/Logger';
-import { LLMSettings } from './LLMSettings';
+import { LLMSettings } from './settings/LLMSettings';
 import { PROJECT_NOTE_TEMPLATE } from 'src/core/templates/project_note_template';
 import { SerialNoteCreationType } from 'src/features/note_creator/modals/NoteCreatorModal';
+import {
+  DEFAULT_REVIEW_SETTINGS,
+  ReviewSettings,
+} from './settings/ReviewSettings';
 
 export enum notePrefixType {
   SERIAL = 'serial',
@@ -33,6 +37,7 @@ export interface PluginSettings {
   snippet: SnippetSettings;
   llm: LLMSettings;
   google_auth: GoogleAuthSettings;
+  review: ReviewSettings;
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -70,6 +75,7 @@ export const DEFAULT_SETTINGS: PluginSettings = {
     clientSecret: '',
     useWinApp: true,
   },
+  review: DEFAULT_REVIEW_SETTINGS,
 };
 
 export class ConfigManager {
@@ -102,6 +108,10 @@ export class ConfigManager {
       google_auth: {
         ...DEFAULT_SETTINGS.google_auth,
         ...(loaded?.google_auth ?? {}),
+      },
+      review: {
+        ...DEFAULT_REVIEW_SETTINGS,
+        ...(loaded?.review ?? {}),
       },
     };
   }

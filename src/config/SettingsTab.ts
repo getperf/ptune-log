@@ -5,6 +5,7 @@ import { renderLLMSettings } from './SettingTabLLM';
 import { renderNoteSettings } from './SettingsTabNote';
 import { renderSnippetSettings } from './SettingsTabSnippet';
 import { renderGoogleAuthSettings } from './SettingsTabGoogleAuth';
+import { renderReviewSettings } from './SettingTabReview';
 import type { LogLevel } from 'src/core/services/logger/Logger';
 
 function isLogLevel(v: string): v is LogLevel {
@@ -25,7 +26,7 @@ export class PtuneSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    new Setting(containerEl).setName("基本設定").setHeading();
+    new Setting(containerEl).setName('基本設定').setHeading();
     new Setting(containerEl)
       .setName('Log level')
       .setDesc('Set the logging verbosity')
@@ -64,5 +65,6 @@ export class PtuneSettingTab extends PluginSettingTab {
     renderSnippetSettings(containerEl, this.config, this.config.settings);
     renderLLMSettings(containerEl, this.config, this.config.settings, this);
     renderGoogleAuthSettings(containerEl, this.config, this.config.settings);
+    renderReviewSettings(containerEl, this.config);
   }
 }

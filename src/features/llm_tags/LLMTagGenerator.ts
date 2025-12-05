@@ -1,5 +1,5 @@
 import { App, Plugin } from 'obsidian';
-import { LLMSettings } from 'src/config/LLMSettings';
+import { LLMSettings } from 'src/config/settings/LLMSettings';
 import { LLMPromptService } from 'src/core/services/llm/LLMPromptService';
 import { LLMClient } from 'src/core/services/llm/LLMClient';
 import { PromptTemplateManager } from './templates/PromptTemplateManager';
@@ -32,11 +32,11 @@ export class LLMTagGenerator {
   private vectorRegistrar: VectorCommandRegistrar;
   private reviewRegistrar: NoteReviewCommandRegistrar;
 
-  constructor(private readonly app: App, settings: LLMSettings) {
+  constructor(private readonly app: App, llmSettings: LLMSettings) {
     logger.debug('[LLMTagGenerator] initializing');
 
     // --- コア依存の初期化
-    this.llmClient = new LLMClient(app, settings);
+    this.llmClient = new LLMClient(app, llmSettings);
     this.promptService = new LLMPromptService(app.vault);
     this.promptManager = new PromptTemplateManager(app);
 

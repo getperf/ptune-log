@@ -17,6 +17,8 @@ import { KPTAnalyzer } from './KPTAnalyzer';
 import { IProgressReporter } from '../llm/IProgressReporter';
 
 export interface NoteAnalysisServiceOptions {
+  /** 振り返りで共通タグ再生成を有効化 */
+  enableCommonTag?: boolean;
   /** 共通タグを既存に関係なく再生成する */
   forceCommonTags?: boolean;
 }
@@ -27,6 +29,7 @@ export class NoteAnalysisService {
    * - 各 Analyzer ごとに Options を個別に型定義
    */
   private analyzers: {
+    type: 'common' | 'kpt';
     name: string;
     impl: IAnalyzer<any>;
     applyOptions: (global: NoteAnalysisServiceOptions) => any;
@@ -35,15 +38,18 @@ export class NoteAnalysisService {
   constructor(app: App, llmClient: LLMClient) {
     this.analyzers = [
       {
+        type: 'common',
         name: '共通タグ生成',
         impl: new CommonTagAnalyzer(app, llmClient),
         applyOptions: (
           global: NoteAnalysisServiceOptions
         ): CommonTagAnalyzerOptions => ({
-          force: global.forceCommonTags ?? false,
+          enableCommonTag: global.enableCommonTag ?? true,
+          forceCommonTags: global.forceCommonTags ?? false,
         }),
       },
       {
+        type: 'kpt',
         name: 'KPT分析',
         impl: new KPTAnalyzer(llmClient),
         applyOptions: () => ({}),
@@ -67,6 +73,17 @@ export class NoteAnalysisService {
 
     for (const a of this.analyzers) {
       logger.debug(`[NoteAnalysisService] run analyzer=${a.name}`);
+
+      if (a.type === 'common') {
+        const enabled = options.enableCommonTag ?? true;
+        if (!enabled) {
+          logger.debug(
+            '[NoteAnalysisService] skip CommonTagAnalyzer (enableCommonTag=false)'
+          );
+          reporter?.onPhaseDone(a.name); // UIの進行状況を崩さないため完了通知は送る
+          continue;
+        }
+      }
 
       const analyzerOptions = a.applyOptions(options);
       await a.impl.analyze(summaries, analyzerOptions);
