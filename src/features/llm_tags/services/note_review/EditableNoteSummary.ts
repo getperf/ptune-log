@@ -36,7 +36,7 @@ export class EditableNoteSummaryFactory {
       summary: baseSummary,
       tags,
       updateDailyNote: true,
-      taskKey: undefined,
+      taskKey: summary.taskKey,
     };
   }
 }
