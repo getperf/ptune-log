@@ -201,8 +201,24 @@ export class NoteReviewModal extends Modal {
     }
 
     // --- タグ一覧（リンク＋チェックボックス） ---
-    contentEl.createEl('h3', { text: 'タグ一覧' });
+    const headerRow = contentEl.createEl('div', {
+      cls: 'ptune-tag-header-row',
+    });
 
+    headerRow.createEl('h3', {
+      text: 'タグ一覧',
+      cls: 'ptune-tag-header-title',
+    });
+
+    // 追加ボタン（行の右側へ寄せる）
+    const addBtn = headerRow.createEl('button', {
+      text: 'タグ追加',
+      cls: 'clickable ptune-tag-add-btn',
+    });
+    addBtn.addEventListener('click', () => {
+      this.editable!.addNewTag();
+      this.render();
+    });
     const listEl = contentEl.createEl('div', { cls: 'ptune-tag-list' });
 
     this.editable.tags.forEach((t) => {
