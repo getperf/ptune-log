@@ -37,17 +37,17 @@ export class NoteAnalysisService {
 
   constructor(app: App, llmClient: LLMClient) {
     this.analyzers = [
-      {
-        type: 'common',
-        name: '共通タグ生成',
-        impl: new CommonTagAnalyzer(app, llmClient),
-        applyOptions: (
-          global: NoteAnalysisServiceOptions
-        ): CommonTagAnalyzerOptions => ({
-          enableCommonTag: global.enableCommonTag ?? true,
-          forceCommonTags: global.forceCommonTags ?? false,
-        }),
-      },
+      // {
+      //   type: 'common',
+      //   name: '共通タグ生成',
+      //   impl: new CommonTagAnalyzer(app, llmClient),
+      //   applyOptions: (
+      //     global: NoteAnalysisServiceOptions
+      //   ): CommonTagAnalyzerOptions => ({
+      //     enableCommonTag: global.enableCommonTag ?? true,
+      //     forceCommonTags: global.forceCommonTags ?? false,
+      //   }),
+      // },
       {
         type: 'kpt',
         name: 'KPT分析',
