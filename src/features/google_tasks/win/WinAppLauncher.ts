@@ -1,5 +1,18 @@
+// File: src/features/google_tasks/win/WinAppLauncher.ts
+// Electron shell is used because we must launch the external WinUI application
+// via custom URI scheme (net.getperf.ptune.googleoauth:/...).
+// This API is only available on Desktop Obsidian (Electron environment).
+// Mobile environments do not provide the 'electron' module.
+
 import { normalizePath, Vault } from 'obsidian';
+// Electron import must be optional to avoid runtime errors on mobile
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Electron is available only in desktop builds
+import { shell } from 'electron';
 import { logger } from 'src/core/services/logger/loggerInstance';
+
+// import { normalizePath, Vault } from 'obsidian';
+// import { logger } from 'src/core/services/logger/loggerInstance';
 
 export interface LauncherProgress {
   status: string;
@@ -166,10 +179,17 @@ export class WinAppLauncher {
    */
   private async openUri(uri: string): Promise<boolean> {
     logger.debug(`[WinAppLauncher.openUri] uri=${uri}`);
+
+    // Desktop only: Electron shell.openExternal
+    if (!shell || typeof shell.openExternal !== 'function') {
+      logger.warn(
+        '[WinAppLauncher.openUri] Electron shell is unavailable (mobile environment)'
+      );
+      return false;
+    }
+
     try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const electron = require('electron');
-      await electron.shell.openExternal(uri);
+      await shell.openExternal(uri);
       logger.debug('[WinAppLauncher.openUri] done');
       return true;
     } catch (err) {

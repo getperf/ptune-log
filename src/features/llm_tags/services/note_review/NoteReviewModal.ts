@@ -10,13 +10,12 @@ import { TagEditDialog } from '../tags/TagEditDialog';
 import { LLMClient } from 'src/core/services/llm/LLMClient';
 import { ExportTask, ExportTasks } from 'src/core/models/tasks/ExportTasks';
 import { logger } from 'src/core/services/logger/loggerInstance';
+import { TagListSection } from './components/TagListSection';
 
 export class NoteReviewModal extends Modal {
   private editable?: EditableNoteSummary;
   private loading = false;
   private promptService: LLMPromptService;
-
-  /** ExportTasks から読み込んだタスク一覧（NoteCreatorModal と同等） */
   private taskOptions: ExportTask[] = [];
 
   constructor(
@@ -37,6 +36,7 @@ export class NoteReviewModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
 
+    // ヘッダー
     const base = this.file.path.replace(/\.md$/, '');
     contentEl.createEl('div', {
       text: `📄 ${base}`,
@@ -51,9 +51,6 @@ export class NoteReviewModal extends Modal {
     this.renderEditor(contentEl);
   }
 
-  /**
-   * 初期画面（LLMボタンのみ）
-   */
   private renderInitial(contentEl: HTMLElement) {
     if (this.loading) {
       contentEl.createEl('p', { text: 'LLM解析中です...' });
@@ -75,13 +72,9 @@ export class NoteReviewModal extends Modal {
       );
   }
 
-  /**
-   * LLM解析本体
-   */
   private async runLLMAnalysis() {
     try {
       const topTags = await new TagRankService(this.app).getFormattedTopTags();
-
       const prompt = await this.promptService.loadAndApply(
         '_templates/llm/system/tag_generate_system.md',
         '_templates/llm/tag_generate.md',
@@ -99,7 +92,6 @@ export class NoteReviewModal extends Modal {
 
       this.editable = this.reviewService.createEditable(previewSummary);
 
-      // LLM解析後にタスク一覧を読み込んでおく
       await this.loadTaskTitles();
     } catch (e) {
       logger.error('[NoteReviewModal] LLM解析エラー', e);
@@ -110,31 +102,16 @@ export class NoteReviewModal extends Modal {
     }
   }
 
-  /**
-   * ExportTasks からタスク一覧を読み込む
-   * - export_tasks.json がなければ空配列
-   */
-  private async loadTaskTitles(): Promise<void> {
+  private async loadTaskTitles() {
     try {
       const tasks = await ExportTasks.load(this.app);
-      if (!tasks) {
-        logger.info('[NoteReviewModal] export_tasks.json not found');
-        this.taskOptions = [];
-        return;
-      }
-      this.taskOptions = tasks.toDisplayList();
-      logger.debug(
-        `[NoteReviewModal] loaded taskTitles=${this.taskOptions.length}`
-      );
+      this.taskOptions = tasks ? tasks.toDisplayList() : [];
     } catch (err) {
       logger.error('[NoteReviewModal] failed to load ExportTasks', err);
       this.taskOptions = [];
     }
   }
 
-  /**
-   * タグ編集ダイアログの呼び出し
-   */
   private openTagEditDialog(tag: EditableTagItem) {
     const dialog = new TagEditDialog(this.app, this.llmClient, {
       from: tag.name,
@@ -148,9 +125,6 @@ export class NoteReviewModal extends Modal {
     dialog.open();
   }
 
-  /**
-   * LLM解析後の UI
-   */
   private renderEditor(contentEl: HTMLElement) {
     if (!this.editable) return;
 
@@ -166,84 +140,38 @@ export class NoteReviewModal extends Modal {
       this.editable!.summary = (ev.target as HTMLTextAreaElement).value;
     });
 
-    // --- デイリーノート更新トグル ---
+    // --- Daily Note toggle ---
     new Setting(contentEl)
       .setName('今日のデイリーノートとして扱う')
-      .setDesc(
-        '有効にすると frontmatter の dailynote が今日のデイリーノートリンクに更新されます。'
-      )
       .addToggle((toggle) =>
         toggle
           .setValue(this.editable!.updateDailyNote)
           .onChange((v) => (this.editable!.updateDailyNote = v))
       );
 
-    // --- タスク割り当て（ExportTasks が存在する場合のみ） ---
+    // --- Task assign ---
     if (this.taskOptions.length > 0) {
       new Setting(contentEl)
         .setName('タスクを割り当て')
-        .setDesc(
-          'エクスポート済みタスクから、このノートに紐づけるタスクを選択します。'
-        )
         .addDropdown((dropdown) => {
           dropdown.addOption('', '(選択なし)');
-          for (const task of this.taskOptions) {
-            dropdown.addOption(task.taskKey, task.title);
-          }
+          for (const t of this.taskOptions)
+            dropdown.addOption(t.taskKey, t.title);
+
           dropdown.setValue(this.editable!.taskKey ?? '');
-          dropdown.onChange((value) => {
-            this.editable!.taskKey = value || undefined;
-            logger.debug(
-              `[NoteReviewModal] task assigned: key=${this.editable!.taskKey}`
-            );
-          });
+          dropdown.onChange((v) => (this.editable!.taskKey = v || undefined));
         });
     }
 
-    // --- タグ一覧（リンク＋チェックボックス） ---
-    const headerRow = contentEl.createEl('div', {
-      cls: 'ptune-tag-header-row',
-    });
+    // --- TagListSection ここに集約 ---
+    TagListSection.render(
+      contentEl,
+      this.editable,
+      (tag) => this.openTagEditDialog(tag),
+      () => this.render()
+    );
 
-    headerRow.createEl('h3', {
-      text: 'タグ一覧',
-      cls: 'ptune-tag-header-title',
-    });
-
-    // 追加ボタン（行の右側へ寄せる）
-    const addBtn = headerRow.createEl('button', {
-      text: 'タグ追加',
-      cls: 'clickable ptune-tag-add-btn',
-    });
-    addBtn.addEventListener('click', () => {
-      this.editable!.addNewTag();
-      this.render();
-    });
-    const listEl = contentEl.createEl('div', { cls: 'ptune-tag-list' });
-
-    this.editable.tags.forEach((t) => {
-      const row = listEl.createEl('div', { cls: 'ptune-tag-row' });
-
-      // タグ名リンク
-      const link = row.createEl('a', {
-        text: t.name,
-        cls: 'ptune-tag-link',
-        href: '#',
-      });
-      link.addEventListener('click', (ev) => {
-        ev.preventDefault();
-        this.openTagEditDialog(t);
-      });
-
-      // 有効／無効チェック
-      const cb = row.createEl('input', { type: 'checkbox' });
-      cb.checked = t.enabled;
-      cb.addEventListener('change', () => {
-        t.enabled = cb.checked;
-      });
-    });
-
-    // --- 保存ボタン ---
+    // --- 保存 ---
     new Setting(contentEl).addButton((btn) =>
       btn
         .setButtonText('保存')
