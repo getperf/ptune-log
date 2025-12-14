@@ -14,6 +14,7 @@ export class WinAppUriBuilder {
   static readonly ACTION_AUTH = 'auth';
   static readonly ACTION_EXPORT = 'export';
   static readonly ACTION_IMPORT = 'import';
+  static readonly ACTION_GET_TASKS_MD = 'get-tasks-md';
 
   /**
    * URIを構築する（アクション別）
@@ -56,6 +57,13 @@ export class WinAppUriBuilder {
     logger.debug('[WinAppUriBuilder.buildImport] start');
     const uri = this.build(app, this.ACTION_IMPORT, { output });
     logger.debug('[WinAppUriBuilder.buildImport] done');
+    return uri;
+  }
+
+  static buildGetTasksMd(app: App): string {
+    logger.debug('[WinAppUriBuilder.buildGetTasksMd] start');
+    const uri = this.build(app, this.ACTION_GET_TASKS_MD);
+    logger.debug('[WinAppUriBuilder.buildGetTasksMd] done');
     return uri;
   }
 }

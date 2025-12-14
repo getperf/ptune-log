@@ -9,8 +9,9 @@ import { NoteCreationService } from '../services/NoteCreationService';
 import { Utils } from 'src/core/utils/common/Utils';
 import { SnippetCreator } from '../../snippet/SnippetCreator';
 import { logger } from 'src/core/services/logger/loggerInstance';
-import { CommonTagGenerator } from '../services/CommonTagGenerator';
+// import { CommonTagGenerator } from '../services/CommonTagGenerator';
 import { LLMClient } from 'src/core/services/llm/LLMClient';
+import { CommonTagGenerator } from '../services/CommonTagGenerator';
 
 /**
  * NoteCreator

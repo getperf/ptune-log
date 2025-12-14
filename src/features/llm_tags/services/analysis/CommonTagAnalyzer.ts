@@ -44,37 +44,37 @@ export class CommonTagAnalyzer implements IAnalyzer<CommonTagAnalyzerOptions> {
       return;
     }
 
-    for (const folder of summaries.getFoldersSorted()) {
-      const existing = (await folder.getCommonTags(this.app)) ?? [];
+    // for (const folder of summaries.getFoldersSorted()) {
+    //   const existing = (await folder.getCommonTags(this.app)) ?? [];
 
-      if (!force && existing.length > 0) {
-        logger.debug(
-          `[CommonTagAnalyzer] skip folder=${folder.noteFolder} (existing common tags)`
-        );
-        continue;
-      }
+    //   if (!force && existing.length > 0) {
+    //     logger.debug(
+    //       `[CommonTagAnalyzer] skip folder=${folder.noteFolder} (existing common tags)`
+    //     );
+    //     continue;
+    //   }
 
-      logger.debug(
-        `[CommonTagAnalyzer] processing folder=${folder.noteFolder}`
-      );
+    //   logger.debug(
+    //     `[CommonTagAnalyzer] processing folder=${folder.noteFolder}`
+    //   );
 
-      const projectFolder = folder.getTFolder(this.app);
-      if (!projectFolder) {
-        logger.warn(
-          `[CommonTagAnalyzer] folder not found: ${folder.noteFolder}`
-        );
-        continue;
-      }
+    //   const projectFolder = folder.getTFolder(this.app);
+    //   if (!projectFolder) {
+    //     logger.warn(
+    //       `[CommonTagAnalyzer] folder not found: ${folder.noteFolder}`
+    //     );
+    //     continue;
+    //   }
 
-      const tags = await this.getGenerator().applyTagsToIndex(projectFolder);
-      folder.setCommonTags?.(tags);
+    //   const tags = await this.getGenerator().applyTagsToIndex(projectFolder);
+    //   folder.setCommonTags?.(tags);
 
-      logger.debug(
-        `[CommonTagAnalyzer] applied tags folder=${
-          folder.noteFolder
-        } tags=${tags.join(', ')}`
-      );
-    }
+    //   logger.debug(
+    //     `[CommonTagAnalyzer] applied tags folder=${
+    //       folder.noteFolder
+    //     } tags=${tags.join(', ')}`
+    //   );
+    // }
 
     logger.debug('[CommonTagAnalyzer] complete');
   }

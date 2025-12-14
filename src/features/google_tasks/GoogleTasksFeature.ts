@@ -17,6 +17,7 @@ import { MarkdownTaskParser } from './services/MarkdownTaskParser';
 import { ExportTasks } from 'src/core/models/tasks/ExportTasks';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
 import { FileUtils } from 'src/core/utils/common/FileUtils';
+import { GetTasksMarkdownExecutor } from './win/GetTasksMarkdownExecutor';
 
 /**
  * Google Tasks 同期コマンド登録クラス
@@ -78,6 +79,18 @@ export class GoogleTasksFeature {
           new Notice(success ? '認証成功しました' : '認証に失敗しました');
           logger.info(`[GoogleTasksSync] reauth result=${success}`);
         }
+      },
+    });
+
+    // 今日の予定タスクを取得（PtuneSync）
+    this.plugin.addCommand({
+      id: 'gtasks-get-tasks-md',
+      name: 'Google Tasks: 今日の予定タスクを取得（PtuneSync）',
+      callback: async () => {
+        if (!this.settings.useWinApp) return;
+
+        const executor = new GetTasksMarkdownExecutor(this.app);
+        await executor.execute();
       },
     });
 
@@ -160,8 +173,10 @@ export class GoogleTasksFeature {
         );
         for (const note of notes) {
           logger.debug(
-            `[DebugFindNotes] ${note.notePath} → dailynote=${note.dailynote
-            }, updated=${note.updatedAt ? DateUtil.utcString(note.updatedAt) : 'none'
+            `[DebugFindNotes] ${note.notePath} → dailynote=${
+              note.dailynote
+            }, updated=${
+              note.updatedAt ? DateUtil.utcString(note.updatedAt) : 'none'
             }`
           );
         }
