@@ -8,7 +8,8 @@ import { NoteSummaries } from 'src/core/models/notes/NoteSummaries';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
 import { KPTMarkdownBuilder } from 'src/features/llm_tags/services/analysis/KPTMarkdownBuilder';
 import { ChecklistDecorator } from './ChecklistDecorator';
-import { FileUtils } from 'src/core/utils/common/FileUtils';
+// import { FileUtils } from 'src/core/utils/common/FileUtils';
+import { TaskSectionReplacer } from 'src/core/utils/daily_note/TaskSectionReplacer';
 
 export interface AppendOptions {
   headingMarker?: string;
@@ -35,7 +36,7 @@ export class DailyNoteUpdater {
   /** --- constructor
    * App インスタンスを受け取り、デイリーノート操作に利用する。
    */
-  constructor(private readonly app: App) {}
+  constructor(private readonly app: App) { }
 
   /** --- appendTagResults
    * NoteSummaries を指定日のデイリーノートに追記する。
@@ -101,11 +102,16 @@ export class DailyNoteUpdater {
       `[DailyNoteUpdater.replaceTaskListInSection] original length=${original.length}`
     );
 
-    const updated = FileUtils.replaceTaskListInSection(
-      original,
-      heading,
+    // const updated = FileUtils.replaceTaskListInSection(
+    //   original,
+    //   heading,
+    //   taskMarkdown
+    // );
+    const replacer = new TaskSectionReplacer(
+      '## ✅ 今日の予定タスク（手動で追記OK）',
       taskMarkdown
     );
+    const updated = replacer.replace(original);
 
     logger.debug(
       `[DailyNoteUpdater.replaceTaskListInSection] updated length=${updated.length}`
