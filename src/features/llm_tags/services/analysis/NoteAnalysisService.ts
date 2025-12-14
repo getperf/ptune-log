@@ -10,7 +10,7 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 
 import { IAnalyzer } from './IAnalyzer';
 import {
-  CommonTagAnalyzer,
+  // CommonTagAnalyzer,
   CommonTagAnalyzerOptions,
 } from './CommonTagAnalyzer';
 import { KPTAnalyzer } from './KPTAnalyzer';

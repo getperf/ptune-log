@@ -8,6 +8,7 @@ import { NoteSummaries } from 'src/core/models/notes/NoteSummaries';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
 import { KPTMarkdownBuilder } from 'src/features/llm_tags/services/analysis/KPTMarkdownBuilder';
 import { ChecklistDecorator } from './ChecklistDecorator';
+import { FileUtils } from 'src/core/utils/common/FileUtils';
 
 export interface AppendOptions {
   headingMarker?: string;
@@ -34,7 +35,7 @@ export class DailyNoteUpdater {
   /** --- constructor
    * App インスタンスを受け取り、デイリーノート操作に利用する。
    */
-  constructor(private readonly app: App) { }
+  constructor(private readonly app: App) {}
 
   /** --- appendTagResults
    * NoteSummaries を指定日のデイリーノートに追記する。
@@ -81,6 +82,42 @@ export class DailyNoteUpdater {
       logger.error('[DailyNoteUpdater] failed to append summary', e);
       new Notice('⚠️ デイリーノートへの追記に失敗しました。');
     }
+  }
+
+  /**
+   * 指定セクションの本文を丸ごと置き換える（洗い替え用）
+   * - 見出し自体は保持
+   */
+  async replaceTaskListInSection(
+    notePath: string,
+    heading: string,
+    taskMarkdown: string
+  ): Promise<void> {
+    const file = this.app.vault.getAbstractFileByPath(notePath);
+    if (!(file instanceof TFile)) throw new Error('Note is not a file');
+
+    const original = await this.app.vault.read(file);
+    logger.debug(
+      `[DailyNoteUpdater.replaceTaskListInSection] original length=${original.length}`
+    );
+
+    const updated = FileUtils.replaceTaskListInSection(
+      original,
+      heading,
+      taskMarkdown
+    );
+
+    logger.debug(
+      `[DailyNoteUpdater.replaceTaskListInSection] updated length=${updated.length}`
+    );
+    if (original === updated) {
+      logger.warn(
+        '[DailyNoteUpdater.replaceTaskListInSection] content not changed'
+      );
+    }
+
+    await this.app.vault.modify(file, updated);
+    logger.info('[DailyNoteUpdater.replaceTaskListInSection] completed');
   }
 
   /** --- buildSummaryText
@@ -165,7 +202,7 @@ export class DailyNoteUpdater {
     return lines.join('\n') + '\n';
   }
 
-  /** 
+  /**
    * DailyNoteConfig を利用して日付に対応するデイリーノートを取得し、
    * 未作成の場合は obsidian-daily-notes-interface により作成する。
    */
