@@ -5,6 +5,7 @@ import { LLMTagGeneratorModal } from './LLMTagGeneratorModal';
 import { LLMClient } from 'src/core/services/llm/LLMClient';
 import { LLMTagGenerationRunner } from './LLMTagGenerationRunner';
 import { NoteAnalysisService } from '../analysis/NoteAnalysisService';
+import { ReviewSettings } from 'src/config/settings/ReviewSettings';
 
 export class LLMTagGenerateExecutor {
   private readonly analysis: NoteAnalysisService;
@@ -12,7 +13,8 @@ export class LLMTagGenerateExecutor {
   constructor(
     private readonly app: App,
     private readonly client: LLMClient,
-    private readonly runner: LLMTagGenerationRunner
+    private readonly runner: LLMTagGenerationRunner,
+    private readonly reviewSettings: ReviewSettings
   ) {
     this.analysis = new NoteAnalysisService(app, client);
   }
@@ -57,6 +59,7 @@ export class LLMTagGenerateExecutor {
       return;
     }
     const enableChecklist = this.client.settings.enableChecklist ?? true;
+    const enableCommonTag = this.reviewSettings.enableCommonTag ?? true;
 
     const modal = new LLMTagGeneratorModal(this.app, {
       mode: 'date',
@@ -66,7 +69,9 @@ export class LLMTagGenerateExecutor {
           .runOnFiles(files, modal, forceRegenerate)
           .then((summaries) => {
             // --- ② CommonTagAnalyzer/KPTAnalyzer の統合実行 ---
+            const enableCommonTag = this.reviewSettings.enableCommonTag ?? true;
             return this.analysis.analyze(summaries, {
+              enableCommonTag,
               forceCommonTags: forceRegenerate,
             });
           })

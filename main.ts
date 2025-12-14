@@ -43,7 +43,8 @@ export default class PtunePlugin extends Plugin {
     // --- LLMタギング ---
     this.llmTagGenerator = new LLMTagGenerator(
       this.app,
-      this.config.settings.llm
+      this.config.settings.llm,
+      this.config.settings.review
     );
 
     // --- Google Tasks ---

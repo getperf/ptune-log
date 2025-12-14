@@ -1,4 +1,8 @@
+// File: src/features/google_tasks/win/WinAppLauncher.ts
 import { normalizePath, Vault } from 'obsidian';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import { shell } from 'electron';
 import { logger } from 'src/core/services/logger/loggerInstance';
 
 export interface LauncherProgress {
@@ -25,8 +29,13 @@ export class WinAppLauncher {
   private readonly COMPLETE_TIMEOUT_MS = 90000;
   private readonly START_WAIT_MS = 1000;
 
+  /** --- 単発完了型プロトコル一覧 */
+  private static readonly SINGLE_SHOT_OPERATIONS = new Set<string>([
+    'get-tasks-md',
+  ]);
+
   constructor(private vault: Vault) {
-    const configDir = vault.configDir; // 例: ".obsidian"
+    const configDir = vault.configDir; // ".obsidian"
     this.STATUS_FILE = normalizePath(
       `${configDir}/plugins/ptune-log/work/status.json`
     );
@@ -42,6 +51,7 @@ export class WinAppLauncher {
   ): Promise<boolean> {
     logger.info(`[WinAppLauncher.launchAndWait] ${op} 開始`);
     const baseline = new Date();
+
     const started = await this.waitForStart(uri, baseline);
     if (!started) {
       logger.warn(`[WinAppLauncher.launchAndWait] ${op} 起動検出失敗`);
@@ -58,17 +68,27 @@ export class WinAppLauncher {
     return completed;
   }
 
+  // 追加：完了後に status.json を返す
+  async launchWaitAndGetStatus(
+    uri: string,
+    op = 'export',
+    onProgress?: (p: LauncherProgress) => void
+  ): Promise<StatusFile | null> {
+    const ok = await this.launchAndWait(uri, op, onProgress);
+    if (!ok) return null;
+    const s = await this.getStatus();
+    return s;
+  }
+
   /** status.json の内容を取得 */
   async getStatus(): Promise<StatusFile | null> {
     const path = normalizePath(this.STATUS_FILE);
     try {
       const exists = await this.vault.adapter.exists(path);
       if (!exists) return null;
-
       const json = await this.vault.adapter.read(path);
       return JSON.parse(json) as StatusFile;
-    } catch (e) {
-      console.warn('[WinAppLauncher] Failed to read status.json', e);
+    } catch {
       return null;
     }
   }
@@ -101,7 +121,6 @@ export class WinAppLauncher {
       }
     }
     logger.warn('[WinAppLauncher.waitForStart] 起動検出タイムアウト');
-    logger.debug('[WinAppLauncher.waitForStart] done');
     return false;
   }
 
@@ -116,6 +135,8 @@ export class WinAppLauncher {
     logger.debug('[WinAppLauncher.waitForCompletion] start');
     const timeoutAt = Date.now() + this.COMPLETE_TIMEOUT_MS;
     let lastText = '';
+
+    const isSingleShot = WinAppLauncher.SINGLE_SHOT_OPERATIONS.has(op);
 
     while (Date.now() < timeoutAt) {
       const status = await this.readStatus();
@@ -133,6 +154,21 @@ export class WinAppLauncher {
         lastText = text;
       }
 
+      // --- 単発完了型：最初の success / error で即終了
+      if (isSingleShot) {
+        if (status.status === 'success') {
+          logger.debug(
+            '[WinAppLauncher.waitForCompletion] single-shot success'
+          );
+          return true;
+        }
+        if (status.status === 'error') {
+          logger.debug('[WinAppLauncher.waitForCompletion] single-shot error');
+          return false;
+        }
+      }
+
+      // --- 従来型（継続監視）
       if (status.status === 'success') {
         logger.debug('[WinAppLauncher.waitForCompletion] success');
         return true;
@@ -146,7 +182,6 @@ export class WinAppLauncher {
     }
 
     logger.warn('[WinAppLauncher.waitForCompletion] タイムアウト');
-    logger.debug('[WinAppLauncher.waitForCompletion] done');
     return false;
   }
 
@@ -155,10 +190,7 @@ export class WinAppLauncher {
    */
   private async isStatusFileUpdated(baseline: Date): Promise<boolean> {
     const stat = await this.vault.adapter.stat(this.STATUS_FILE);
-    const updated = !!stat?.mtime && stat.mtime > baseline.getTime();
-    if (updated)
-      logger.debug('[WinAppLauncher.isStatusFileUpdated] updated detected');
-    return updated;
+    return !!stat?.mtime && stat.mtime > baseline.getTime();
   }
 
   /**
@@ -166,10 +198,12 @@ export class WinAppLauncher {
    */
   private async openUri(uri: string): Promise<boolean> {
     logger.debug(`[WinAppLauncher.openUri] uri=${uri}`);
+    if (!shell || typeof shell.openExternal !== 'function') {
+      logger.warn('[WinAppLauncher.openUri] Electron shell unavailable');
+      return false;
+    }
     try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const electron = require('electron');
-      await electron.shell.openExternal(uri);
+      await shell.openExternal(uri);
       logger.debug('[WinAppLauncher.openUri] done');
       return true;
     } catch (err) {
@@ -197,9 +231,7 @@ export class WinAppLauncher {
    * status.json の timestamp が基準より新しいか判定
    */
   private isNewer(status: StatusFile, baseline: Date): boolean {
-    const result = !!status.timestamp && new Date(status.timestamp) > baseline;
-    if (result) logger.debug('[WinAppLauncher.isNewer] newer detected');
-    return result;
+    return !!status.timestamp && new Date(status.timestamp) > baseline;
   }
 
   /**

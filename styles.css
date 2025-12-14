@@ -256,3 +256,32 @@
 .ptune-review-task-select {
   margin-bottom: 0.5em;
 }
+
+/* タグ一覧ヘッダ行（左右並び） */
+.ptune-tag-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  margin-bottom: 4px;
+}
+
+/* タイトルの余白調整（Obsidian 既定より少しコンパクトに） */
+.ptune-tag-header-title {
+  margin: 0;
+  padding: 0;
+}
+
+/* 追加ボタン（Obsidian の標準ボタンに近い見た目） */
+.ptune-tag-add-btn {
+  background-color: var(--background-primary-alt);
+  border: 1px solid var(--interactive-accent);
+  color: var(--text-normal);
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.ptune-tag-add-btn:hover {
+  background-color: var(--background-modifier-hover);
+}

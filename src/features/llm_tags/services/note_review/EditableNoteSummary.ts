@@ -11,32 +11,42 @@ export interface EditableTagItem {
 export interface EditableNoteSummary {
   summary: string;
   tags: EditableTagItem[];
-
-  /** 保存時に dailynote を今日のデイリーノートリンクに更新するかどうか */
   updateDailyNote: boolean;
-
-  /** 後から割り当てるタスクキー（任意） */
   taskKey?: string;
+
+  /** new, new2, new3 ... と追加する */
+  addNewTag: () => EditableTagItem;
 }
 
-/**
- * NoteSummary → UI 用 EditableNoteSummary 変換ファクトリ
- */
 export class EditableNoteSummaryFactory {
   static fromNoteSummary(summary: NoteSummary): EditableNoteSummary {
-    const baseSummary = summary.summary ?? '';
-
-    const tags = (summary.tags ?? []).map<EditableTagItem>((tag) => ({
-      name: tag,
-      enabled: true,
-      isNew: summary.newTagCandidates?.includes(tag) ?? false,
-    }));
-
-    return {
-      summary: baseSummary,
-      tags,
+    const editable: EditableNoteSummary = {
+      summary: summary.summary ?? '',
+      tags: (summary.tags ?? []).map((t) => ({
+        name: t,
+        enabled: true,
+        isNew: summary.newTagCandidates?.includes(t) ?? false,
+      })),
       updateDailyNote: true,
-      taskKey: summary.taskKey ?? undefined,
+      taskKey: summary.taskKey,
+
+      addNewTag() {
+        // UI追加の new/new2/new3 タグだけを対象に連番化
+        const newTags = editable.tags.filter((t) => /^new(\d+)?$/.test(t.name));
+        const nextIndex = newTags.length + 1;
+
+        const name = nextIndex === 1 ? 'new' : `new${nextIndex}`;
+        const newTag: EditableTagItem = {
+          name,
+          enabled: true,
+          isNew: true,
+        };
+
+        editable.tags.push(newTag);
+        return newTag;
+      },
     };
+
+    return editable;
   }
 }

@@ -1,7 +1,5 @@
 import { Plugin, App, Modal, Notice, Setting } from 'obsidian';
-import type {
-  InitialSetupManager,
-} from './InitialSetupManager';
+import type { InitialSetupManager } from './InitialSetupManager';
 import { NoteSetupHelper } from './NoteSetupHelper';
 import { PluginUtils } from 'src/core/utils/common/PluginUtils';
 
@@ -280,10 +278,11 @@ export class SetupWizardDialog extends Modal {
     container.createEl('p', {
       text: '利用には「PtuneSync Windows 認証アプリ」のインストールが必要です。',
     });
+
     container
       .createEl('a', {
-        href: 'https://github.com/getperf/ptune-sync/releases',
-        text: 'PtuneSync ダウンロードページを開く',
+        href: 'https://apps.microsoft.com/detail/9P9HQS78NVLZ',
+        text: 'Microsoft ストアの PtuneSync を開く',
       })
       .setAttr('target', '_blank');
 

@@ -2,6 +2,8 @@ import { App, normalizePath, TFile } from 'obsidian';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { FrontmatterWriter } from 'src/core/utils/frontmatter/FrontmatterWriter';
+import { TemplateRenderer } from 'src/core/utils/template/TemplateRenderer';
+import { PROJECT_INDEX_TEMPLATE } from 'src/core/templates/project_index_template';
 
 /**
  * FolderIndexWriterService
@@ -17,16 +19,11 @@ export class FolderIndexWriterService {
    */
   async createIndexNote(folderPath: string): Promise<void> {
     const now = DateUtil.localISOString();
-    const content = [
-      '---',
-      `created: ${now}`,
-      `updated: ${now}`,
-      '---',
-      '',
-      '# 📁 フォルダ概要',
-      '',
-      'このフォルダの共通タグや進捗サマリを記載します。',
-    ].join('\n');
+    const content = TemplateRenderer.render(PROJECT_INDEX_TEMPLATE, {
+      created: now,
+      updated: now,
+      folderPath,
+    });
 
     const indexPath = normalizePath(`${folderPath}/index.md`);
     await this.app.vault.adapter.write(indexPath, content);

@@ -1,4 +1,4 @@
-import { LLMSettings } from 'src/config/LLMSettings';
+import { LLMSettings } from 'src/config/settings/LLMSettings';
 import https from 'https';
 import { LLMClientError } from './LLMClientError';
 import { logger } from '../../logger/loggerInstance';
@@ -6,7 +6,7 @@ import { LLMClientBase } from './LLMClientBase';
 
 /** Claudeモデルクライアント */
 export class ClaudeClient implements LLMClientBase {
-  constructor(private settings: LLMSettings) { }
+  constructor(private settings: LLMSettings) {}
 
   /** Chat 呼び出し
    * 注意点:

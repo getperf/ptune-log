@@ -5,12 +5,12 @@ import { ClaudeClient } from './clients/ClaudeClient';
 import { LLMClientError } from './clients/LLMClientError';
 import { TagVectors } from 'src/core/models/vectors/TagVectors';
 import { logger } from '../logger/loggerInstance';
-import { LLMSettings } from 'src/config/LLMSettings';
+import { LLMSettings } from 'src/config/settings/LLMSettings';
 import { LLMClientBase } from './clients/LLMClientBase';
 
 /** LLMサービスの統合クライアント */
 export class LLMClient {
-  constructor(private app: App, public settings: LLMSettings) { }
+  constructor(private app: App, public settings: LLMSettings) {}
 
   hasValidApiKey(): boolean {
     return !!this.settings.apiKey?.trim();

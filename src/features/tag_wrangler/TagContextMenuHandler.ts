@@ -1,7 +1,7 @@
 import { Menu, Plugin } from 'obsidian';
 import { TagActionService } from './services/TagActionService';
 import { LLMClient } from '../../core/services/llm/LLMClient';
-import { LLMSettings } from 'src/config/LLMSettings';
+import { LLMSettings } from 'src/config/settings/LLMSettings';
 import { logger } from 'src/core/services/logger/loggerInstance';
 
 /**

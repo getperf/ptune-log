@@ -1,12 +1,12 @@
 import { requestUrl } from 'obsidian';
-import { LLMSettings } from 'src/config/LLMSettings';
+import { LLMSettings } from 'src/config/settings/LLMSettings';
 import { LLMClientError } from './LLMClientError';
 import { logger } from '../../logger/loggerInstance';
 import { LLMClientBase } from './LLMClientBase';
 
 /** Geminiモデルクライアント */
 export class GeminiClient implements LLMClientBase {
-  constructor(private settings: LLMSettings) { }
+  constructor(private settings: LLMSettings) {}
 
   async callChat(system: string, user: string): Promise<string | null> {
     const { apiKey, baseUrl, model, temperature, maxTokens } = this.settings;
@@ -29,7 +29,9 @@ export class GeminiClient implements LLMClientBase {
       });
 
       if (res.status < 200 || res.status >= 300) {
-        throw new LLMClientError(`Gemini Chat error: ${res.status} - ${res.text}`);
+        throw new LLMClientError(
+          `Gemini Chat error: ${res.status} - ${res.text}`
+        );
       }
 
       const text = res.json?.candidates?.[0]?.content?.parts?.[0]?.text ?? null;

@@ -1,7 +1,7 @@
 /**
  * CommonTagAnalyzer
  * - プロジェクトフォルダの共通タグ生成を行い、index.md に反映する。
- * - FolderIndexWriter / CommonTagGenerator を利用。
+ * - enableCommonTag / forceCommonTags を NoteAnalysisService と統一。
  */
 import { App } from 'obsidian';
 import { NoteSummaries } from 'src/core/models/notes/NoteSummaries';
@@ -10,18 +10,17 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 import { IAnalyzer } from './IAnalyzer';
 import { CommonTagGenerator } from 'src/features/note_creator/services/CommonTagGenerator';
 
-/** CommonTagAnalyzer のオプション型 */
+/** CommonTagAnalyzer のオプション（名称統一） */
 export interface CommonTagAnalyzerOptions {
-  force?: boolean;
+  enableCommonTag?: boolean; // 実行の有無
+  forceCommonTags?: boolean; // index.md に既存があっても再生成する
 }
 
 export class CommonTagAnalyzer implements IAnalyzer<CommonTagAnalyzerOptions> {
-  /** 遅延生成する内部 generator */
   private generator: CommonTagGenerator | null = null;
 
   constructor(private readonly app: App, private readonly client: LLMClient) {}
 
-  /** CommonTagGenerator の遅延生成 */
   private getGenerator(): CommonTagGenerator {
     if (!this.generator) {
       this.generator = new CommonTagGenerator(this.app, this.client);
@@ -29,50 +28,53 @@ export class CommonTagAnalyzer implements IAnalyzer<CommonTagAnalyzerOptions> {
     return this.generator;
   }
 
-  /**
-   * analyze
-   * - 各フォルダの共通タグを生成／更新する。
-   * - タグが既に index.md に存在する場合はスキップ。
-   */
   async analyze(
     summaries: NoteSummaries,
     options?: CommonTagAnalyzerOptions
   ): Promise<void> {
-    const force = options?.force ?? false;
-    logger.debug(`[CommonTagAnalyzer] start force=${force}`);
+    const enabled = options?.enableCommonTag ?? true;
+    const force = options?.forceCommonTags ?? false;
 
-    for (const folder of summaries.getFoldersSorted()) {
-      const existing = (await folder.getCommonTags(this.app)) ?? [];
+    logger.debug(
+      `[CommonTagAnalyzer] start enabled=${enabled}, force=${force}`
+    );
 
-      if (!force && existing.length > 0) {
-        logger.debug(
-          `[CommonTagAnalyzer] skip folder=${folder.noteFolder} (common tags exist)`
-        );
-        continue;
-      }
-
-      logger.debug(
-        `[CommonTagAnalyzer] processing folder=${folder.noteFolder}`
-      );
-
-      const projectFolder = folder.getTFolder(this.app);
-      if (!projectFolder) {
-        logger.warn(
-          `[CommonTagAnalyzer] folder not found: ${folder.noteFolder}`
-        );
-        continue;
-      }
-
-      const tags = await this.getGenerator().applyTagsToIndex(projectFolder);
-
-      folder.setCommonTags?.(tags);
-
-      logger.debug(
-        `[CommonTagAnalyzer] applied tags folder=${
-          folder.noteFolder
-        } tags=${tags.join(', ')}`
-      );
+    if (!enabled) {
+      logger.debug(`[CommonTagAnalyzer] skipped (enableCommonTag = false)`);
+      return;
     }
+
+    // for (const folder of summaries.getFoldersSorted()) {
+    //   const existing = (await folder.getCommonTags(this.app)) ?? [];
+
+    //   if (!force && existing.length > 0) {
+    //     logger.debug(
+    //       `[CommonTagAnalyzer] skip folder=${folder.noteFolder} (existing common tags)`
+    //     );
+    //     continue;
+    //   }
+
+    //   logger.debug(
+    //     `[CommonTagAnalyzer] processing folder=${folder.noteFolder}`
+    //   );
+
+    //   const projectFolder = folder.getTFolder(this.app);
+    //   if (!projectFolder) {
+    //     logger.warn(
+    //       `[CommonTagAnalyzer] folder not found: ${folder.noteFolder}`
+    //     );
+    //     continue;
+    //   }
+
+    //   const tags = await this.getGenerator().applyTagsToIndex(projectFolder);
+    //   folder.setCommonTags?.(tags);
+
+    //   logger.debug(
+    //     `[CommonTagAnalyzer] applied tags folder=${
+    //       folder.noteFolder
+    //     } tags=${tags.join(', ')}`
+    //   );
+    // }
 
     logger.debug('[CommonTagAnalyzer] complete');
   }

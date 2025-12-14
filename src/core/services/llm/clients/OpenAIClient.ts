@@ -1,5 +1,5 @@
 import { requestUrl } from 'obsidian';
-import { LLMSettings } from 'src/config/LLMSettings';
+import { LLMSettings } from 'src/config/settings/LLMSettings';
 import { LLMClientError } from './LLMClientError';
 import { logger } from '../../logger/loggerInstance';
 import { LLMClientBase } from './LLMClientBase';
@@ -7,7 +7,7 @@ import type { OpenAIEmbeddingResponse } from './OpenAIResponse';
 
 /** OpenAI系モデル（Chat / Embedding） */
 export class OpenAIClient implements LLMClientBase {
-  constructor(private settings: LLMSettings) { }
+  constructor(private settings: LLMSettings) {}
 
   /** Chat 呼び出し */
   async callChat(system: string, user: string): Promise<string | null> {
@@ -34,7 +34,9 @@ export class OpenAIClient implements LLMClientBase {
       });
 
       if (res.status < 200 || res.status >= 300) {
-        throw new LLMClientError(`OpenAI Chat error: ${res.status} - ${res.text}`);
+        throw new LLMClientError(
+          `OpenAI Chat error: ${res.status} - ${res.text}`
+        );
       }
 
       const content = res.json?.choices?.[0]?.message?.content ?? null;
@@ -66,7 +68,9 @@ export class OpenAIClient implements LLMClientBase {
       });
 
       if (res.status < 200 || res.status >= 300) {
-        throw new LLMClientError(`OpenAI Embedding error: ${res.status} - ${res.text}`);
+        throw new LLMClientError(
+          `OpenAI Embedding error: ${res.status} - ${res.text}`
+        );
       }
 
       const json = res.json as OpenAIEmbeddingResponse;
