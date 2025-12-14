@@ -36,6 +36,7 @@ export class NoteReviewService {
 
   /**
    * UI 編集用モデルを生成
+   * - ここで taskKey の既存値も初期値として反映される（Factory の責務）
    */
   createEditable(summary: NoteSummary): EditableNoteSummary {
     return EditableNoteSummaryFactory.fromNoteSummary(summary);
