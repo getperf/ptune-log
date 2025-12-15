@@ -6,6 +6,7 @@ import { LLMClient } from 'src/core/services/llm/LLMClient';
 import { LLMTagGenerationRunner } from './LLMTagGenerationRunner';
 import { NoteAnalysisService } from '../analysis/NoteAnalysisService';
 import { ReviewSettings } from 'src/config/settings/ReviewSettings';
+import { DailyNoteReader } from 'src/core/utils/daily_note/DailyNoteReader';
 
 export class LLMTagGenerateExecutor {
   private readonly analysis: NoteAnalysisService;
@@ -65,18 +66,21 @@ export class LLMTagGenerateExecutor {
       mode: 'date',
       initialDate: new Date(),
       onConfirm: (modal, files, selectedDate, forceRegenerate) => {
+        const dailyNoteReader = new DailyNoteReader(this.app);
+
         void this.runner
           .runOnFiles(files, modal, forceRegenerate)
-          .then((summaries) => {
-            // --- ② CommonTagAnalyzer/KPTAnalyzer の統合実行 ---
-            const enableCommonTag = this.reviewSettings.enableCommonTag ?? true;
-            return this.analysis.analyze(summaries, {
-              enableCommonTag,
+          .then(async (summaries) => {
+            const dailyNoteText = await dailyNoteReader.readForDate(
+              selectedDate
+            );
+
+            return this.analysis.analyze(summaries, dailyNoteText, {
+              enableCommonTag: this.reviewSettings.enableCommonTag ?? true,
               forceCommonTags: forceRegenerate,
             });
           })
           .then((analyzed) => {
-            // --- ③ デイリーノートへ結果反映 ---
             return new DailyNoteUpdater(this.app).update(
               analyzed,
               selectedDate,
