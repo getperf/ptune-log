@@ -5,5 +5,5 @@ export interface ReviewSettings {
 }
 
 export const DEFAULT_REVIEW_SETTINGS: ReviewSettings = {
-  enableCommonTag: true,
+  enableCommonTag: false,
 };
