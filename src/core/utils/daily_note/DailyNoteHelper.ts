@@ -138,4 +138,40 @@ export class DailyNoteHelper {
       `[DailyNoteHelper] section "${sectionHeading}" updated in ${file.path}`
     );
   }
+
+  /**
+   * 指定セクションの「末尾」に追記する
+   * - 見出し自体は保持
+   * - セクション内の最後に追加
+   */
+  static async appendToEndOfSection(
+    app: App,
+    note: TFile,
+    heading: string,
+    text: string
+  ): Promise<void> {
+    const content = await app.vault.read(note);
+
+    const headingIndex = content.indexOf(heading);
+    if (headingIndex === -1) {
+      throw new Error(`Heading not found: ${heading}`);
+    }
+
+    // 次の同レベル or 上位レベル見出しを探す
+    const rest = content.slice(headingIndex + heading.length);
+    const match = rest.match(/\n##\s+/);
+
+    const insertPos = match
+      ? headingIndex + heading.length + match.index!
+      : content.length;
+
+    const updated =
+      content.slice(0, insertPos) +
+      '\n' +
+      text.trim() +
+      '\n' +
+      content.slice(insertPos);
+
+    await app.vault.modify(note, updated);
+  }
 }

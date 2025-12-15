@@ -1,5 +1,5 @@
 // File: src/core/services/notes/DailyNoteUpdater.ts
-import { App, Notice, TFile, moment } from 'obsidian';
+import { App, TFile, moment } from 'obsidian';
 import { createDailyNote } from 'obsidian-daily-notes-interface';
 import { DailyNoteHelper } from 'src/core/utils/daily_note/DailyNoteHelper';
 import { DailyNoteConfig } from 'src/core/utils/daily_note/DailyNoteConfig';
@@ -8,8 +8,9 @@ import { NoteSummaries } from 'src/core/models/notes/NoteSummaries';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
 import { KPTMarkdownBuilder } from 'src/features/llm_tags/services/analysis/KPTMarkdownBuilder';
 import { ChecklistDecorator } from './ChecklistDecorator';
-// import { FileUtils } from 'src/core/utils/common/FileUtils';
 import { TaskSectionReplacer } from 'src/core/utils/daily_note/TaskSectionReplacer';
+
+/* ===== 既存 API を維持 ===== */
 
 export interface AppendOptions {
   headingMarker?: string;
@@ -19,207 +20,168 @@ export interface AppendOptions {
 }
 
 export const HEADER_REVIEW_LOG = '## 🙌 振り返りメモ';
+const HEADER_DAILY_REPORT_PREFIX = '### 🏷 デイリーレポート';
+const HEADER_TAG_LIST = '### 📌 タグ一覧（当日生成）';
 
-const DEFAULT_OPTIONS: AppendOptions = {
-  headingMarker: HEADER_REVIEW_LOG,
-  prepend: false,
-  reverse: true,
-  enableChecklist: true,
-};
-
-/**
- * --- DailyNoteUpdater
- * LLM解析結果などから構成された NoteSummaries をデイリーノートに追記するサービス。
- * - core/services 配下に移動し、LLM に依存しない汎用ノート更新機能として扱う。
- */
 export class DailyNoteUpdater {
-  /** --- constructor
-   * App インスタンスを受け取り、デイリーノート操作に利用する。
-   */
-  constructor(private readonly app: App) { }
+  constructor(private readonly app: App) {}
 
-  /** --- appendTagResults
-   * NoteSummaries を指定日のデイリーノートに追記する。
-   * - headingMarker セクション配下にMarkdownを追記
-   * - 失敗時は Notice とログを出力
-   */
-  async appendTagResults(
-    summaries: NoteSummaries,
-    forDate: Date,
-    opts: AppendOptions = {}
-  ): Promise<void> {
-    const options = { ...DEFAULT_OPTIONS, ...opts };
-    logger.info(
-      `[DailyNoteUpdater.appendTagResults] start date=${DateUtil.dateKey(
-        forDate
-      )}`
-    );
-
-    let note: TFile;
-    try {
-      note = await DailyNoteHelper.getOrOpenDailyNoteForDate(this.app, forDate);
-    } catch (e) {
-      logger.error('[DailyNoteUpdater] failed to open daily note', e);
-      new Notice('📝 デイリーノート取得に失敗しました。');
-      return;
-    }
-
-    const summaryText = await this.buildSummaryText(
-      summaries,
-      forDate,
-      options
-    );
-
-    try {
-      await DailyNoteHelper.appendToSection(
-        this.app,
-        note,
-        options.headingMarker!,
-        summaryText,
-        options.prepend
-      );
-      logger.info('[DailyNoteUpdater] summary appended');
-    } catch (e) {
-      logger.error('[DailyNoteUpdater] failed to append summary', e);
-      new Notice('⚠️ デイリーノートへの追記に失敗しました。');
-    }
-  }
-
-  /**
-   * 指定セクションの本文を丸ごと置き換える（洗い替え用）
-   * - 見出し自体は保持
-   */
+  /* --- 既存利用箇所のため残す --- */
   async replaceTaskListInSection(
     notePath: string,
     heading: string,
     taskMarkdown: string
   ): Promise<void> {
     const file = this.app.vault.getAbstractFileByPath(notePath);
-    if (!(file instanceof TFile)) throw new Error('Note is not a file');
+    if (!(file instanceof TFile)) return;
 
     const original = await this.app.vault.read(file);
-    logger.debug(
-      `[DailyNoteUpdater.replaceTaskListInSection] original length=${original.length}`
-    );
-
-    // const updated = FileUtils.replaceTaskListInSection(
-    //   original,
-    //   heading,
-    //   taskMarkdown
-    // );
-    const replacer = new TaskSectionReplacer(
-      '## ✅ 今日の予定タスク（手動で追記OK）',
-      taskMarkdown
-    );
+    const replacer = new TaskSectionReplacer(heading, taskMarkdown);
     const updated = replacer.replace(original);
 
-    logger.debug(
-      `[DailyNoteUpdater.replaceTaskListInSection] updated length=${updated.length}`
-    );
-    if (original === updated) {
-      logger.warn(
-        '[DailyNoteUpdater.replaceTaskListInSection] content not changed'
-      );
+    if (original !== updated) {
+      await this.app.vault.modify(file, updated);
     }
-
-    await this.app.vault.modify(file, updated);
-    logger.info('[DailyNoteUpdater.replaceTaskListInSection] completed');
   }
 
-  /** --- buildSummaryText
-   * NoteSummaries からフォルダ単位レポートをMarkdownで生成する。
-   * - ノートごとの要約とタグの一覧を出力
-   * - 当日生成タグ／未登録タグ候補もまとめて表示
+  /**
+   * === メインエントリ ===
+   * - サマリ／タグ：初回のみ生成
+   * - KPT：毎回追記
    */
+  async update(
+    summaries: NoteSummaries,
+    forDate: Date,
+    opts: AppendOptions = {}
+  ): Promise<void> {
+    const note = await DailyNoteHelper.getOrOpenDailyNoteForDate(
+      this.app,
+      forDate
+    );
 
-  /** --- buildSummaryText */
-  async buildSummaryText(
+    const dateStr = DateUtil.localDate(forDate);
+    const content = await this.app.vault.read(note);
+
+    let updated = content;
+
+    // --- サマリレポート（初回のみ） ---
+    if (!this.hasDailyReport(content, dateStr)) {
+      const reportBlock = await this.buildDailyReportBlock(
+        summaries,
+        forDate,
+        opts
+      );
+      updated = this.insertUnderReviewHeader(updated, reportBlock);
+    }
+
+    // --- タグ一覧（初回のみ） ---
+    if (!this.hasTagList(updated)) {
+      const tagBlock = this.buildTagListBlock(summaries);
+      updated = this.insertUnderReviewHeader(updated, tagBlock);
+    }
+
+    // --- KPT（毎回追記） ---
+    if (summaries.kpt) {
+      const index = this.nextKptIndex(updated);
+      updated =
+        updated.trimEnd() +
+        '\n\n' +
+        KPTMarkdownBuilder.build(summaries.kpt, index > 1 ? index : undefined) +
+        '\n';
+    }
+
+    if (updated !== content) {
+      await this.app.vault.modify(note, updated);
+      logger.info('[DailyNoteUpdater] review note updated');
+    }
+  }
+
+  /* ===== private helpers ===== */
+
+  private hasDailyReport(content: string, dateStr: string): boolean {
+    return content.includes(`${HEADER_DAILY_REPORT_PREFIX}（${dateStr})`);
+  }
+
+  private hasTagList(content: string): boolean {
+    return content.includes(HEADER_TAG_LIST);
+  }
+
+  private nextKptIndex(content: string): number {
+    const matches = content.match(/### 🧠 KPT分析(\((\d+)\))?/g);
+    return matches ? matches.length + 1 : 1;
+  }
+
+  private insertUnderReviewHeader(content: string, block: string): string {
+    const idx = content.indexOf(HEADER_REVIEW_LOG);
+    if (idx === -1) return content;
+
+    const insertPos = idx + HEADER_REVIEW_LOG.length;
+    return (
+      content.slice(0, insertPos) +
+      '\n\n' +
+      block +
+      '\n' +
+      content.slice(insertPos)
+    );
+  }
+
+  private async buildDailyReportBlock(
     summaries: NoteSummaries,
     forDate: Date,
     opts: AppendOptions
   ): Promise<string> {
     const dateStr = DateUtil.localDate(forDate);
-    const allTags = summaries.getAllTags();
-    const newTags = summaries.getAllNewCandidates();
-    const folders = summaries.getFoldersSorted();
-    logger.debug(
-      `[DailyNoteUpdater.buildSummaryText] folders=${folders.length} tags=${allTags.length}`
-    );
-    const enableChecklist = opts.enableChecklist ?? true;
-
-    /** ✔ チェックボックス付与関数 */
     const decorator = new ChecklistDecorator(
       opts.enableChecklist ?? true,
       '- [ ] '
     );
 
     const lines: string[] = [
-      `### 🏷 デイリーレポート（${dateStr}）`,
+      `${HEADER_DAILY_REPORT_PREFIX}（${dateStr})`,
       '',
-      enableChecklist
-        ? '※ 以下の項目はチェックし、必要に応じて修正してください。'
-        : '',
+      '※ 以下の項目はチェックし、必要に応じて修正してください。',
       '',
     ];
 
-    for (const folder of folders) {
-      lines.push(`\n#### ${folder.noteFolder}`);
+    for (const folder of summaries.getFoldersSorted()) {
+      lines.push(`#### ${folder.noteFolder}`);
 
-      const commonTags = (await folder.getCommonTags(this.app)) ?? [];
-      if (commonTags.length > 0) {
-        const tagLine = `共通タグ: ${commonTags.map((t) => `#${t}`).join(' ')}`;
-        lines.push(tagLine);
+      const tags = (await folder.getCommonTags(this.app)) ?? [];
+      if (tags.length > 0) {
+        lines.push(`共通タグ: ${tags.map((t) => `#${t}`).join(' ')}`);
       }
 
-      const notes = folder.getNotes().sort((a, b) => {
-        const getNum = (s: string) => parseInt(s.split('_')[0]) || 0;
-        return getNum(a.notePath) - getNum(b.notePath);
-      });
-
-      for (const note of notes) {
-        const md = note.toMarkdownSummary(); // 複数行のこともある
-
-        const mdLines = md.split('\n').map((ln) => decorator.apply(ln));
-        lines.push(mdLines.join('\n'));
+      for (const note of folder.getNotes()) {
+        lines.push(
+          note
+            .toMarkdownSummary()
+            .split('\n')
+            .map((l) => decorator.apply(l))
+            .join('\n')
+        );
       }
     }
 
-    // --- KPT セクション
-    if (summaries.kpt) {
-      lines.push('\n');
-      lines.push(KPTMarkdownBuilder.build(summaries.kpt));
-    }
-
-    lines.push(
-      `\n\n### 📌 タグ一覧（当日生成）\n${allTags
-        .map((t) => `#${t}`)
-        .join(' ')}`
-    );
-
-    if (newTags.length > 0) {
-      lines.push(
-        `\n\n### ⚠ 未登録タグ候補（要レビュー）\n${newTags
-          .map((t) => `#${t}`)
-          .join(' ')}`
-      );
-    }
-
-    logger.debug('[DailyNoteUpdater.buildSummaryText] complete');
     return lines.join('\n') + '\n';
   }
 
-  /**
-   * DailyNoteConfig を利用して日付に対応するデイリーノートを取得し、
-   * 未作成の場合は obsidian-daily-notes-interface により作成する。
-   */
-  async getOrCreateDailyNote(date: Date): Promise<TFile | null> {
-    const path = await DailyNoteConfig.getNotePathForDate(this.app.vault, date);
-    if (!path) return null;
+  private buildTagListBlock(summaries: NoteSummaries): string {
+    const allTags = summaries.getAllTags();
+    const newTags = summaries.getAllNewCandidates();
 
-    const file = this.app.vault.getAbstractFileByPath(path);
-    if (file instanceof TFile) return file;
+    const lines: string[] = [
+      HEADER_TAG_LIST,
+      allTags.map((t) => `#${t}`).join(' '),
+    ];
 
-    const m = moment as unknown as (d: unknown) => moment.Moment;
-    return await createDailyNote(m(date));
+    if (newTags.length > 0) {
+      lines.push(
+        '',
+        '### ⚠ 未登録タグ候補（要レビュー）',
+        newTags.map((t) => `#${t}`).join(' ')
+      );
+    }
+
+    return lines.join('\n') + '\n';
   }
 }

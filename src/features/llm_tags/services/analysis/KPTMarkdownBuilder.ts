@@ -1,23 +1,21 @@
 import { KPTResult } from './KPTAnalyzer';
 
 export class KPTMarkdownBuilder {
-  static build(result: KPTResult): string {
-    const { Keep, Problem, Try } = result;
+  static build(kpt: KPTResult, index?: number): string {
+    const title =
+      index && index > 1 ? `### 🧠 KPT分析(${index})` : '### 🧠 KPT分析';
 
-    const lines: string[] = [
-      '### 🧠 KPT分析',
+    return [
+      title,
       '',
       '#### Keep',
-      ...(Keep.length > 0 ? Keep.map((v) => `- ${v}`) : ['- ']),
+      ...kpt.Keep.map((k) => `- ${k}`),
       '',
       '#### Problem',
-      ...(Problem.length > 0 ? Problem.map((v) => `- ${v}`) : ['- ']),
+      ...kpt.Problem.map((p) => `- ${p}`),
       '',
       '#### Try',
-      ...(Try.length > 0 ? Try.map((v) => `- ${v}`) : ['- ']),
-      '',
-    ];
-
-    return lines.join('\n');
+      ...kpt.Try.map((t) => `- ${t}`),
+    ].join('\n');
   }
 }
