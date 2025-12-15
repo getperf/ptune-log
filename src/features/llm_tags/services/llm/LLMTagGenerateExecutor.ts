@@ -77,7 +77,7 @@ export class LLMTagGenerateExecutor {
           })
           .then((analyzed) => {
             // --- ③ デイリーノートへ結果反映 ---
-            return new DailyNoteUpdater(this.app).appendTagResults(
+            return new DailyNoteUpdater(this.app).update(
               analyzed,
               selectedDate,
               { enableChecklist }
