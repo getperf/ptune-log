@@ -39,22 +39,45 @@ export class TagListSection {
     // --- タグ一覧本体 ---
     const listEl = container.createEl('div', { cls: 'ptune-tag-list' });
 
-    editable.tags.forEach((tag) => {
+    // ★ ソート（正規化 → New、名前昇順）
+    const sortedTags = [...editable.tags].sort((a, b) => {
+      // 1. 正規化タグを先に
+      if (a.isNew !== b.isNew) {
+        return a.isNew ? 1 : -1;
+      }
+
+      // 2. タイトル（タグ名）昇順
+      return a.name.localeCompare(b.name, 'ja', {
+        sensitivity: 'base',
+      });
+    });
+
+    sortedTags.forEach((tag) => {
       const row = listEl.createEl('div', { cls: 'ptune-tag-row' });
 
-      // タグ名リンク
+      // --- タグ名リンク ---
       const link = row.createEl('a', {
-        text: tag.name,
         cls: 'ptune-tag-link',
         href: '#',
       });
+
+      // タグ名テキスト
+      link.createSpan({ text: tag.name });
+
+      // New バッジ（未正規化タグ）
+      if (tag.isNew) {
+        link.createSpan({
+          text: ' New',
+          cls: 'ptune-tag-badge-new',
+        });
+      }
 
       link.addEventListener('click', (ev) => {
         ev.preventDefault();
         onEditTag(tag);
       });
 
-      // 有効／無効チェック
+      // --- 有効／無効チェック ---
       const cb = row.createEl('input', { type: 'checkbox' });
       cb.checked = tag.enabled;
 

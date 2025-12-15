@@ -12,7 +12,11 @@ export interface TagEditContext {
   from: string; // 編集対象
   to?: string; // 変更先（renameでは空、mergeでは初期値）
   mode?: TagEditMode;
-  onSubmit: (from: string, to: string) => Promise<void>;
+  onSubmit: (
+    from: string,
+    to: string,
+    opts: { isNormalized: boolean }
+  ) => Promise<void>;
 }
 
 /**
@@ -29,6 +33,7 @@ export class TagEditDialog extends Modal {
   private activeTab: 'normal' | 'vector' = 'normal';
   private tabNormalEl: HTMLButtonElement;
   private tabVectorEl: HTMLButtonElement;
+  private normalCandidates: TagCandidate[] = [];
 
   constructor(
     app: App,
@@ -114,10 +119,16 @@ export class TagEditDialog extends Modal {
       .onClick(async () => {
         const newTag = this.selectedTag || this.inputEl.value.trim();
         if (!newTag) return;
+
+        const isNormalized =
+          !!this.selectedTag ||
+          this.normalCandidates.some((c) => c.name === newTag);
+
         logger.debug(
-          `[TagEditDialog.onSubmit] from=${this.ctx.from}, to=${newTag}, mode=${this.ctx.mode}`
+          `[TagEditDialog.onSubmit] from=${this.ctx.from}, to=${newTag}, normalized=${isNormalized}`
         );
-        await this.ctx.onSubmit(this.ctx.from, newTag);
+
+        await this.ctx.onSubmit(this.ctx.from, newTag, { isNormalized });
         this.close();
       });
 
@@ -150,6 +161,7 @@ export class TagEditDialog extends Modal {
     logger.debug(`[TagEditDialog.updateCandidates] keyword=${key}`);
 
     const normal = await this.candidateService.searchCandidates(key);
+    this.normalCandidates = normal;
     this.renderCandidateList(this.listNormalEl, normal);
     logger.debug(
       `[TagEditDialog.updateCandidates] normalCandidates=${normal.length}`

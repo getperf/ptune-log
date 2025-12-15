@@ -202,7 +202,8 @@
 /* NoteReviewModal: Summary 編集用テキストエリア */
 .ptune-review-summary-fullwidth {
   width: 100%;
-  min-height: 8em; /* 6〜8行を推奨 */
+  min-height: 8em;
+  /* 6〜8行を推奨 */
   max-height: 300px;
 
   box-sizing: border-box;
@@ -264,6 +265,17 @@
   justify-content: space-between;
   margin-top: 12px;
   margin-bottom: 4px;
+}
+
+/* 新規タグ表示用バッジ */
+.ptune-tag-badge-new {
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 0.75em;
+  border-radius: 6px;
+  background-color: var(--color-accent);
+  color: var(--text-on-accent);
+  vertical-align: middle;
 }
 
 /* タイトルの余白調整（Obsidian 既定より少しコンパクトに） */

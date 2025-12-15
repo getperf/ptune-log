@@ -117,8 +117,9 @@ export class NoteReviewModal extends Modal {
       from: tag.name,
       to: tag.name,
       mode: 'rename',
-      onSubmit: async (_from, to) => {
+      onSubmit: async (_from, to, opts) => {
         tag.name = to;
+        tag.isNew = !opts.isNormalized;
         await this.render();
       },
     });
