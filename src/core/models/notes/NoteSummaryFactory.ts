@@ -96,26 +96,26 @@ export class NoteSummaryFactory {
   }
 
   /**
-   * --- recreateWithNewTagCandidates
-   * 既存 NoteSummary を基に、newTagCandidates のみ差し替えて再生成する。
+   * --- recreateWithUnregisteredTags
+   * 既存 NoteSummary を基に、UnregisteredTags のみ差し替えて再生成する。
    *
    * 用途:
    * - LLM 実行スキップ時の未登録タグ検出
    * - 振り返りフェーズでの事実検出（タグ辞書差分）
    */
-  static recreateWithNewTagCandidates(
+  static recreateWithUnregisteredTags(
     base: NoteSummary,
-    newTagCandidates: string[]
+    unregisteredTags: string[]
   ): NoteSummary {
     logger.debug(
-      `[NoteSummaryFactory.recreateWithNewTagCandidates] path=${base.notePath} new=${newTagCandidates.length}`
+      `[NoteSummaryFactory.recreateWithUnregisteredTags] path=${base.notePath} new=${unregisteredTags.length}`
     );
 
     return new NoteSummary(
       base.notePath,
       base.summary,
       base.tags,
-      newTagCandidates, // ★ 差し替え
+      unregisteredTags,
       base.createdAt,
       base.dailynote,
       base.taskKey,

@@ -18,6 +18,7 @@ import { ExportTasks } from 'src/core/models/tasks/ExportTasks';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
 import { FileUtils } from 'src/core/utils/common/FileUtils';
 import { GetTasksMarkdownExecutor } from './win/GetTasksMarkdownExecutor';
+import { DailyNoteTaskKeyUpdateService } from './services/DailyNoteTaskKeyUpdateService';
 
 /**
  * Google Tasks 同期コマンド登録クラス
@@ -114,6 +115,22 @@ export class GoogleTasksFeature {
               await this.exportTasksFromDailynote(api);
             }
           )();
+        }
+      },
+    });
+
+    // ---
+    this.plugin.addCommand({
+      id: 'update-daily-note-task-keys',
+      name: 'Google Tasks: デイリーノートのタスクキー登録',
+      callback: async () => {
+        const service = new DailyNoteTaskKeyUpdateService(this.app);
+
+        try {
+          const result = await service.execute();
+          new Notice(`Updated taskKeys (${result.taskKeys.length})`);
+        } catch (err) {
+          new Notice('Daily note not found');
         }
       },
     });

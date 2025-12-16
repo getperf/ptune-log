@@ -11,7 +11,7 @@ export class NoteSummary {
     public readonly notePath: string,
     public readonly summary: string,
     public readonly tags: string[],
-    public readonly newTagCandidates: string[],
+    public readonly unregisteredTags: string[],
     public readonly createdAt: Date,
     public readonly dailynote?: string, // リンク形式
     public readonly taskKey?: string,
@@ -29,7 +29,7 @@ export class NoteSummary {
     data: {
       summary?: string;
       tags?: string[];
-      newCandidates?: string[];
+      unregisteredTags?: string[];
       createdAt?: Date;
       dailynote?: string;
       taskKey?: string;
@@ -38,7 +38,7 @@ export class NoteSummary {
   ): NoteSummary {
     const summary = data.summary ?? '(要約なし)';
     const tags = data.tags ?? [];
-    const newTagCandidates = data.newCandidates ?? [];
+    const unregisteredTags = data.unregisteredTags ?? [];
     const updatedAt = new Date(file.stat.mtime);
 
     logger.debug(
@@ -51,7 +51,7 @@ export class NoteSummary {
       file.path,
       summary,
       tags,
-      newTagCandidates,
+      unregisteredTags,
       data.createdAt ?? new Date(),
       data.dailynote,
       data.taskKey,
