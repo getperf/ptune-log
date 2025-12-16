@@ -1,9 +1,11 @@
-import { TFile } from 'obsidian';
+import { App, TFile } from 'obsidian';
 import { logger } from 'src/core/services/logger/loggerInstance';
 
 import { NoteSummary } from './NoteSummary';
 import { NoteProjectFolder } from './NoteProjectFolder';
 import { KPTResult } from 'src/features/llm_tags/services/analysis/KPTAnalyzer';
+import { UnregisteredTagService } from 'src/core/services/tags/UnregisteredTagService';
+import { NoteSummaryFactory } from './NoteSummaryFactory';
 
 /**
  * --- NoteSummaries
@@ -133,5 +135,28 @@ export class NoteSummaries {
       notePath: s.notePath,
       summary: s.summary,
     }));
+  }
+
+  /**
+   * 未登録タグを一括セット
+   */
+  async applyUnregisteredTags(
+    app: App,
+    service: UnregisteredTagService
+  ): Promise<NoteSummaries> {
+    await service.ensureLoaded(app.vault);
+
+    const updated = new NoteSummaries();
+
+    for (const summary of this.getAll()) {
+      const unregistered = service.detect(summary.tags);
+      const recreated = NoteSummaryFactory.recreateWithNewTagCandidates(
+        summary,
+        unregistered
+      );
+      updated.add(recreated);
+    }
+
+    return updated;
   }
 }

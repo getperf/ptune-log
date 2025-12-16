@@ -69,4 +69,16 @@ export class TagYamlIO extends YamlIOBase {
     logger.debug(`[TagYamlIO.load] total loaded rows=${result.length}`);
     return result;
   }
+
+  /**
+   * --- 登録済みタグ名一覧を返す（tags辞書のみ）
+   * ※ aliases は含めない
+   */
+  async loadAllTagNames(vault: Vault): Promise<string[]> {
+    const rows = await this.load(vault);
+    const names = rows.map((r) => r.name);
+
+    logger.debug(`[TagYamlIO.loadAllTagNames] total=${names.length}`);
+    return names;
+  }
 }

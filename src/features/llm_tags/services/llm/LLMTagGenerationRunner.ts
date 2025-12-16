@@ -1,8 +1,3 @@
-/**
- * LLMTagGenerationRunner
- * - LLM による複数ノート解析を統括する処理クラス。
- * - UI（モーダル）とは IProgressReporter を介して疎結合化する。
- */
 import { App, Notice, TFile, TFolder } from 'obsidian';
 import { LLMPromptService } from 'src/core/services/llm/LLMPromptService';
 import { TagAliases } from 'src/core/models/tags/TagAliases';
@@ -13,6 +8,9 @@ import { LLMTagFileProcessor } from './LLMTagFileProcessor';
 import { TagRankService } from '../tags/TagRankService';
 import { NoteSearchService } from 'src/core/services/notes/NoteSearchService';
 import { IProgressReporter } from './IProgressReporter';
+import { TagYamlIO } from 'src/core/services/yaml/TagYamlIO';
+import { UnregisteredTagService } from 'src/core/services/tags/UnregisteredTagService';
+import { NoteSummaryFactory } from 'src/core/models/notes/NoteSummaryFactory';
 
 /**
  * --- LLMTagGenerationRunner
@@ -109,6 +107,20 @@ export class LLMTagGenerationRunner {
       }
     }
 
+    // 未登録タグを一括セット
+    const tagYamlIO = new TagYamlIO();
+    const unregisteredService = new UnregisteredTagService(tagYamlIO);
+    const updatedSummaries = await summaries.applyUnregisteredTags(
+      this.app,
+      unregisteredService
+    );
+
+    // --- 集計結果
+    const totalUnregistered = updatedSummaries.getAllNewCandidates().length;
+    logger.debug(
+      `[UnregisteredTag] completed totalUnregistered=${totalUnregistered}`
+    );
+
     // --- ファイル処理完了通知
     reporter?.onFinish(files.length - errorCount, errorCount);
 
@@ -121,6 +133,6 @@ export class LLMTagGenerationRunner {
       );
     }
 
-    return summaries;
+    return updatedSummaries;
   }
 }

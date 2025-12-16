@@ -94,4 +94,35 @@ export class NoteSummaryFactory {
       undefined // goal 無し
     );
   }
+
+  /**
+   * --- recreateWithNewTagCandidates
+   * 既存 NoteSummary を基に、newTagCandidates のみ差し替えて再生成する。
+   *
+   * 用途:
+   * - LLM 実行スキップ時の未登録タグ検出
+   * - 振り返りフェーズでの事実検出（タグ辞書差分）
+   */
+  static recreateWithNewTagCandidates(
+    base: NoteSummary,
+    newTagCandidates: string[]
+  ): NoteSummary {
+    logger.debug(
+      `[NoteSummaryFactory.recreateWithNewTagCandidates] path=${base.notePath} new=${newTagCandidates.length}`
+    );
+
+    return new NoteSummary(
+      base.notePath,
+      base.summary,
+      base.tags,
+      newTagCandidates, // ★ 差し替え
+      base.createdAt,
+      base.dailynote,
+      base.taskKey,
+      base.noteFolder,
+      base.updatedAt,
+      base.file,
+      base.goal
+    );
+  }
 }
