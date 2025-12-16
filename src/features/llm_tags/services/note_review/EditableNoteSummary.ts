@@ -25,7 +25,7 @@ export class EditableNoteSummaryFactory {
       tags: (summary.tags ?? []).map((t) => ({
         name: t,
         enabled: true,
-        isNew: summary.newTagCandidates?.includes(t) ?? false,
+        isNew: summary.unregisteredTags?.includes(t) ?? false,
       })),
       updateDailyNote: true,
       taskKey: summary.taskKey,

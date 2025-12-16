@@ -116,7 +116,7 @@ export class LLMTagGenerationRunner {
     );
 
     // --- 集計結果
-    const totalUnregistered = updatedSummaries.getAllNewCandidates().length;
+    const totalUnregistered = updatedSummaries.getAllUnregisteredTags().length;
     logger.debug(
       `[UnregisteredTag] completed totalUnregistered=${totalUnregistered}`
     );

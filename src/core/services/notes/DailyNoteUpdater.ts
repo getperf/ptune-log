@@ -167,7 +167,7 @@ export class DailyNoteUpdater {
 
   private buildTagListBlock(summaries: NoteSummaries): string {
     const allTags = summaries.getAllTags();
-    const newTags = summaries.getAllNewCandidates();
+    const newTags = summaries.getAllUnregisteredTags();
 
     const lines: string[] = [
       HEADER_TAG_LIST,

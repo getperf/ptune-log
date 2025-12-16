@@ -66,12 +66,12 @@ export class NoteSummaries {
   /** --- getAllNewCandidates
    * 新規タグ候補をユニーク抽出して返す。
    */
-  getAllNewCandidates(): string[] {
+  getAllUnregisteredTags(): string[] {
     const newTags = Array.from(
-      new Set(this.getAll().flatMap((n) => n.newTagCandidates))
+      new Set(this.getAll().flatMap((n) => n.unregisteredTags))
     );
     logger.debug(
-      `[NoteSummaries.getAllNewCandidates] totalNew=${newTags.length}`
+      `[NoteSummaries.getAllUnregisteredTags] totalNew=${newTags.length}`
     );
     return newTags;
   }
@@ -150,7 +150,7 @@ export class NoteSummaries {
 
     for (const summary of this.getAll()) {
       const unregistered = service.detect(summary.tags);
-      const recreated = NoteSummaryFactory.recreateWithNewTagCandidates(
+      const recreated = NoteSummaryFactory.recreateWithUnregisteredTags(
         summary,
         unregistered
       );
