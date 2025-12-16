@@ -1,4 +1,5 @@
 // File: src/features/google_tasks/GoogleTasksFeature.ts
+
 import { Plugin, Notice, App, TFile } from 'obsidian';
 import type { GoogleAuthSettings } from '../../config/ConfigManager';
 import { GoogleTasksAPI } from './utils/GoogleTasksAPI';
@@ -7,135 +8,112 @@ import { TasksWinImporter } from './win/TasksWinImporter';
 import { TaskSummaryReportBuilder } from './services/TaskSummaryReportBuilder';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { MyTaskFactory } from 'src/core/models/tasks/MyTaskFactory';
-import { NoteFinder } from 'src/core/utils/note/NoteFinder';
 import { DailyNoteConfig } from 'src/core/utils/daily_note/DailyNoteConfig';
 import { TasksExport } from './services/TasksExport';
 import { TasksWinReauth } from './win/TasksWinReauth';
 import { GoogleAuth } from './google_auth/GoogleAuth';
 import { GoogleTasksExportModal } from './win/GoogleTasksExportModal';
-import { MarkdownTaskParser } from './services/MarkdownTaskParser';
-import { ExportTasks } from 'src/core/models/tasks/ExportTasks';
-import { DateUtil } from 'src/core/utils/date/DateUtil';
-import { FileUtils } from 'src/core/utils/common/FileUtils';
 import { GetTasksMarkdownExecutor } from './win/GetTasksMarkdownExecutor';
-import { DailyNoteTaskKeyUpdateService } from './services/DailyNoteTaskKeyUpdateService';
+import { DailyNoteTaskKeyUpdateService } from '../../core/services/notes/DailyNoteTaskKeyUpdateService';
 
-/**
- * Google Tasks 同期コマンド登録クラス
- */
 export class GoogleTasksFeature {
-  private plugin: Plugin;
-  private app: App;
-  private settings: GoogleAuthSettings;
+  private readonly app: App;
 
-  constructor(plugin: Plugin, settings: GoogleAuthSettings) {
-    this.plugin = plugin;
+  constructor(
+    private readonly plugin: Plugin,
+    private readonly settings: GoogleAuthSettings
+  ) {
     this.app = plugin.app;
-    this.settings = settings;
   }
 
-  /**
-   * デイリーノートからタスクをエクスポート
-   */
-  async exportTasksFromDailynote(api: GoogleTasksAPI) {
-    logger.info('[GoogleTasksSync.exportTasksFromDailynote] start');
+  /* =========================
+   * 共通：taskKeys 後処理更新
+   * ========================= */
+  private async updateTaskKeys(): Promise<void> {
+    const service = new DailyNoteTaskKeyUpdateService(this.app);
+    const result = await service.execute();
+    logger.info(
+      `[GoogleTasksFeature] taskKeys updated (${result.taskKeys.length})`
+    );
+  }
+
+  /* =========================
+   * デイリーノート → Google Tasks
+   * ========================= */
+  private async exportFromDaily(api: GoogleTasksAPI): Promise<void> {
     const path = await DailyNoteConfig.getDailyNotePath(this.app.vault);
     if (!path) {
       new Notice('今日のデイリーノートが見つかりません');
-      logger.warn(
-        '[GoogleTasksSync.exportTasksFromDailynote] no daily note found'
-      );
       return;
     }
+
     const file = this.app.vault.getAbstractFileByPath(path);
-    if (!file || !(file instanceof TFile)) {
-      new Notice('Today ノートが存在しないかファイル形式ではありません');
-      logger.warn(
-        '[GoogleTasksSync.exportTasksFromDailynote] invalid note file'
-      );
+    if (!(file instanceof TFile)) {
+      new Notice('デイリーノートが無効です');
       return;
     }
 
     const exporter = new TasksExport(this.app, file, api);
     await exporter.confirmAndRun();
-    logger.debug('[GoogleTasksSync.exportTasksFromDailynote] done');
   }
 
-  /**
+  /* =========================
    * コマンド登録
-   */
+   * ========================= */
   regist(): void {
-    // --- Google OAuth 再認証 ---
+    /* --- Google OAuth 再認証 --- */
     this.plugin.addCommand({
       id: 'gtasks-reset-auth',
       name: 'Google Tasks: Google認証をやり直す',
       callback: async () => {
-        logger.info('[GoogleTasksSync] reauth command called');
         if (this.settings.useWinApp) {
-          const reauth = new TasksWinReauth(this.plugin.app);
-          await reauth.execute();
+          await new TasksWinReauth(this.app).execute();
         } else {
           const auth = new GoogleAuth(this.plugin, this.settings);
-          const success = await auth.reauthorize();
-          new Notice(success ? '認証成功しました' : '認証に失敗しました');
-          logger.info(`[GoogleTasksSync] reauth result=${success}`);
+          const ok = await auth.reauthorize();
+          new Notice(ok ? '認証成功しました' : '認証に失敗しました');
         }
       },
     });
 
-    // 今日の予定タスクを取得（PtuneSync）
+    /* --- 今日の予定タスク取得（PtuneSync） --- */
     this.plugin.addCommand({
       id: 'gtasks-get-tasks-md',
       name: 'Google Tasks: 今日の予定タスクを取得（PtuneSync）',
       callback: async () => {
         if (!this.settings.useWinApp) return;
 
-        const executor = new GetTasksMarkdownExecutor(this.app);
-        await executor.execute();
+        // ① 外部処理
+        await new GetTasksMarkdownExecutor(this.app).execute();
+
+        // ② 後処理（共通）
+        await this.updateTaskKeys();
       },
     });
 
-    // --- デイリーノート → Google Tasks エクスポート ---
+    /* --- デイリーノート → Google Tasks エクスポート --- */
     this.plugin.addCommand({
       id: 'gtasks-export-from-daily',
       name: 'Google Tasks: デイリーノートからタスクエクスポート',
       callback: async () => {
-        logger.info('[GoogleTasksSync] export-from-daily command called');
-        const prepared = await this.savePreExportJsonOrNone();
-        if (!prepared) return;
-
         if (this.settings.useWinApp) {
           new GoogleTasksExportModal(this.app).open();
-          logger.debug('[GoogleTasksSync] WinApp export modal opened');
         } else {
           await GoogleTasksCommandUtil.wrap(
             this.plugin,
             this.settings,
             async (api) => {
-              await this.exportTasksFromDailynote(api);
+              await this.exportFromDaily(api);
             }
           )();
         }
+
+        // 後処理（共通）
+        await this.updateTaskKeys();
       },
     });
 
-    // ---
-    this.plugin.addCommand({
-      id: 'update-daily-note-task-keys',
-      name: 'Google Tasks: デイリーノートのタスクキー登録',
-      callback: async () => {
-        const service = new DailyNoteTaskKeyUpdateService(this.app);
-
-        try {
-          const result = await service.execute();
-          new Notice(`Updated taskKeys (${result.taskKeys.length})`);
-        } catch (err) {
-          new Notice('Daily note not found');
-        }
-      },
-    });
-
-    // --- Google Tasks → デイリーノート レポート出力 ---
+    /* --- Google Tasks → デイリーノート（振り返り） --- */
     this.plugin.addCommand({
       id: 'gtasks-import-to-note',
       name: 'Google Tasks: タスクの振り返りレポート',
@@ -150,15 +128,15 @@ export class GoogleTasksFeature {
           this.plugin,
           this.settings,
           async (api: GoogleTasksAPI) => {
-            const taskListId = await api.findTaskListId('Today');
-            if (!taskListId) {
+            const listId = await api.findTaskListId('Today');
+            if (!listId) {
               new Notice("タスクリスト 'Today' が見つかりません");
               return;
             }
 
-            const rawTasks = await api.listTasks(taskListId);
+            const rawTasks = await api.listTasks(listId);
             const myTasks = rawTasks.map((t) =>
-              MyTaskFactory.fromApiData(t, taskListId)
+              MyTaskFactory.fromApiData(t, listId)
             );
 
             const builder = new TaskSummaryReportBuilder(this.app);
@@ -167,67 +145,5 @@ export class GoogleTasksFeature {
         )();
       },
     });
-
-    // --- Debug: 今日のノート記録を出力 ---
-    this.plugin.addCommand({
-      id: 'debug-find-notes-today',
-      name: 'Debug: 今日のノート記録を出力',
-      callback: async () => {
-        const finder = new NoteFinder(this.app);
-        const today = new Date();
-        const notes = await finder.findNotesByDate(today);
-
-        if (notes.length === 0) {
-          new Notice('⚠️ 今日の日付のノートが見つかりません');
-          logger.info('[DebugFindNotes] No notes found for today');
-          return;
-        }
-
-        logger.info(
-          `[DebugFindNotes] ${notes.length} notes for ${DateUtil.localDate(
-            today
-          )}`
-        );
-        for (const note of notes) {
-          logger.debug(
-            `[DebugFindNotes] ${note.notePath} → dailynote=${
-              note.dailynote
-            }, updated=${
-              note.updatedAt ? DateUtil.utcString(note.updatedAt) : 'none'
-            }`
-          );
-        }
-        new Notice(`✅ ${notes.length} 件のノート情報をログに出力しました`);
-      },
-    });
-  }
-
-  private async savePreExportJsonOrNone(): Promise<boolean> {
-    const path = await DailyNoteConfig.getDailyNotePath(this.app.vault);
-    if (!path) {
-      new Notice('今日のデイリーノートが見つかりません');
-      logger.warn('[GoogleTasksFeature] no daily note');
-      return false;
-    }
-    const file = this.app.vault.getAbstractFileByPath(path);
-    if (!file || !(file instanceof TFile)) {
-      new Notice('Today ノートが存在しないかファイル形式ではありません');
-      logger.warn('[GoogleTasksFeature] invalid daily note file');
-      return false;
-    }
-
-    const lines = await FileUtils.readSection(
-      this.app,
-      file,
-      '今日の予定タスク'
-    );
-    const parsed = MarkdownTaskParser.parse(lines);
-    const exportTasks = ExportTasks.fromParsedTasks(parsed);
-    await exportTasks.save(this.app);
-
-    logger.info(
-      `[GoogleTasksFeature] saved pre-export JSON: ${exportTasks.getJsonPath()}`
-    );
-    return true;
   }
 }

@@ -7,6 +7,7 @@ import { ExportTask, ExportTasks } from 'src/core/models/tasks/ExportTasks';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { GoalCategory, GoalCategoryLabels } from '../services/GoalCategory';
 import { GoalTemplateService } from '../services/GoalTemplateService';
+import { DailyNoteTaskKeyReader } from 'src/core/services/notes/DailyNoteTaskKeyReader';
 
 export enum SerialNoteCreationType {
   FILE = 'file',
@@ -74,8 +75,8 @@ export class NoteCreatorModal extends Modal {
     }
     this.input.prefix = prefix;
 
-    // --- 2. ExportTasks のタスクリストを読込 ---
-    const taskList = await this.loadTaskTitles();
+    // --- 2. タスクリストを読込 ---
+    const taskList = await DailyNoteTaskKeyReader.read(this.app);
 
     let inputTitle = '';
     let inputTitleEl: HTMLInputElement;
@@ -158,24 +159,24 @@ export class NoteCreatorModal extends Modal {
     setTimeout(() => inputTitleEl.focus(), 0);
   }
 
-  /**
-   * ExportTasks からタイトルリストを読込
-   */
-  private async loadTaskTitles(): Promise<ExportTask[]> {
-    try {
-      const tasks = await ExportTasks.load(this.app);
-      if (!tasks) {
-        logger.info('[NoteCreatorModal] export_tasks.json not found');
-        return [];
-      }
-      const list = tasks.toDisplayList();
-      logger.debug(`[NoteCreatorModal] loaded taskTitles=${list.length}`);
-      return list;
-    } catch (err) {
-      logger.error('[NoteCreatorModal] failed to load ExportTasks', err);
-      return [];
-    }
-  }
+  // /**
+  //  * ExportTasks からタイトルリストを読込
+  //  */
+  // private async loadTaskTitles(): Promise<ExportTask[]> {
+  //   try {
+  //     const tasks = await ExportTasks.load(this.app);
+  //     if (!tasks) {
+  //       logger.info('[NoteCreatorModal] export_tasks.json not found');
+  //       return [];
+  //     }
+  //     const list = tasks.toDisplayList();
+  //     logger.debug(`[NoteCreatorModal] loaded taskTitles=${list.length}`);
+  //     return list;
+  //   } catch (err) {
+  //     logger.error('[NoteCreatorModal] failed to load ExportTasks', err);
+  //     return [];
+  //   }
+  // }
 
   /**
    * 入力検証＋作成処理呼び出し
