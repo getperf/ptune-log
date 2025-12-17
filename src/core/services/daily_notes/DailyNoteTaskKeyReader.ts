@@ -42,7 +42,7 @@ export class DailyNoteTaskKeyReader {
     let currentParentKey: string | null = null;
 
     for (const key of taskKeys) {
-      const parts = key.split('_');
+      const parts = key.split('__');
 
       // 親タスク
       if (parts.length === 1) {

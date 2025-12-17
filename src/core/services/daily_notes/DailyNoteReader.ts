@@ -1,6 +1,6 @@
 // src/core/services/notes/DailyNoteReader.ts
 import { App, TFile } from 'obsidian';
-import { DailyNoteHelper } from './DailyNoteHelper';
+import { DailyNoteHelper } from '../../utils/daily_note/DailyNoteHelper';
 
 export class DailyNoteReader {
   constructor(private readonly app: App) {}

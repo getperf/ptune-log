@@ -1,5 +1,5 @@
 import { HEADER_TIME_LOG } from 'src/features/google_tasks/services/TaskSummaryReportBuilder';
-import { HEADER_REVIEW_LOG } from 'src/core/services/notes/DailyNoteUpdater';
+import { HEADER_REVIEW_LOG } from 'src/core/services/daily_notes/DailyNoteUpdater';
 
 export const DAILY_NOTE_TEMPLATE = `---
 tags:

@@ -7,8 +7,8 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 import { NoteSummaries } from 'src/core/models/notes/NoteSummaries';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
 import { KPTMarkdownBuilder } from 'src/features/llm_tags/services/analysis/KPTMarkdownBuilder';
-import { ChecklistDecorator } from './ChecklistDecorator';
 import { TaskSectionReplacer } from 'src/core/utils/daily_note/TaskSectionReplacer';
+import { ChecklistDecorator } from 'src/core/utils/daily_note/ChecklistDecorator';
 
 /* ===== 既存 API を維持 ===== */
 

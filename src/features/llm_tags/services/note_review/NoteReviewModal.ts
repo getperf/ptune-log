@@ -8,15 +8,16 @@ import { LLMPromptService } from 'src/core/services/llm/LLMPromptService';
 import { TagAliases } from 'src/core/models/tags/TagAliases';
 import { TagEditDialog } from '../tags/TagEditDialog';
 import { LLMClient } from 'src/core/services/llm/LLMClient';
-import { ExportTask, ExportTasks } from 'src/core/models/tasks/ExportTasks';
+import { ExportTask } from 'src/core/models/tasks/ExportTasks';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { TagListSection } from './components/TagListSection';
+import { DailyNoteTaskKeyReader } from 'src/core/services/daily_notes/DailyNoteTaskKeyReader';
 
 export class NoteReviewModal extends Modal {
   private editable?: EditableNoteSummary;
   private loading = false;
   private promptService: LLMPromptService;
-  private taskOptions: ExportTask[] = [];
+  private exportTasks: ExportTask[] = [];
 
   constructor(
     app: App,
@@ -91,24 +92,13 @@ export class NoteReviewModal extends Modal {
       );
 
       this.editable = this.reviewService.createEditable(previewSummary);
-
-      await this.loadTaskTitles();
+      this.exportTasks = await DailyNoteTaskKeyReader.read(this.app);
     } catch (e) {
       logger.error('[NoteReviewModal] LLM解析エラー', e);
       new Notice('LLM解析に失敗しました');
     } finally {
       this.loading = false;
       await this.render();
-    }
-  }
-
-  private async loadTaskTitles() {
-    try {
-      const tasks = await ExportTasks.load(this.app);
-      this.taskOptions = tasks ? tasks.toDisplayList() : [];
-    } catch (err) {
-      logger.error('[NoteReviewModal] failed to load ExportTasks', err);
-      this.taskOptions = [];
     }
   }
 
@@ -151,12 +141,12 @@ export class NoteReviewModal extends Modal {
       );
 
     // --- Task assign ---
-    if (this.taskOptions.length > 0) {
+    if (this.exportTasks.length > 0) {
       new Setting(contentEl)
         .setName('タスクを割り当て')
         .addDropdown((dropdown) => {
           dropdown.addOption('', '(選択なし)');
-          for (const t of this.taskOptions)
+          for (const t of this.exportTasks)
             dropdown.addOption(t.taskKey, t.title);
 
           dropdown.setValue(this.editable!.taskKey ?? '');

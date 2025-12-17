@@ -1,12 +1,12 @@
 // File: src/features/llm_tags/services/llm/LLMTagGenerateExecutor.ts
 import { App, Notice, TFile, TFolder } from 'obsidian';
-import { DailyNoteUpdater } from 'src/core/services/notes/DailyNoteUpdater';
+import { DailyNoteUpdater } from 'src/core/services/daily_notes/DailyNoteUpdater';
 import { LLMTagGeneratorModal } from './LLMTagGeneratorModal';
 import { LLMClient } from 'src/core/services/llm/LLMClient';
 import { LLMTagGenerationRunner } from './LLMTagGenerationRunner';
 import { NoteAnalysisService } from '../analysis/NoteAnalysisService';
 import { ReviewSettings } from 'src/config/settings/ReviewSettings';
-import { DailyNoteReader } from 'src/core/utils/daily_note/DailyNoteReader';
+import { DailyNoteReader } from 'src/core/services/daily_notes/DailyNoteReader';
 
 export class LLMTagGenerateExecutor {
   private readonly analysis: NoteAnalysisService;
