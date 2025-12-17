@@ -125,24 +125,13 @@ export class DailyNoteUpdater {
       '',
     ];
 
-    for (const folder of summaries.getFoldersSorted()) {
-      lines.push(`#### ${folder.noteFolder}`);
-
-      const tags = (await folder.getCommonTags(this.app)) ?? [];
-      if (tags.length > 0) {
-        lines.push(`共通タグ: ${tags.map((t) => `#${t}`).join(' ')}`);
-      }
-
-      for (const note of folder.getNotes()) {
-        lines.push(
-          note
-            .toMarkdownSummary()
-            .split('\n')
-            .map((l) => decorator.apply(l))
-            .join('\n')
-        );
-      }
-    }
+    lines.push(
+      summaries.summaryMarkdown({
+        baseHeadingLevel: 4,
+        checklist: true,
+        sentenceSplit: true,
+      })
+    );
 
     return lines.join('\n') + '\n';
   }
