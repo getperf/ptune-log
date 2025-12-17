@@ -1,10 +1,11 @@
 import { App, Notice } from 'obsidian';
 import { WinAppUriBuilder } from './WinAppUriBuilder';
 import { WinAppLauncher } from './WinAppLauncher';
-import { DailyNoteUpdater } from 'src/core/services/daily_notes/DailyNoteUpdater';
+import { DailyNoteUpdater } from 'src/features/daily_notes/DailyNoteUpdater';
 import { DailyNoteConfig } from 'src/core/utils/daily_note/DailyNoteConfig';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { ErrorUtils } from 'src/core/utils/common/ErrorUtils';
+import { DailyNoteTaskUpdater } from 'src/core/services/daily_notes/DailyNoteTaskUpdater';
 
 const DAILY_TASK_HEADING = '## ✅ 今日の予定タスク（手動で追記OK）';
 
@@ -41,7 +42,7 @@ export class GetTasksMarkdownExecutor {
         return;
       }
 
-      const updater = new DailyNoteUpdater(this.app);
+      const updater = new DailyNoteTaskUpdater(this.app);
       await updater.replaceTaskListInSection(
         notePath,
         DAILY_TASK_HEADING,

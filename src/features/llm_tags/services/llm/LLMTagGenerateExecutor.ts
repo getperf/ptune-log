@@ -1,6 +1,6 @@
 // File: src/features/llm_tags/services/llm/LLMTagGenerateExecutor.ts
 import { App, Notice, TFile, TFolder } from 'obsidian';
-import { DailyNoteUpdater } from 'src/core/services/daily_notes/DailyNoteUpdater';
+import { DailyNoteUpdater } from 'src/features/daily_notes/DailyNoteUpdater';
 import { LLMTagGeneratorModal } from './LLMTagGeneratorModal';
 import { LLMClient } from 'src/core/services/llm/LLMClient';
 import { LLMTagGenerationRunner } from './LLMTagGenerationRunner';
