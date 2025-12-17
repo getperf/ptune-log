@@ -26,24 +26,6 @@ const HEADER_TAG_LIST = '### 📌 タグ一覧（当日生成）';
 export class DailyNoteUpdater {
   constructor(private readonly app: App) {}
 
-  /* --- 既存利用箇所のため残す --- */
-  async replaceTaskListInSection(
-    notePath: string,
-    heading: string,
-    taskMarkdown: string
-  ): Promise<void> {
-    const file = this.app.vault.getAbstractFileByPath(notePath);
-    if (!(file instanceof TFile)) return;
-
-    const original = await this.app.vault.read(file);
-    const replacer = new TaskSectionReplacer(heading, taskMarkdown);
-    const updated = replacer.replace(original);
-
-    if (original !== updated) {
-      await this.app.vault.modify(file, updated);
-    }
-  }
-
   /**
    * === メインエントリ ===
    * - サマリ／タグ：初回のみ生成
