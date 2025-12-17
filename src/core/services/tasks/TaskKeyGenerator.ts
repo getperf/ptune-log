@@ -1,13 +1,36 @@
 // File: src/core/services/tasks/TaskKeyGenerator.ts
 
+export interface ParsedTask {
+  title: string;
+  parentTitle?: string;
+}
+
+/**
+ * TaskKeyGenerator
+ * - タスク構造（親子）を ParsedTask として受け取り、一意な taskKey を生成する
+ */
 export class TaskKeyGenerator {
-  /** タスクタイトル → taskKey */
-  static generate(title: string): string {
+  private static readonly SEPARATOR = '__';
+
+  /** ParsedTask → taskKey */
+  static createByParsedTask(task: ParsedTask): string {
+    const baseKey = this.normalize(task.title);
+
+    if (!task.parentTitle) {
+      return baseKey;
+    }
+
+    const parentKey = this.normalize(task.parentTitle);
+    return `${parentKey}${this.SEPARATOR}${baseKey}`;
+  }
+
+  /** タスクタイトル正規化 */
+  private static normalize(title: string): string {
     return (
       title
         // 🍅x2 などのメタ情報を除外
         .replace(/🍅x?\d*/g, '')
-        // チェック用記号などを除外（必要に応じて拡張）
+        // チェック用記号などを除外
         .replace(/\[[^\]]*]/g, '')
         // ファイル・ノート禁止文字を除外
         .replace(/[<>:"/\\|?*]/g, '')
@@ -18,11 +41,5 @@ export class TaskKeyGenerator {
         .replace(/^_|_$/g, '')
         .trim()
     );
-  }
-
-  /** 親 + 子 → 複合 taskKey */
-  static generateChild(parentKey: string, childTitle: string): string {
-    const childKey = this.generate(childTitle);
-    return `${parentKey}_${childKey}`;
   }
 }
