@@ -14,7 +14,7 @@ import { TasksWinReauth } from './win/TasksWinReauth';
 import { GoogleAuth } from './google_auth/GoogleAuth';
 import { GoogleTasksExportModal } from './win/GoogleTasksExportModal';
 import { GetTasksMarkdownExecutor } from './win/GetTasksMarkdownExecutor';
-import { DailyNoteTaskKeyUpdateService } from '../../core/services/notes/DailyNoteTaskKeyUpdateService';
+import { GoogleTasksDailyNoteTaskKeyUpdater } from './services/GoogleTasksDailyNoteTaskKeyUpdater';
 
 export class GoogleTasksFeature {
   private readonly app: App;
@@ -30,7 +30,7 @@ export class GoogleTasksFeature {
    * 共通：taskKeys 後処理更新
    * ========================= */
   private async updateTaskKeys(): Promise<void> {
-    const service = new DailyNoteTaskKeyUpdateService(this.app);
+    const service = new GoogleTasksDailyNoteTaskKeyUpdater(this.app);
     const result = await service.execute();
     logger.info(
       `[GoogleTasksFeature] taskKeys updated (${result.taskKeys.length})`
