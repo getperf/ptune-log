@@ -18,10 +18,10 @@ export class KPTExecutor {
 
     const sourceText = hasKpt
       ? this.extractSummarySection(dailyNoteText)
-      : summaries.summaryMarkdown();
+      : summaries.summaryMarkdown({ baseHeadingLevel: 2, withLink: false });
 
     logger.debug(`[KPTExecutor] source=${hasKpt ? 'daily-note' : 'summaries'}`);
-
+    logger.debug(sourceText);
     const result: KPTResult = await this.analyzer.analyzeFromText(sourceText);
 
     summaries.setKptResult(result);

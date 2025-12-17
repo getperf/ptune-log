@@ -6,6 +6,7 @@ import { NoteProjectFolder } from './NoteProjectFolder';
 import { KPTResult } from 'src/features/llm_tags/services/analysis/KPTAnalyzer';
 import { UnregisteredTagService } from 'src/core/services/tags/UnregisteredTagService';
 import { NoteSummaryFactory } from './NoteSummaryFactory';
+import { SummaryRenderOptions } from 'src/core/services/notes/NoteSummaryMarkdownBuilder';
 
 /**
  * --- NoteSummaries
@@ -112,21 +113,24 @@ export class NoteSummaries {
   /** --- summaryMarkdown
    * フォルダ単位で Markdown 要約を構築。
    */
-  summaryMarkdown(): string {
+  summaryMarkdown(options: SummaryRenderOptions = {}): string {
     const lines: string[] = [];
+    const heading = '#'.repeat(options.baseHeadingLevel ?? 3);
+
     for (const folder of this.getFoldersSorted()) {
-      lines.push(`\n#### ${folder.noteFolder}`);
+      lines.push(`${heading} ${folder.noteFolder}`);
       for (const note of folder.getNotes()) {
-        lines.push(note.toMarkdownSummary());
+        lines.push(
+          note.toMarkdownSummary({
+            ...options,
+            baseHeadingLevel: (options.baseHeadingLevel ?? 3) + 1,
+          })
+        );
       }
     }
-    const joined = lines.join('\n');
-    logger.debug(
-      `[NoteSummaries.summaryMarkdown] totalFolders=${this.folders.size}, length=${joined.length}`
-    );
-    return joined;
-  }
 
+    return lines.join('\n');
+  }
   /**
    * 各ノートの要約を notePath とともに取得する
    */

@@ -1,5 +1,9 @@
 import { TFile } from 'obsidian';
 import { logger } from 'src/core/services/logger/loggerInstance';
+import {
+  NoteSummaryMarkdownBuilder,
+  SummaryRenderOptions,
+} from 'src/core/services/notes/NoteSummaryMarkdownBuilder';
 
 /**
  * --- NoteSummary
@@ -63,13 +67,7 @@ export class NoteSummary {
   }
 
   /** --- Markdown 要約を生成 */
-  toMarkdownSummary(): string {
-    const base = this.notePath.replace(/\.md$/, '').split('/').pop();
-    const link = `[[${this.notePath.replace(/\.md$/, '')}|${base}]]`;
-
-    const summaryLine = `- 要約: ${this.summary}`;
-    const goalLine = this.goal ? `- 目標: ${this.goal}` : '';
-
-    return [`- ${link}`, summaryLine, goalLine].filter(Boolean).join('\n');
+  toMarkdownSummary(options: SummaryRenderOptions = {}): string {
+    return NoteSummaryMarkdownBuilder.render(this, options);
   }
 }
