@@ -128,8 +128,8 @@ export class DailyNoteUpdater {
     lines.push(
       summaries.summaryMarkdown({
         baseHeadingLevel: 4,
-        checklist: true,
-        sentenceSplit: true,
+        checklist: false,
+        sentenceSplit: false,
       })
     );
 

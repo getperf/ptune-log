@@ -10,6 +10,7 @@ import {
 } from './CommonTagAnalyzer';
 import { KPTAnalyzer } from './KPTAnalyzer';
 import { KPTExecutor } from './KPTExecutor';
+import { DailyNote } from 'src/core/models/daily_notes/DailyNote';
 
 export interface NoteAnalysisServiceOptions {
   enableCommonTag?: boolean;
@@ -27,7 +28,7 @@ export class NoteAnalysisService {
 
   async analyze(
     summaries: NoteSummaries,
-    dailyNoteText: string,
+    dailyNote: DailyNote,
     options: NoteAnalysisServiceOptions = {}
   ): Promise<NoteSummaries> {
     logger.debug('[NoteAnalysisService.analyze] start');
@@ -41,7 +42,7 @@ export class NoteAnalysisService {
 
     await this.kptExecutor.run({
       summaries,
-      dailyNoteText,
+      dailyNote,
     });
 
     logger.debug('[NoteAnalysisService.analyze] complete');

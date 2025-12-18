@@ -2,22 +2,23 @@
 import { NoteSummaries } from 'src/core/models/notes/NoteSummaries';
 import { KPTAnalyzer, KPTResult } from './KPTAnalyzer';
 import { logger } from 'src/core/services/logger/loggerInstance';
+import { DailyNote } from 'src/core/models/daily_notes/DailyNote';
 
 export interface KPTExecutionContext {
   summaries: NoteSummaries;
-  dailyNoteText: string;
+  dailyNote: DailyNote;
 }
 
 export class KPTExecutor {
   constructor(private readonly analyzer: KPTAnalyzer) {}
 
   async run(ctx: KPTExecutionContext): Promise<void> {
-    const { summaries, dailyNoteText } = ctx;
+    const { summaries, dailyNote } = ctx;
 
-    const hasKpt = this.hasKptSection(dailyNoteText);
+    const hasKpt = dailyNote.hasKpt();
 
     const sourceText = hasKpt
-      ? this.extractSummarySection(dailyNoteText)
+      ? dailyNote.buildKptSourceText()
       : summaries.summaryMarkdown({ baseHeadingLevel: 2, withLink: false });
 
     logger.debug(`[KPTExecutor] source=${hasKpt ? 'daily-note' : 'summaries'}`);
