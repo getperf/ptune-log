@@ -7,6 +7,8 @@ import { LLMTagGenerationRunner } from './LLMTagGenerationRunner';
 import { NoteAnalysisService } from '../analysis/NoteAnalysisService';
 import { ReviewSettings } from 'src/config/settings/ReviewSettings';
 import { DailyNoteReader } from 'src/core/services/daily_notes/DailyNoteReader';
+import { DailyNoteLoader } from 'src/core/services/daily_notes/DailyNoteLoader';
+import { DailyNote } from 'src/core/models/daily_notes/DailyNote';
 
 export class LLMTagGenerateExecutor {
   private readonly analysis: NoteAnalysisService;
@@ -66,16 +68,15 @@ export class LLMTagGenerateExecutor {
       mode: 'date',
       initialDate: new Date(),
       onConfirm: (modal, files, selectedDate, forceRegenerate) => {
-        const dailyNoteReader = new DailyNoteReader(this.app);
-
         void this.runner
           .runOnFiles(files, modal, forceRegenerate)
           .then(async (summaries) => {
-            const dailyNoteText = await dailyNoteReader.readForDate(
+            const dailyNote = await DailyNoteLoader.load(
+              this.app,
               selectedDate
             );
 
-            return this.analysis.analyze(summaries, dailyNoteText, {
+            return this.analysis.analyze(summaries, dailyNote, {
               enableCommonTag: this.reviewSettings.enableCommonTag ?? true,
               forceCommonTags: forceRegenerate,
             });
