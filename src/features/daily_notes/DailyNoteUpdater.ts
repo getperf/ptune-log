@@ -24,7 +24,7 @@ const HEADER_DAILY_REPORT_PREFIX = '### 🏷 デイリーレポート';
 const HEADER_TAG_LIST = '### 📌 タグ一覧（当日生成）';
 
 export class DailyNoteUpdater {
-  constructor(private readonly app: App) {}
+  constructor(private readonly app: App) { }
 
   /**
    * === メインエントリ ===
@@ -113,10 +113,6 @@ export class DailyNoteUpdater {
     opts: AppendOptions
   ): Promise<string> {
     const dateStr = DateUtil.localDate(forDate);
-    const decorator = new ChecklistDecorator(
-      opts.enableChecklist ?? true,
-      '- [ ] '
-    );
 
     const lines: string[] = [
       `${HEADER_DAILY_REPORT_PREFIX}（${dateStr})`,
@@ -128,8 +124,9 @@ export class DailyNoteUpdater {
     lines.push(
       summaries.summaryMarkdown({
         baseHeadingLevel: 4,
-        checklist: false,
-        sentenceSplit: false,
+        checklist: true,
+        sentenceSplit: true,
+        withUserReview: true,
       })
     );
 
