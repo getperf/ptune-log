@@ -5,6 +5,7 @@ export interface SummaryRenderOptions {
   checklist?: boolean; // true なら - [ ] 形式
   sentenceSplit?: boolean; // true ならセンテンス分割
   withLink?: boolean; // タイトルにリンク追加（既定: true）
+  withUserReview?: boolean; // ユーザレビュー欄を追加（既定: false）
 }
 
 export class NoteSummaryMarkdownBuilder {
@@ -14,34 +15,82 @@ export class NoteSummaryMarkdownBuilder {
       checklist = false,
       sentenceSplit = false,
       withLink = true,
+      withUserReview = false,
     } = options;
 
-    const base = note.notePath.replace(/\.md$/, '').split('/').pop();
-    const linkText = withLink
-      ? `[[${note.notePath.replace(/\.md$/, '')}|${base}]]`
-      : note.notePath.replace(/\.md$/, '');
-    // const link = `[[${note.notePath.replace(/\.md$/, '')}|${base}]]`;
-    const heading = '#'.repeat(baseHeadingLevel);
-
     const lines: string[] = [];
-    lines.push(`${heading} ${linkText}`);
 
-    const sentences = sentenceSplit
-      ? note.summary
-          .split(/(?<=[。．.!?])\s*/)
-          .map((s) => s.trim())
-          .filter(Boolean)
-      : [note.summary];
+    lines.push(
+      this.renderNoteHeading(note, baseHeadingLevel, withLink)
+    );
 
-    const bullet = checklist ? '- [ ] ' : '- ';
-    for (const s of sentences) {
-      lines.push(`${bullet}${s}`);
-    }
+    lines.push(
+      ...this.renderSummary(note, {
+        checklist,
+        sentenceSplit,
+      })
+    );
 
     if (note.goal) {
-      lines.push(`${bullet}目標: ${note.goal}`);
+      lines.push(
+        ...this.renderGoal(note.goal, checklist)
+      );
+    }
+
+    if (withUserReview) {
+      lines.push(
+        ...this.renderUserReview(baseHeadingLevel)
+      );
     }
 
     return lines.join('\n');
+  }
+
+  // --- ノート見出し ---
+  private static renderNoteHeading(
+    note: NoteSummary,
+    baseHeadingLevel: number,
+    withLink: boolean
+  ): string {
+    const base = note.notePath.replace(/\.md$/, '').split('/').pop();
+    const path = note.notePath.replace(/\.md$/, '');
+    const title = withLink ? `[[${path}|${base}]]` : path;
+    const heading = '#'.repeat(baseHeadingLevel);
+
+    return `${heading} ${title}`;
+  }
+
+  // --- Summary ---
+  private static renderSummary(
+    note: NoteSummary,
+    opts: { checklist: boolean; sentenceSplit: boolean }
+  ): string[] {
+    const { checklist, sentenceSplit } = opts;
+    const bullet = checklist ? '- [ ] ' : '- ';
+
+    const sentences = sentenceSplit
+      ? note.summary
+        .split(/(?<=[。．.!?])\s*/)
+        .map((s) => s.trim())
+        .filter(Boolean)
+      : [note.summary];
+
+    return sentences.map((s) => `${bullet}${s}`);
+  }
+
+  // --- Goal ---
+  private static renderGoal(goal: string, checklist: boolean): string[] {
+    const bullet = checklist ? '- [ ] ' : '- ';
+    return [`${bullet}目標: ${goal}`];
+  }
+
+  // --- ユーザレビュー欄（記入用プレースホルダ） ---
+  private static renderUserReview(baseHeadingLevel: number): string[] {
+    const heading = '#'.repeat(baseHeadingLevel + 1);
+    return [
+      '',
+      `${heading} ユーザレビュー`,
+      '- ',
+    ];
   }
 }

@@ -1,8 +1,11 @@
 // File: src/features/llm_tags/services/analysis/KPTExecutor.ts
 import { NoteSummaries } from 'src/core/models/notes/NoteSummaries';
-import { KPTAnalyzer, KPTResult } from './KPTAnalyzer';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { DailyNote } from 'src/core/models/daily_notes/DailyNote';
+import { DailyReportReviewExtractor } from 'src/features/llm_tags/services/analysis/DailyReportReviewExtractor';
+import { KptReviewSourceBuilder } from 'src/features/llm_tags/services/analysis/KptReviewSourceBuilder';
+import { KptPhase } from './KptPhase';
+import { KPTAnalyzer } from './KPTAnalyzer';
 
 export interface KPTExecutionContext {
   summaries: NoteSummaries;
@@ -10,38 +13,59 @@ export interface KPTExecutionContext {
 }
 
 export class KPTExecutor {
-  constructor(private readonly analyzer: KPTAnalyzer) {}
+  private readonly extractor = new DailyReportReviewExtractor();
+  private readonly sourceBuilder = new KptReviewSourceBuilder();
+
+  constructor(private readonly analyzer: KPTAnalyzer) { }
 
   async run(ctx: KPTExecutionContext): Promise<void> {
-    const { summaries, dailyNote } = ctx;
-
-    const hasKpt = dailyNote.hasKpt();
-
-    const sourceText = hasKpt
-      ? dailyNote.buildKptSourceText()
-      : summaries.summaryMarkdown({ baseHeadingLevel: 2, withLink: false });
-
-    logger.debug(`[KPTExecutor] source=${hasKpt ? 'daily-note' : 'summaries'}`);
-    logger.debug(sourceText);
-    const result: KPTResult = await this.analyzer.analyzeFromText(sourceText);
-
-    summaries.setKptResult(result);
+    const phase = this.determinePhase(ctx.dailyNote);
+    const sourceText = this.buildSourceText(
+      phase,
+      ctx.summaries,
+      ctx.dailyNote
+    );
+    const result = await this.analyzer.analyze({
+      phase,
+      sourceText,
+    });
+    ctx.summaries.setKptResult(result);
   }
 
-  /** KPT セクションの存在判定 */
-  private hasKptSection(text: string): boolean {
-    return /### 🧠 KPT分析/.test(text);
+  private buildSourceText(
+    phase: KptPhase,
+    summaries: NoteSummaries,
+    dailyNote: DailyNote
+  ): string {
+    const base = summaries.summaryMarkdown({
+      baseHeadingLevel: 2,
+      withLink: false,
+    });
+
+    if (phase === KptPhase.First) {
+      return base;
+    }
+
+    // 2回目以降：ユーザレビューをマージ
+    if (!dailyNote.dailyReport) return base;
+
+    const reviewNotes = this.extractor.extract(dailyNote.dailyReport);
+    if (reviewNotes.length === 0) return base;
+
+    const reviewText = this.sourceBuilder.build(reviewNotes);
+
+    return [
+      base,
+      '',
+      '---',
+      '【2回目KPT分析用：ユーザレビュー】',
+      '---',
+      reviewText,
+    ].join('\n');
   }
 
-  /** デイリーノートのサマリセクション抽出 */
-  private extractSummarySection(text: string): string {
-    const start = text.match(/### 🏷 デイリーレポート[\s\S]*?\n/);
-    if (!start) return '';
-
-    const startIdx = start.index ?? 0;
-    const rest = text.slice(startIdx);
-
-    const endIdx = rest.search(/\n### (?!🏷 デイリーレポート)/);
-    return endIdx === -1 ? rest.trim() : rest.slice(0, endIdx).trim();
+  private determinePhase(dailyNote: DailyNote): KptPhase {
+    return dailyNote.hasKpt() ? KptPhase.Second : KptPhase.First;
   }
+
 }
