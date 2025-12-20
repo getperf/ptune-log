@@ -25,18 +25,9 @@ export class DailyNote {
     return this.kptReports.at(-1);
   }
 
-  /** KPT 分析用の入力テキスト生成（スケルトン） */
-  buildKptSourceText(): string {
-    let text = '';
-
-    if (this.dailyReport) {
-      text += `【当日のサマリ】\n${this.dailyReport.trim()}`;
-    }
-
-    if (this.kptReports.length > 0) {
-      text += `\n\n【既存のKPT分析】\n` + this.kptReports.join('\n\n---\n\n');
-    }
-
-    return text.trim();
+  /** すべての過去KPTを結合（必要に応じて使用） */
+  mergedKpt(separator = '\n\n---\n\n'): string | undefined {
+    if (this.kptReports.length === 0) return undefined;
+    return this.kptReports.join(separator);
   }
 }

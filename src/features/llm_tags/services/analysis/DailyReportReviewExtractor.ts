@@ -1,10 +1,9 @@
-// src/features/llm_tags/services/analysis/kpt2/services/DailyReportReviewExtractor.ts
-import { ReviewNote } from "src/features/llm_tags/services/analysis/ReviewNote";
+// src/features/llm_tags/services/analysis/DailyReportReviewExtractor.ts
+import { ReviewNote } from './ReviewNote';
 
 export class DailyReportReviewExtractor {
   extract(dailyReport: string): ReviewNote[] {
     const lines = dailyReport.split(/\r?\n/);
-
     const result: ReviewNote[] = [];
 
     let currentPath: string | null = null;
@@ -24,7 +23,6 @@ export class DailyReportReviewExtractor {
     for (const raw of lines) {
       const line = raw.trim();
 
-      // ノート見出し
       if (line.startsWith('##### ')) {
         flush();
         currentPath = this.normalizeNotePath(line);
@@ -33,19 +31,16 @@ export class DailyReportReviewExtractor {
 
       if (!currentPath) continue;
 
-      // ユーザレビュー開始
       if (line.startsWith('###### ユーザレビュー')) {
         inUserReview = true;
         continue;
       }
 
-      // [x] 抽出
       if (!inUserReview && line.startsWith('- [x]')) {
         checked.push(this.stripCheck(line));
         continue;
       }
 
-      // ユーザレビュー文
       if (inUserReview && line.startsWith('- ')) {
         reviews.push(line.replace(/^-+\s*/, ''));
       }
@@ -56,7 +51,6 @@ export class DailyReportReviewExtractor {
   }
 
   private normalizeNotePath(line: string): string {
-    // ##### [[path|title]] → path
     const head = line.replace(/^#####\s+/, '');
     const m = head.match(/\[\[([^\]|]+)(\|[^\]]+)?\]\]/);
     return m ? m[1].replace(/\.md$/, '') : head;

@@ -24,7 +24,7 @@ const HEADER_DAILY_REPORT_PREFIX = '### 🏷 デイリーレポート';
 const HEADER_TAG_LIST = '### 📌 タグ一覧（当日生成）';
 
 export class DailyNoteUpdater {
-  constructor(private readonly app: App) { }
+  constructor(private readonly app: App) {}
 
   /**
    * === メインエントリ ===
@@ -117,16 +117,19 @@ export class DailyNoteUpdater {
     const lines: string[] = [
       `${HEADER_DAILY_REPORT_PREFIX}（${dateStr})`,
       '',
-      '※ 以下の項目はチェックし、必要に応じて修正してください。',
-      '',
+      opts.enableChecklist
+        ? '※ 以下の項目で正しくない内容をチェックし、レビュー欄に補足を追加してから、' +
+          '振り返りを再実行してください。内容を補足してKPT分析を再実行します。'
+        : '',
     ];
 
+    const useUserReivew = opts.enableChecklist;
     lines.push(
       summaries.summaryMarkdown({
         baseHeadingLevel: 4,
-        checklist: true,
-        sentenceSplit: true,
-        withUserReview: true,
+        checklist: useUserReivew,
+        sentenceSplit: useUserReivew,
+        withUserReview: useUserReivew,
       })
     );
 
