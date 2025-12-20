@@ -1,9 +1,10 @@
-// File: src/features/llm_tags/services/analysis/KPTExecutor.ts
+// src/features/llm_tags/services/analysis/KPTExecutor.ts
+
 import { NoteSummaries } from 'src/core/models/notes/NoteSummaries';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { DailyNote } from 'src/core/models/daily_notes/DailyNote';
-import { DailyReportReviewExtractor } from 'src/features/llm_tags/services/analysis/DailyReportReviewExtractor';
-import { KptReviewSourceBuilder } from 'src/features/llm_tags/services/analysis/KptReviewSourceBuilder';
+import { DailyReportReviewExtractor } from './DailyReportReviewExtractor';
+import { KptReviewSourceBuilder } from './KptReviewSourceBuilder';
 import { KptPhase } from './KptPhase';
 import { KPTAnalyzer } from './KPTAnalyzer';
 
@@ -16,19 +17,24 @@ export class KPTExecutor {
   private readonly extractor = new DailyReportReviewExtractor();
   private readonly sourceBuilder = new KptReviewSourceBuilder();
 
-  constructor(private readonly analyzer: KPTAnalyzer) { }
+  constructor(private readonly analyzer: KPTAnalyzer) {}
 
   async run(ctx: KPTExecutionContext): Promise<void> {
     const phase = this.determinePhase(ctx.dailyNote);
+
     const sourceText = this.buildSourceText(
       phase,
       ctx.summaries,
       ctx.dailyNote
     );
+
+    logger.debug(`[KPTExecutor] create prompt, phase=${phase}\n${sourceText}`);
+
     const result = await this.analyzer.analyze({
       phase,
       sourceText,
     });
+
     ctx.summaries.setKptResult(result);
   }
 
@@ -37,35 +43,29 @@ export class KPTExecutor {
     summaries: NoteSummaries,
     dailyNote: DailyNote
   ): string {
-    const base = summaries.summaryMarkdown({
+    const summary = summaries.summaryMarkdown({
       baseHeadingLevel: 2,
       withLink: false,
     });
 
     if (phase === KptPhase.First) {
-      return base;
+      return summary;
     }
 
-    // 2回目以降：ユーザレビューをマージ
-    if (!dailyNote.dailyReport) return base;
+    const previousKpt = dailyNote.latestKpt();
 
-    const reviewNotes = this.extractor.extract(dailyNote.dailyReport);
-    if (reviewNotes.length === 0) return base;
+    const userReviews = dailyNote.dailyReport
+      ? this.extractor.extract(dailyNote.dailyReport) // ReviewNote[]
+      : undefined;
 
-    const reviewText = this.sourceBuilder.build(reviewNotes);
-
-    return [
-      base,
-      '',
-      '---',
-      '【2回目KPT分析用：ユーザレビュー】',
-      '---',
-      reviewText,
-    ].join('\n');
+    return this.sourceBuilder.build({
+      summary,
+      previousKpt,
+      userReviews,
+    });
   }
 
   private determinePhase(dailyNote: DailyNote): KptPhase {
     return dailyNote.hasKpt() ? KptPhase.Second : KptPhase.First;
   }
-
 }
