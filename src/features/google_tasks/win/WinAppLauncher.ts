@@ -1,5 +1,11 @@
 // File: src/features/google_tasks/win/WinAppLauncher.ts
+// Electron shell is used because we must launch the external WinUI application
+// via custom URI scheme (net.getperf.ptune.googleoauth:/...).
+// This API is only available on Desktop Obsidian (Electron environment).
+// Mobile environments do not provide the 'electron' module.
+
 import { normalizePath, Vault } from 'obsidian';
+// Electron import must be optional to avoid runtime errors on mobile
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { shell } from 'electron';
