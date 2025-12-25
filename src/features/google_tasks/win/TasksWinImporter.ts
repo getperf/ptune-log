@@ -14,7 +14,7 @@ export class TasksWinImporter {
   private static readonly OUTPUT_FILE = 'import_tasks.json';
   private static readonly TASKLIST_NAME = 'Today';
 
-  constructor(private app: App) { }
+  constructor(private app: App) {}
 
   openImportModal(): void {
     logger.debug('[TasksWinImporter.openImportModal] start');
@@ -40,6 +40,7 @@ export class TasksWinImporter {
       }
 
       const jsonPath = `/.obsidian/plugins/ptune-log/work/${TasksWinImporter.OUTPUT_FILE}`;
+
       const jsonText = await this.app.vault.adapter.read(jsonPath);
       const rawTasks = JSON.parse(jsonText);
       const myTasks = rawTasks.map((t: any) =>

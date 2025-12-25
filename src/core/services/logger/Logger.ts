@@ -49,8 +49,9 @@ export class Logger {
 
   private async writeToFile(level: string, message: string) {
     if (!this.enableFileOutput || !this.vault) return;
-    const line = `[${new Date().toLocaleTimeString()}][${this.prefix
-      }][${level}] ${message}\n`;
+    const line = `[${new Date().toLocaleTimeString()}][${
+      this.prefix
+    }][${level}] ${message}\n`;
     const path = this.getLogPath();
     await this.vault.adapter.append(path, line).catch(console.error);
   }
@@ -60,7 +61,7 @@ export class Logger {
     return levels.indexOf(level) >= levels.indexOf(this.level);
   }
 
-  private async log(level: LogLevel, ...args: unknown[]) {
+  private log(level: LogLevel, ...args: unknown[]) {
     if (!this.shouldLog(level)) return;
 
     const msg = args
@@ -71,17 +72,16 @@ export class Logger {
 
     // --- console.log を禁止し、debug/warn/error のみに統一 ---
     if (level === 'debug' || level === 'info') {
-      console.debug(prefixMsg);           // info は debug にフォールバック
+      console.debug(prefixMsg); // info は debug にフォールバック
     } else if (level === 'warn') {
       console.warn(prefixMsg);
     } else if (level === 'error') {
       console.error(prefixMsg);
     }
 
-    // Fire and Forget
+    // Fire and Forget（ログ失敗でアプリを止めない）
     void this.writeToFile(level, msg);
   }
-
 
   debug(...args: unknown[]) {
     void this.log('debug', ...args);

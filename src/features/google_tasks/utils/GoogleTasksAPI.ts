@@ -5,13 +5,14 @@ import { MyTask } from 'src/core/models/tasks/MyTask';
 import { MyTaskFactory } from 'src/core/models/tasks/MyTaskFactory';
 import { TokenManager } from '../google_auth/TokenManager';
 import { ErrorUtils } from 'src/core/utils/common/ErrorUtils';
+import { GoogleTaskDto } from 'src/core/models/tasks/GoogleTaskDto';
 
 /**
  * Google Tasks API クラス
  * - Google Tasks へのHTTP通信とエラーハンドリングを担当
  */
 export class GoogleTasksAPI {
-  constructor(private tokenManager: TokenManager) { }
+  constructor(private tokenManager: TokenManager) {}
 
   /**
    * 共通HTTPリクエスト処理 (fetch → requestUrl 対応)
@@ -19,7 +20,7 @@ export class GoogleTasksAPI {
   private async request<T>(
     url: string,
     method = 'GET',
-    body?: any
+    body?: unknown
   ): Promise<T | undefined> {
     logger.debug(`[GoogleTasksAPI.request] ${method} ${url}`);
 
@@ -56,7 +57,6 @@ export class GoogleTasksAPI {
 
       logger.debug('[GoogleTasksAPI.request] Response OK');
       return res.json as T;
-
     } catch (e: unknown) {
       const msg = ErrorUtils.toMessage(e);
       logger.error('[GoogleTasksAPI.request]', msg);
@@ -109,7 +109,7 @@ export class GoogleTasksAPI {
       showHidden: 'true',
     });
 
-    const res = await this.request<{ items: any[] }>(
+    const res = await this.request<{ items: GoogleTaskDto[] }>(
       `https://tasks.googleapis.com/tasks/v1/lists/${taskListId}/tasks?${params.toString()}`
     );
 
@@ -120,11 +120,14 @@ export class GoogleTasksAPI {
 
   /** タスク追加 */
   async addTask(task: MyTask, taskListId: string): Promise<MyTask> {
-    const data = await this.request<any>(
+    const data = await this.request<GoogleTaskDto>(
       `https://tasks.googleapis.com/tasks/v1/lists/${taskListId}/tasks`,
       'POST',
       task.toApiData()
     );
+    if (!data?.id) {
+      throw new Error('タスク作成に失敗しました（ID未取得）');
+    }
     task.id = data.id;
     return task;
   }
