@@ -77,21 +77,30 @@ export class TaskJsonUtils {
     }
 
     const jsonText = await adapter.read(path);
-    const raw = JSON.parse(jsonText);
+    const raw = JSON.parse(jsonText) as TaskJsonRecord[];
 
-    const tasks = raw.map((t: any) => {
+    const tasks = raw.map((t) => {
       const normalized: GoogleTaskDto = {
-        id: t.id ?? undefined,
-        title: t.title ?? '',
-        parent: t.parent ?? undefined, // ★ null → undefined
-        pomodoro: t.pomodoro ?? undefined,
-        status: t.status ?? 'needsAction',
+        id: t.id,
+        title: t.title,
+        parent: t.parent ?? undefined,
+
+        pomodoro: t.pomodoro
+          ? {
+              planned: t.pomodoro.planned ?? undefined,
+              actual: t.pomodoro.actual ?? undefined,
+            }
+          : undefined,
+
+        status: t.status,
         note: t.note ?? undefined,
         completed: t.completed ?? undefined,
         started: t.started ?? undefined,
-        due: t.due ?? undefined,
-        updated: t.updated ?? undefined,
-        deleted: t.deleted ?? false,
+
+        // --- JSONには存在しない項目は補完 ---
+        due: undefined,
+        updated: undefined,
+        deleted: false,
       };
 
       return MyTaskFactory.fromApiData(normalized, t.tasklist_id ?? 'Today');

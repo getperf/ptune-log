@@ -5,6 +5,10 @@ import { GoogleAuthSettings } from 'src/config/ConfigManager';
 
 import type * as http from 'http';
 
+interface WindowWithRequire extends Window {
+  require: (module: string) => unknown;
+}
+
 /** Google OAuth2 (PKCE対応) 認証クラス */
 export class GoogleAuth {
   constructor(private plugin: Plugin, private settings: GoogleAuthSettings) {
@@ -110,7 +114,6 @@ export class GoogleAuth {
       });
       new Notice(`Google 認証エラー: ${err}\n${desc}`);
       return null;
-
     } catch (e) {
       const error = e instanceof Error ? e : new Error(String(e));
       logger.error(
@@ -156,7 +159,9 @@ export class GoogleAuth {
   /** --- 認可コード待受（NodeAPI利用） */
   private waitForAuthCode(port: number): Promise<string> {
     return new Promise((resolve, reject) => {
-      const httpModule = (window as any).require('http') as typeof http;
+      const httpModule = (window as WindowWithRequire).require(
+        'http'
+      ) as typeof http;
 
       const server = httpModule.createServer(
         (req: http.IncomingMessage, res: http.ServerResponse) => {

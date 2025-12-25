@@ -28,7 +28,7 @@ export class EditableNoteSummaryFactory {
         isNew: summary.unregisteredTags?.includes(t) ?? false,
       })),
       updateDailyNote: true,
-      taskKey: summary.taskKey,
+      taskKey: summary.taskKey ?? undefined,
 
       addNewTag() {
         // UI追加の new/new2/new3 タグだけを対象に連番化

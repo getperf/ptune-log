@@ -26,12 +26,19 @@ export class LLMTagFileProcessor {
     prompt: string,
     aliases: TagAliases
   ): Promise<{
-    currentFm: any;
-    parsed: any;
+    currentFm: Record<string, unknown>;
+    parsed: {
+      summary?: string;
+      tags?: string[];
+      [key: string]: unknown;
+    };
     normalizedTags: string[];
     newTags: string[];
   }> {
-    const currentFm = await NoteFrontmatterParser.parseFromFile(this.app, file);
+    const currentFm = (await NoteFrontmatterParser.parseFromFile(
+      this.app,
+      file
+    )) as Record<string, unknown>;
     const content = await this.app.vault.read(file);
 
     // --- 1. LLM解析
@@ -145,9 +152,16 @@ export class LLMTagFileProcessor {
     const { currentFm, parsed, normalizedTags, newTags } =
       await this.analyzeFile(file, prompt, aliases);
 
+    const summary: string =
+      typeof parsed.summary === 'string'
+        ? parsed.summary
+        : typeof currentFm.summary === 'string'
+        ? currentFm.summary
+        : '(要約なし)';
+
     const mergedForSummary = {
       ...currentFm,
-      summary: parsed.summary ?? currentFm.summary ?? '(要約なし)',
+      summary,
       tags: normalizedTags,
     };
 

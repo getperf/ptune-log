@@ -73,7 +73,7 @@ export class ClaudeClient implements LLMClientBase {
   }
 
   /** Embedding呼び出し（未実装） */
-  async callEmbedding(): Promise<number[] | null> {
+  callEmbedding(): Promise<number[] | null> {
     throw new LLMClientError('Claude embedding 未実装');
   }
 }
