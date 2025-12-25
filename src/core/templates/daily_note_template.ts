@@ -1,4 +1,4 @@
-import { HEADER_TIME_LOG } from 'src/features/google_tasks/services/TaskSummaryReportBuilder';
+import { HEADER_TIME_LOG } from 'src/features/google_tasks/services/report/TaskSummaryReportBuilder';
 import { HEADER_REVIEW_LOG } from 'src/features/daily_notes/DailyNoteUpdater';
 
 export const DAILY_NOTE_TEMPLATE = `---

@@ -5,16 +5,16 @@ import type { GoogleAuthSettings } from '../../config/ConfigManager';
 import { GoogleTasksAPI } from './utils/GoogleTasksAPI';
 import { GoogleTasksCommandUtil } from 'src/features/google_tasks/utils/GoogleTasksCommandUtil';
 import { TasksWinImporter } from './win/TasksWinImporter';
-import { TaskSummaryReportBuilder } from './services/TaskSummaryReportBuilder';
+import { TaskSummaryReportBuilder } from './services/report/TaskSummaryReportBuilder';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { MyTaskFactory } from 'src/core/models/tasks/MyTaskFactory';
 import { DailyNoteConfig } from 'src/core/utils/daily_note/DailyNoteConfig';
-import { TasksExport } from './services/TasksExport';
 import { TasksWinReauth } from './win/TasksWinReauth';
 import { GoogleAuth } from './google_auth/GoogleAuth';
 import { GoogleTasksExportModal } from './win/GoogleTasksExportModal';
 import { GetTasksMarkdownExecutor } from './win/GetTasksMarkdownExecutor';
-import { GoogleTasksDailyNoteTaskKeyUpdater } from './services/GoogleTasksDailyNoteTaskKeyUpdater';
+import { GoogleTasksDailyNoteTaskKeyUpdater } from './services/dailynote/GoogleTasksDailyNoteTaskKeyUpdater';
+import { TasksExport } from './services/export/TasksExport';
 
 export class GoogleTasksFeature {
   private readonly app: App;

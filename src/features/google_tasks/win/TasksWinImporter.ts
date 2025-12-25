@@ -1,11 +1,12 @@
 import { App, Notice } from 'obsidian';
 import { DailyNoteConfig } from 'src/core/utils/daily_note/DailyNoteConfig';
-import { TaskSummaryReportBuilder } from '../services/TaskSummaryReportBuilder';
+import { TaskSummaryReportBuilder } from '../services/report/TaskSummaryReportBuilder';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { MyTaskFactory } from 'src/core/models/tasks/MyTaskFactory';
 import { WinAppUriBuilder } from './WinAppUriBuilder';
 import { WinAppLauncher } from './WinAppLauncher';
 import { ErrorUtils } from 'src/core/utils/common/ErrorUtils';
+import { GoogleTaskDto } from 'src/core/models/tasks/GoogleTaskDto';
 
 /**
  * WinUI アプリからタスクをインポートしてデイリーノートに出力
@@ -40,15 +41,13 @@ export class TasksWinImporter {
       }
 
       const jsonPath = `/.obsidian/plugins/ptune-log/work/${TasksWinImporter.OUTPUT_FILE}`;
-
       const jsonText = await this.app.vault.adapter.read(jsonPath);
-      const rawTasks = JSON.parse(jsonText);
-      const myTasks = rawTasks.map((t: any) =>
-        MyTaskFactory.fromApiData(
-          t,
-          t.tasklist_id ?? TasksWinImporter.TASKLIST_NAME
-        )
+      const rawTasks = JSON.parse(jsonText) as GoogleTaskDto[];
+
+      const myTasks = rawTasks.map((t) =>
+        MyTaskFactory.fromApiData(t, TasksWinImporter.TASKLIST_NAME)
       );
+
       myTasks.reverse();
       await builder.buildFromMyTasks(myTasks);
 
