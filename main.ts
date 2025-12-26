@@ -50,7 +50,8 @@ export default class PtunePlugin extends Plugin {
     // --- Google Tasks ---
     this.googleTasks = new GoogleTasksFeature(
       this,
-      this.config.settings.google_auth
+      this.config.settings.google_auth,
+      this.config.settings.llm
     );
     this.googleTasks.regist();
 

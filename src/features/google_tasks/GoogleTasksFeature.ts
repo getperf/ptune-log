@@ -16,18 +16,23 @@ import { GetTasksMarkdownExecutor } from './win/GetTasksMarkdownExecutor';
 import { GoogleTasksDailyNoteTaskKeyUpdater } from './services/dailynote/GoogleTasksDailyNoteTaskKeyUpdater';
 import { TasksExport } from './services/export/TasksExport';
 import { TimeReportDateSelectModal } from './services/time_analysis/ui/TimeReportDateSelectModal';
-import { TaskExecutionLoader } from './services/time_analysis/services/TaskExecutionLoader';
-import { TaskTimeAggregator } from './services/time_analysis/services/TaskTimeAggregator';
-import { TimeReportYamlWriter } from './services/time_analysis/services/TimeReportYamlWriter';
+import { LLMSettings } from 'src/config/settings/LLMSettings';
+import { LLMClient } from 'src/core/services/llm/LLMClient';
+import { TaskReviewReportService } from './services/time_analysis/TaskReviewReportService';
 
 export class GoogleTasksFeature {
   private readonly app: App;
+  llmClient: LLMClient;
+  reviewService: TaskReviewReportService;
 
   constructor(
     private readonly plugin: Plugin,
-    private readonly settings: GoogleAuthSettings
+    private readonly settings: GoogleAuthSettings,
+    private readonly llmSettings: LLMSettings
   ) {
     this.app = plugin.app;
+    this.llmClient = new LLMClient(this.app, this.llmSettings);
+    this.reviewService = new TaskReviewReportService(this.app, this.llmClient);
   }
 
   /* =========================
@@ -151,17 +156,15 @@ export class GoogleTasksFeature {
     });
 
     this.plugin.addCommand({
-      id: 'generate-task-execution-yaml',
-      name: 'Generate Task Execution YAML (last 14 days)',
+      id: 'generate-task-review-report',
+      name: 'Task Review: Generate Daily Report',
       callback: () => {
         new TimeReportDateSelectModal(this.app, async (date) => {
-          const loader = new TaskExecutionLoader(this.app);
-          const aggregator = new TaskTimeAggregator();
-          const writer = new TimeReportYamlWriter(this.app);
-
-          const tasks = await loader.load(date);
-          const report = aggregator.aggregate(tasks, date);
-          await writer.write(report);
+          await this.reviewService.generate(date, {
+            attachNotes: true,
+            enableLLMAnalysis: true,
+            updateDailyNote: false,
+          });
         }).open();
       },
     });

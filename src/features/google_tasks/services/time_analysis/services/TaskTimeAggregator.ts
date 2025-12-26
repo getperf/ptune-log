@@ -1,8 +1,8 @@
 // File: src/features/google_tasks/services/time_analysis/services/TaskTimeAggregator.ts
 
 import { MyTask } from 'src/core/models/tasks/MyTask';
-import { TaskExecutionEntry } from '../models/TaskExecutionEntry';
 import { TimeReport } from '../models/TimeReport';
+import { TaskExecutionEntry, PomodoroSum } from '../models/TaskExecutionEntry';
 import { TaskKeyGenerator } from 'src/core/services/tasks/TaskKeyGenerator';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
 import { logger } from 'src/core/services/logger/loggerInstance';
@@ -11,19 +11,7 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 interface TaskNode {
   task: MyTask;
   children: TaskNode[];
-}
-
-/** 内部用：pomodoro 合計（計算専用） */
-interface PomodoroSum {
-  planned: number;
-  actual: number;
-}
-
-/** 出力用 pomodoro（0 は含めない） */
-interface PomodoroOutput {
-  planned?: number;
-  actual?: number;
-  delta?: number;
+  sum?: PomodoroSum; // ★ 集計結果を保持
 }
 
 export class TaskTimeAggregator {
@@ -31,9 +19,15 @@ export class TaskTimeAggregator {
     const tree = this.buildHierarchy(tasks.filter((t) => !t.deleted));
     const out = new Map<string, TaskExecutionEntry>();
 
+    // ① 集計（全ノードに sum を設定）
+    for (const root of tree) {
+      this.aggregateNode(root);
+    }
+
+    // ② 出力（親→子順）
     const roots = tree.slice().sort((a, b) => this.sortNode(a, b));
     for (const root of roots) {
-      this.walkTree(root, undefined, out);
+      this.emitEntries(root, undefined, out);
     }
 
     return new TimeReport(DateUtil.localDate(date), 'task_execution', out);
@@ -68,82 +62,59 @@ export class TaskTimeAggregator {
   }
 
   /**
-   * DFS 走査
-   * - 子→親へ pomodoro をロールアップ
-   * - actual=0 は出力しない
-   * - delta は actual>0 のみ
+   * 集計パス
+   * - 子→親へ pomodoro ロールアップ
+   * - 各 node.sum を必ず設定
    */
-  private walkTree(
-    node: TaskNode,
-    parentTaskKey: string | undefined,
-    out: Map<string, TaskExecutionEntry>
-  ): PomodoroSum {
+  private aggregateNode(node: TaskNode): PomodoroSum {
     const t = node.task;
 
-    // --- 自身の pomodoro（計算用）
     let sum: PomodoroSum = {
       planned: t.pomodoro?.planned ?? 0,
       actual: t.pomodoro?.actual ?? 0,
     };
 
-    const selfKey = parentTaskKey
-      ? `${parentTaskKey}__${TaskKeyGenerator.normalize(t.title)}`
-      : TaskKeyGenerator.normalize(t.title);
-
-    // --- 子ノード集計
     const children = node.children.slice().sort((a, b) => this.sortNode(a, b));
     for (const child of children) {
-      const childSum = this.walkTree(child, selfKey, out);
+      const childSum = this.aggregateNode(child);
       sum.planned += childSum.planned;
       sum.actual += childSum.actual;
     }
 
-    // --- 出力用 pomodoro 正規化
-    const pomodoro = this.normalizePomodoro(sum);
-
-    if (out.has(selfKey)) {
-      logger.warn(
-        `[TaskTimeAggregator] duplicate taskKey: ${selfKey} (overwrite)`
-      );
-    }
-
-    out.set(
-      selfKey,
-      new TaskExecutionEntry(
-        selfKey,
-        t.id,
-        t.title,
-        t.status ?? 'needsAction',
-        parentTaskKey,
-        pomodoro,
-        t.started,
-        t.completed
-      )
-    );
-
+    node.sum = sum; // ★ 必ず保存
     return sum;
   }
 
-  // --- 出力仕様を1か所に集約
-  private normalizePomodoro(sum: PomodoroSum): PomodoroOutput | undefined {
-    const hasPlanned = sum.planned > 0;
-    const hasActual = sum.actual > 0;
-
-    if (!hasPlanned && !hasActual) {
-      return undefined;
+  /**
+   * 出力パス（親→子順）
+   */
+  private emitEntries(
+    node: TaskNode,
+    parentTaskKey: string | undefined,
+    out: Map<string, TaskExecutionEntry>
+  ): void {
+    if (!node.sum) {
+      logger.error('[TaskTimeAggregator] sum is missing', node.task.title);
+      return;
     }
 
-    const out: PomodoroOutput = {};
+    const selfKey = parentTaskKey
+      ? `${parentTaskKey}__${TaskKeyGenerator.normalize(node.task.title)}`
+      : TaskKeyGenerator.normalize(node.task.title);
 
-    if (hasPlanned) {
-      out.planned = sum.planned;
+    out.set(
+      selfKey,
+      TaskExecutionEntry.fromAggregated({
+        taskKey: selfKey,
+        parentTaskKey,
+        task: node.task,
+        sum: node.sum,
+      })
+    );
+
+    const children = node.children.slice().sort((a, b) => this.sortNode(a, b));
+    for (const child of children) {
+      this.emitEntries(child, selfKey, out);
     }
-
-    if (hasActual) {
-      out.actual = sum.actual;
-      out.delta = sum.actual - (sum.planned ?? 0);
-    }
-
-    return out;
   }
 }
