@@ -15,6 +15,10 @@ import { GoogleTasksExportModal } from './win/GoogleTasksExportModal';
 import { GetTasksMarkdownExecutor } from './win/GetTasksMarkdownExecutor';
 import { GoogleTasksDailyNoteTaskKeyUpdater } from './services/dailynote/GoogleTasksDailyNoteTaskKeyUpdater';
 import { TasksExport } from './services/export/TasksExport';
+import { TimeReportDateSelectModal } from './services/time_analysis/ui/TimeReportDateSelectModal';
+import { TaskExecutionLoader } from './services/time_analysis/services/TaskExecutionLoader';
+import { TaskTimeAggregator } from './services/time_analysis/services/TaskTimeAggregator';
+import { TimeReportYamlWriter } from './services/time_analysis/services/TimeReportYamlWriter';
 
 export class GoogleTasksFeature {
   private readonly app: App;
@@ -143,6 +147,22 @@ export class GoogleTasksFeature {
             await builder.buildFromMyTasks(myTasks);
           }
         )();
+      },
+    });
+
+    this.plugin.addCommand({
+      id: 'generate-task-execution-yaml',
+      name: 'Generate Task Execution YAML (last 14 days)',
+      callback: () => {
+        new TimeReportDateSelectModal(this.app, async (date) => {
+          const loader = new TaskExecutionLoader(this.app);
+          const aggregator = new TaskTimeAggregator();
+          const writer = new TimeReportYamlWriter(this.app);
+
+          const tasks = await loader.load(date);
+          const report = aggregator.aggregate(tasks, date);
+          await writer.write(report);
+        }).open();
       },
     });
   }

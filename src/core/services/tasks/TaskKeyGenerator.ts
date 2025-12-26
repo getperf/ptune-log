@@ -1,5 +1,7 @@
 // File: src/core/services/tasks/TaskKeyGenerator.ts
 
+import { MyTask } from 'src/core/models/tasks/MyTask';
+
 export interface ParsedTask {
   title: string;
   parentTitle?: string;
@@ -11,6 +13,10 @@ export interface ParsedTask {
  */
 export class TaskKeyGenerator {
   private static readonly SEPARATOR = '__';
+
+  static createByTitles(title: string, parentTitle?: string): string {
+    return this.createByParsedTask({ title, parentTitle });
+  }
 
   /** ParsedTask → taskKey */
   static createByParsedTask(task: ParsedTask): string {
@@ -25,7 +31,7 @@ export class TaskKeyGenerator {
   }
 
   /** タスクタイトル正規化 */
-  private static normalize(title: string): string {
+  static normalize(title: string): string {
     return (
       title
         // 🍅x2 などのメタ情報を除外
