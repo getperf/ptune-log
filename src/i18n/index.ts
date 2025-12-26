@@ -2,6 +2,7 @@
 
 import type { Lang } from './types';
 import type { I18nDict } from './schema';
+export type { I18nDict };
 
 import { commonJa } from './ja/common';
 import { commonEn } from './en/common';

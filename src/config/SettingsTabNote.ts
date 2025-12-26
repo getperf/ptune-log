@@ -1,27 +1,27 @@
+// File: src/config/SettingsTabNote.ts
+
 import { Setting } from 'obsidian';
 import type { PluginSettings, ConfigManager } from './ConfigManager';
+import type { I18nDict } from 'src/i18n';
 
-/**
- * Note設定セクションを描画
- * @param containerEl - 設定タブのコンテナ要素
- * @param config - 設定マネージャ（ConfigManagerインスタンス）
- * @param settings - 現在の設定状態（表示用）
- */
 export function renderNoteSettings(
   containerEl: HTMLElement,
   config: ConfigManager,
-  settings: PluginSettings
+  settings: PluginSettings,
+  i18n: I18nDict
 ) {
-  containerEl.createEl('h2', { text: 'ノート作成設定' });
+  const t = i18n.settingsNote;
+
+  containerEl.createEl('h2', { text: t.sectionTitle });
 
   new Setting(containerEl)
-    .setName('Note folder prefix')
-    .setDesc('Prefix type for note folder')
+    .setName(t.folderPrefix.name)
+    .setDesc(t.folderPrefix.desc)
     .addDropdown((dropdown) =>
       dropdown
         .addOptions({
-          serial: 'Serial',
-          date: 'Date',
+          serial: t.folderPrefix.options.serial,
+          date: t.folderPrefix.options.date,
         })
         .setValue(config.get<string>('note.folderPrefix'))
         .onChange(async (value) => {
@@ -30,13 +30,13 @@ export function renderNoteSettings(
     );
 
   new Setting(containerEl)
-    .setName('Note prefix')
-    .setDesc('Prefix type for notes')
+    .setName(t.notePrefix.name)
+    .setDesc(t.notePrefix.desc)
     .addDropdown((dropdown) =>
       dropdown
         .addOptions({
-          serial: 'Serial',
-          date: 'Date',
+          serial: t.notePrefix.options.serial,
+          date: t.notePrefix.options.date,
         })
         .setValue(config.get<string>('note.notePrefix'))
         .onChange(async (value) => {
@@ -45,8 +45,8 @@ export function renderNoteSettings(
     );
 
   new Setting(containerEl)
-    .setName('Prefix digits')
-    .setDesc('Number of digits for the prefix')
+    .setName(t.prefixDigits.name)
+    .setDesc(t.prefixDigits.desc)
     .addDropdown((dropdown) =>
       dropdown
         .addOptions({
@@ -65,11 +65,11 @@ export function renderNoteSettings(
     );
 
   new Setting(containerEl)
-    .setName('Note template')
-    .setDesc('Enter the note template.')
+    .setName(t.template.name)
+    .setDesc(t.template.desc)
     .addTextArea((text) => {
       text
-        .setPlaceholder('Template here...')
+        .setPlaceholder(t.template.placeholder)
         .setValue(config.get<string>('note.templateText'))
         .onChange(async (value) => {
           await config.update('note.templateText', value);

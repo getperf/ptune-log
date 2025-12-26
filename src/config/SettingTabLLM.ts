@@ -1,36 +1,33 @@
+// File: src/config/SettingTabLLM.ts
+
 import { Notice, PluginSettingTab, Setting, TFile } from 'obsidian';
 import type { PluginSettings, ConfigManager } from './ConfigManager';
 import { providerDefaults } from './settings/LLMSettings';
-
-/**
- * LLM設定セクションを描画
- * @param containerEl - 設定タブのコンテナ要素
- * @param config - 設定マネージャ（ConfigManagerインスタンス）
- * @param settings - 現在の設定状態（表示用）
- */
+import type { I18nDict } from 'src/i18n';
 
 export function renderLLMSettings(
   containerEl: HTMLElement,
   config: ConfigManager,
   settings: PluginSettings,
-  settingTab: PluginSettingTab // ← 追加
+  settingTab: PluginSettingTab,
+  i18n: I18nDict
 ) {
-  // containerEl.createEl("h3", { text: "LLM 設定" });
-  const heading = containerEl.createEl('h3', { text: 'LLM タグ生成設定' });
-  heading.id = 'llm-settings-title'; // ← スクロールターゲット
+  const t = i18n.settingsLlm;
 
-  // Provider
+  const heading = containerEl.createEl('h3', { text: t.sectionTitle });
+  heading.id = 'llm-settings-title';
+
   const providerSetting = new Setting(containerEl)
-    .setName('プロバイダー')
-    .setDesc('使用する LLM プロバイダー');
-  // const providerDropdownEl = providerSetting.controlEl; // ✅ DOMを保持
+    .setName(t.provider.name)
+    .setDesc(t.provider.desc);
+
   providerSetting.addDropdown((drop) =>
     drop
       .addOptions({
-        'OpenAI Chat': 'OpenAI Chat',
-        'Anthropic Claude': 'Anthropic Claude',
-        Gemini: 'Gemini',
-        Custom: 'Custom',
+        'OpenAI Chat': t.provider.options['OpenAI Chat'],
+        'Anthropic Claude': t.provider.options['Anthropic Claude'],
+        Gemini: t.provider.options.Gemini,
+        Custom: t.provider.options.Custom,
       })
       .setValue(settings.llm.provider)
       .onChange(async (value) => {
@@ -50,26 +47,23 @@ export function renderLLMSettings(
       })
   );
 
-  // API Key
   new Setting(containerEl)
-    .setName('API Key')
-    .setDesc('プロバイダーの API キーを入力してください')
+    .setName(t.apiKey.name)
+    .setDesc(t.apiKey.desc)
     .addText((text) =>
       text
-        .setPlaceholder('sk-...')
+        .setPlaceholder(t.apiKey.placeholder)
         .setValue(settings.llm.apiKey)
         .onChange(async (value) => {
           await config.update('llm.apiKey', value.trim());
         })
     );
 
-  // Base URL
   new Setting(containerEl)
-    .setName('Base URL')
-    .setDesc('API のベース URL')
+    .setName(t.baseUrl.name)
+    .setDesc(t.baseUrl.desc)
     .addText((text) =>
       text
-        // .setPlaceholder("https://api.openai.com/v1")
         .setPlaceholder(settings.llm.baseUrl)
         .setValue(settings.llm.baseUrl)
         .onChange(async (value) => {
@@ -77,10 +71,9 @@ export function renderLLMSettings(
         })
     );
 
-  // Model
   new Setting(containerEl)
-    .setName('モデル')
-    .setDesc('使用するモデル名')
+    .setName(t.model.name)
+    .setDesc(t.model.desc)
     .addDropdown((drop) =>
       drop
         .addOptions({
@@ -96,18 +89,17 @@ export function renderLLMSettings(
         })
     );
 
-  // Embeddingモデル設定
   new Setting(containerEl)
-    .setName('Embeddingモデル')
-    .setDesc(
-      'タグ類似度検索・ベクトル生成で使用するモデル。使用しない場合は未使用を選択 ※ OpenAI のみ有効'
-    )
+    .setName(t.embeddingModel.name)
+    .setDesc(t.embeddingModel.desc)
     .addDropdown((drop) =>
       drop
         .addOptions({
-          '': '未使用',
-          'text-embedding-3-small': 'text-embedding-3-small',
-          'text-embedding-3-large': 'text-embedding-3-large',
+          '': t.embeddingModel.options[''],
+          'text-embedding-3-small':
+            t.embeddingModel.options['text-embedding-3-small'],
+          'text-embedding-3-large':
+            t.embeddingModel.options['text-embedding-3-large'],
         })
         .setValue(settings.llm.embeddingModel)
         .onChange(async (value) => {
@@ -115,10 +107,9 @@ export function renderLLMSettings(
         })
     );
 
-  // Temperature
   new Setting(containerEl)
-    .setName('温度 (temperature)')
-    .setDesc('出力の多様性（0.0 = 確定的、1.0 = 創造的）')
+    .setName(t.temperature.name)
+    .setDesc(t.temperature.desc)
     .addSlider((slider) =>
       slider
         .setLimits(0, 1, 0.1)
@@ -129,13 +120,12 @@ export function renderLLMSettings(
         })
     );
 
-  // Max Tokens
   new Setting(containerEl)
-    .setName('最大トークン数')
-    .setDesc('出力されるトークンの最大数')
+    .setName(t.maxTokens.name)
+    .setDesc(t.maxTokens.desc)
     .addText((text) =>
       text
-        .setPlaceholder('512')
+        .setPlaceholder(t.maxTokens.placeholder)
         .setValue(settings.llm.maxTokens.toString())
         .onChange(async (value) => {
           const num = parseInt(value, 10);
@@ -145,12 +135,9 @@ export function renderLLMSettings(
         })
     );
 
-  // 類似スコア閾値
   new Setting(containerEl)
-    .setName('類似スコア閾値（minSimilarityScore）')
-    .setDesc(
-      '類似タグ検索で許可するスコア下限値。0.0〜1.0。値を上げるほど厳しくフィルタします。'
-    )
+    .setName(t.minSimilarityScore.name)
+    .setDesc(t.minSimilarityScore.desc)
     .addSlider((slider) =>
       slider
         .setLimits(0, 1, 0.05)
@@ -161,12 +148,9 @@ export function renderLLMSettings(
         })
     );
 
-  // 振り返りレポートのチェックリスト有効化
   new Setting(containerEl)
-    .setName('振り返りレポートでチェックリストを使用')
-    .setDesc(
-      '要約・目標をチェックボックス表示にして、チェックしない場合は分析対象から除外します。'
-    )
+    .setName(t.enableChecklist.name)
+    .setDesc(t.enableChecklist.desc)
     .addToggle((toggle) =>
       toggle
         .setValue(settings.llm.enableChecklist ?? true)
@@ -174,18 +158,14 @@ export function renderLLMSettings(
           await config.update('llm.enableChecklist', value);
         })
     );
-  // コマンド実行ボタンの追加（セクションの最後に追記）
+
   const notePath = '_templates/llm/tag_generate.md';
   new Setting(containerEl)
-    .setName('プロンプトテンプレート選択')
-    .setDesc(
-      `LLMタグ生成プロンプトについて登録済みのテンプレートを選択して保存します。\n` +
-        `保存先は ${notePath}です。\n` +
-        `内容を参照・編集したい場合は、右記のボタンから開いてください。`
-    )
+    .setName(t.promptTemplate.name)
+    .setDesc(t.promptTemplate.desc(notePath))
     .addButton((btn) =>
       btn
-        .setButtonText('テンプレートを選択')
+        .setButtonText(t.promptTemplate.buttons.select)
         .setCta()
         .onClick(() => {
           settingTab.app.commands.executeCommandById(
@@ -195,37 +175,34 @@ export function renderLLMSettings(
     )
     .addButton((btn) =>
       btn
-        .setButtonText('テンプレートを開く')
+        .setButtonText(t.promptTemplate.buttons.open)
         .setCta()
         .onClick(async () => {
           const file = settingTab.app.vault.getAbstractFileByPath(notePath);
           if (file instanceof TFile) {
             await settingTab.app.workspace.getLeaf(true).openFile(file);
           } else {
-            new Notice(`ノートが見つかりません: ${notePath}`);
+            new Notice(t.promptTemplate.noticeNotFound(notePath));
           }
         })
     );
 
-  // プロンプトプレビュー実行ボタンを追加（開発者向け）
   new Setting(containerEl)
-    .setName('プロンプトプレビュー実行')
-    .setDesc(
-      'テンプレート編集後、LLMに送信される最終プロンプト内容を確認します（開発者向け機能）。'
-    )
+    .setName(t.promptPreview.name)
+    .setDesc(t.promptPreview.desc)
     .addButton((btn) =>
       btn
-        .setButtonText('プレビュー表示')
+        .setButtonText(t.promptPreview.button)
         .setCta()
         .onClick(() => {
           try {
             settingTab.app.commands.executeCommandById(
               'ptune-log:preview-llm-tag-prompt'
             );
-            new Notice('プロンプトプレビューを開きます');
+            new Notice(t.promptPreview.noticeOpen);
           } catch (e) {
             console.error(e);
-            new Notice('⚠️ プロンプトプレビューの実行に失敗しました');
+            new Notice(t.promptPreview.noticeFail);
           }
         })
     );

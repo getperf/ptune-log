@@ -1,50 +1,43 @@
+// File: src/config/SettingsTabGoogleAuth.ts
+
 import { Setting } from 'obsidian';
 import type { PluginSettings, ConfigManager } from './ConfigManager';
+import type { I18nDict } from 'src/i18n';
 
-/**
- * Google認証設定セクションを描画
- * @param containerEl - 設定タブのコンテナ要素
- * @param config - 設定マネージャ（ConfigManagerインスタンス）
- * @param settings - 現在の設定状態（表示用）
- */
 export function renderGoogleAuthSettings(
   containerEl: HTMLElement,
   config: ConfigManager,
-  settings: PluginSettings
+  settings: PluginSettings,
+  i18n: I18nDict
 ) {
-  // ① 既存のセクション削除
-  const section = containerEl.querySelector(
-    '.google-auth-section'
-  );
+  const section = containerEl.querySelector('.google-auth-section');
   if (section) section.remove();
 
-  // ② 新しいセクションを作成
-  // section = containerEl.createDiv({ cls: 'google-auth-section' });
-  const newSection = containerEl.createDiv({ cls: 'google-auth-section' });
-  newSection.createEl('h3', { text: 'Google 認証設定' });
+  const t = i18n.settingsGoogleAuth;
 
-  // トグル
+  const newSection = containerEl.createDiv({ cls: 'google-auth-section' });
+  newSection.createEl('h3', { text: t.sectionTitle });
+
   new Setting(newSection)
-    .setName('Windowsアプリで認証を行う')
-    .setDesc('Windows 版の外部認証アプリを使用します。')
+    .setName(t.useWinApp.name)
+    .setDesc(t.useWinApp.desc)
     .addToggle((toggle) =>
       toggle
         .setValue(settings.google_auth.useWinApp)
         .onChange(async (value) => {
           await config.update('google_auth.useWinApp', value);
-          renderGoogleAuthSettings(containerEl, config, config.settings); // 再描画
+          renderGoogleAuthSettings(containerEl, config, config.settings, i18n);
         })
     );
 
   const disabled = settings.google_auth.useWinApp;
 
-  // Client ID
   new Setting(newSection)
-    .setName('Client ID')
-    .setDesc('Google Cloud Console の OAuth2 Client ID')
+    .setName(t.clientId.name)
+    .setDesc(t.clientId.desc)
     .addText((text) =>
       text
-        .setPlaceholder('xxxxxxxx.apps.googleusercontent.com')
+        .setPlaceholder(t.clientId.placeholder)
         .setValue(settings.google_auth.clientId)
         .setDisabled(disabled)
         .onChange(async (value) => {
@@ -52,13 +45,12 @@ export function renderGoogleAuthSettings(
         })
     );
 
-  // Client Secret
   new Setting(newSection)
-    .setName('Client secret')
-    .setDesc('Google Cloud Console の OAuth2 Client secret')
+    .setName(t.clientSecret.name)
+    .setDesc(t.clientSecret.desc)
     .addText((text) =>
       text
-        .setPlaceholder('xxxxxxxxxxxxxxx')
+        .setPlaceholder(t.clientSecret.placeholder)
         .setValue(settings.google_auth.clientSecret)
         .setDisabled(disabled)
         .onChange(async (value) => {
