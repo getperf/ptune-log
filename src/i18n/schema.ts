@@ -180,6 +180,26 @@ export interface SettingsReviewI18n {
   };
 }
 
+export interface DailyNoteSectionI18n {
+  planned_tasks: string;
+  task_review: string;
+  daily_report: string;
+  kpt: string;
+}
+
+export interface LlmTagGenerateI18n {
+  apiKeyMissing: string;
+  noMarkdownFiles: string;
+  reviewCompleted: string;
+}
+
+export interface NoteSummaryMarkdownI18n {
+  goalLabel: string;          // 例: "目標"
+  userReviewHeading: string;  // 例: "ユーザレビュー"
+  emptyBullet: string;        // 例: "-"
+}
+
+
 export interface I18nDict {
   common: CommonI18n;
   settings: SettingsI18n;
@@ -188,4 +208,7 @@ export interface I18nDict {
   settingsSnippet: SettingsSnippetI18n;
   settingsLlm: SettingsLlmI18n;
   settingsReview: SettingsReviewI18n;
+  dailyNoteSections: DailyNoteSectionI18n;
+  llmTagGenerate: LlmTagGenerateI18n;
+  noteSummaryMarkdown: NoteSummaryMarkdownI18n;
 }

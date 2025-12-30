@@ -12,6 +12,10 @@ import { OutlineUpdator } from 'src/features/outline_updator/OutlineUpdator';
 import { InitialSetupManager } from 'src/features/setup/InitialSetupManager';
 import { NoteSetupHelper } from 'src/features/setup/NoteSetupHelper';
 
+// ★ i18n 初期化（段階1）
+import { i18n } from 'src/i18n/I18nService';
+import { getI18n, type Lang } from 'src/i18n';
+
 export default class PtunePlugin extends Plugin {
   private config!: ConfigManager;
   private noteCreator!: NoteCreator;
@@ -27,6 +31,10 @@ export default class PtunePlugin extends Plugin {
     // --- 設定ロード ---
     this.config = new ConfigManager(this);
     await this.config.load();
+
+    // --- i18n 初期化（段階1：ここだけ追加） ---
+    const lang = (this.config.get<Lang>('ui.language') ?? 'ja') as Lang;
+    i18n.init(getI18n(lang));
 
     // --- ロガー設定 ---
     await logger.initFileOutput(
@@ -88,7 +96,6 @@ export default class PtunePlugin extends Plugin {
     });
 
     // --- 設定タブ登録（A案）---
-    // ① 全体設定タブ（従来と同じ）
     this.addSettingTab(new PtuneSettingTab(this.app, this, this.config));
   }
 
