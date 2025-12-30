@@ -3,14 +3,13 @@
 import { Notice, PluginSettingTab, Setting, TFile } from 'obsidian';
 import type { PluginSettings, ConfigManager } from './ConfigManager';
 import { providerDefaults } from './settings/LLMSettings';
-import type { I18nDict } from 'src/i18n';
+import { i18n } from 'src/i18n';
 
 export function renderLLMSettings(
   containerEl: HTMLElement,
   config: ConfigManager,
   settings: PluginSettings,
-  settingTab: PluginSettingTab,
-  i18n: I18nDict
+  settingTab: PluginSettingTab
 ) {
   const t = i18n.settingsLlm;
 
@@ -32,16 +31,20 @@ export function renderLLMSettings(
       .setValue(settings.llm.provider)
       .onChange(async (value) => {
         await config.update('llm.provider', value);
+
         const defaults = providerDefaults[value];
         if (defaults) {
           for (const [key, val] of Object.entries(defaults)) {
             await config.update(`llm.${key}`, val);
           }
+
+          // 既存挙動：再描画＋スクロール
           settingTab.display();
           setTimeout(() => {
             const target = document.getElementById('llm-settings-title');
-            if (target)
+            if (target) {
               target.scrollIntoView({ behavior: 'auto', block: 'start' });
+            }
           }, 50);
         }
       })

@@ -3,37 +3,35 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import type PtunePlugin from '../../main';
 import type { ConfigManager } from './ConfigManager';
+
 import { renderLLMSettings } from './SettingTabLLM';
 import { renderNoteSettings } from './SettingsTabNote';
 import { renderSnippetSettings } from './SettingsTabSnippet';
 import { renderGoogleAuthSettings } from './SettingsTabGoogleAuth';
 import { renderReviewSettings } from './SettingTabReview';
-import type { LogLevel } from 'src/core/services/logger/Logger';
 
-import { getI18n } from 'src/i18n';
+import type { LogLevel } from 'src/core/services/logger/Logger';
 import { isLang, type Lang } from 'src/i18n/types';
+import { i18n, getI18n } from 'src/i18n';
 
 function isLogLevel(v: string): v is LogLevel {
   return ['debug', 'info', 'warn', 'error', 'none'].includes(v);
 }
 
 export class PtuneSettingTab extends PluginSettingTab {
-  private plugin: PtunePlugin;
-  private config: ConfigManager;
-
-  constructor(app: App, plugin: PtunePlugin, config: ConfigManager) {
+  constructor(
+    app: App,
+    private readonly plugin: PtunePlugin,
+    private readonly config: ConfigManager
+  ) {
     super(app, plugin);
-    this.plugin = plugin;
-    this.config = config;
   }
 
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
 
-    // --- language (prototype) ---
     const lang = (this.config.get<string>('ui.language') || 'ja') as Lang;
-    const i18n = getI18n(lang);
 
     new Setting(containerEl)
       .setName(i18n.common.language.name)
@@ -45,15 +43,18 @@ export class PtuneSettingTab extends PluginSettingTab {
             en: i18n.common.language.options.en,
           })
           .setValue(lang)
-          .onChange(async (value: string) => {
+          .onChange(async (value) => {
             if (isLang(value)) {
               await this.config.update('ui.language', value);
+              i18n.init(getI18n(value));
             }
             this.display();
           })
       );
 
-    new Setting(containerEl).setName(i18n.settings.basic.heading).setHeading();
+    new Setting(containerEl)
+      .setName(i18n.settings.basic.heading)
+      .setHeading();
 
     new Setting(containerEl)
       .setName(i18n.settings.logLevel.name)
@@ -68,7 +69,7 @@ export class PtuneSettingTab extends PluginSettingTab {
             none: i18n.settings.logLevel.options.none,
           })
           .setValue(this.config.get<LogLevel>('logLevel'))
-          .onChange(async (value: string) => {
+          .onChange(async (value) => {
             if (isLogLevel(value)) {
               await this.config.update<LogLevel>('logLevel', value);
             }
@@ -88,22 +89,10 @@ export class PtuneSettingTab extends PluginSettingTab {
           })
       );
 
-    // --- sections ---
-    renderNoteSettings(containerEl, this.config, this.config.settings, i18n);
-    renderSnippetSettings(containerEl, this.config, this.config.settings, i18n);
-    renderLLMSettings(
-      containerEl,
-      this.config,
-      this.config.settings,
-      this,
-      i18n
-    );
-    renderGoogleAuthSettings(
-      containerEl,
-      this.config,
-      this.config.settings,
-      i18n
-    );
-    renderReviewSettings(containerEl, this.config, i18n);
+    renderNoteSettings(containerEl, this.config, this.config.settings);
+    renderSnippetSettings(containerEl, this.config, this.config.settings);
+    renderLLMSettings(containerEl, this.config, this.config.settings, this);
+    renderGoogleAuthSettings(containerEl, this.config, this.config.settings);
+    renderReviewSettings(containerEl, this.config);
   }
 }

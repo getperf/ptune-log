@@ -2,14 +2,14 @@
 
 import { Setting } from 'obsidian';
 import type { ConfigManager, PluginSettings } from './ConfigManager';
-import type { I18nDict } from 'src/i18n';
+import { i18n } from 'src/i18n';
 
 export function renderSnippetSettings(
   containerEl: HTMLElement,
   config: ConfigManager,
-  settings: PluginSettings,
-  i18n: I18nDict
+  settings: PluginSettings
 ) {
+  // --- i18n（既存キー構造を完全維持） ---
   const t = i18n.settingsSnippet;
 
   new Setting(containerEl)
@@ -20,6 +20,7 @@ export function renderSnippetSettings(
         .setPlaceholder(t.snippetFile.placeholder)
         .setValue(settings.snippet.filename)
         .onChange(async (value) => {
+          // ★ 既存仕様：空文字は 'snippet.md' にフォールバック
           await config.update('snippet.filename', value.trim() || 'snippet.md');
         })
     );

@@ -13,8 +13,7 @@ import { InitialSetupManager } from 'src/features/setup/InitialSetupManager';
 import { NoteSetupHelper } from 'src/features/setup/NoteSetupHelper';
 
 // ★ i18n 初期化（段階1）
-import { i18n } from 'src/i18n/I18nService';
-import { getI18n, type Lang } from 'src/i18n';
+import { i18n, getI18n, type Lang } from 'src/i18n';
 
 export default class PtunePlugin extends Plugin {
   private config!: ConfigManager;

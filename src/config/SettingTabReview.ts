@@ -2,15 +2,16 @@
 
 import { Setting } from 'obsidian';
 import { ConfigManager } from './ConfigManager';
-import type { I18nDict } from 'src/i18n';
+
+import { i18n } from 'src/i18n';
 
 export function renderReviewSettings(
   containerEl: HTMLElement,
-  manager: ConfigManager,
-  i18n: I18nDict
+  manager: ConfigManager
 ) {
   const t = i18n.settingsReview;
 
+  // 既存クラス名を維持（CSS / 再描画依存対策）
   const newSection = containerEl.createDiv({ cls: 'review-section' });
   newSection.createEl('h3', { text: t.sectionTitle });
 

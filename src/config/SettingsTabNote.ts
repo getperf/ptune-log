@@ -2,18 +2,20 @@
 
 import { Setting } from 'obsidian';
 import type { PluginSettings, ConfigManager } from './ConfigManager';
-import type { I18nDict } from 'src/i18n';
+import { i18n } from 'src/i18n';
 
 export function renderNoteSettings(
   containerEl: HTMLElement,
   config: ConfigManager,
-  settings: PluginSettings,
-  i18n: I18nDict
+  settings: PluginSettings
 ) {
+  // --- i18n（既存キー構造を完全維持） ---
   const t = i18n.settingsNote;
 
+  // --- セクションタイトル（既存仕様） ---
   containerEl.createEl('h2', { text: t.sectionTitle });
 
+  // --- フォルダ接頭辞 ---
   new Setting(containerEl)
     .setName(t.folderPrefix.name)
     .setDesc(t.folderPrefix.desc)
@@ -29,6 +31,7 @@ export function renderNoteSettings(
         })
     );
 
+  // --- ノート接頭辞 ---
   new Setting(containerEl)
     .setName(t.notePrefix.name)
     .setDesc(t.notePrefix.desc)
@@ -44,6 +47,7 @@ export function renderNoteSettings(
         })
     );
 
+  // --- 桁数 ---
   new Setting(containerEl)
     .setName(t.prefixDigits.name)
     .setDesc(t.prefixDigits.desc)
@@ -64,6 +68,7 @@ export function renderNoteSettings(
         })
     );
 
+  // --- テンプレート ---
   new Setting(containerEl)
     .setName(t.template.name)
     .setDesc(t.template.desc)
@@ -74,6 +79,8 @@ export function renderNoteSettings(
         .onChange(async (value) => {
           await config.update('note.templateText', value);
         });
+
+      // ★ 既存 CSS クラス付与（維持）
       text.inputEl.classList.add('my-template-textarea');
     });
 }
