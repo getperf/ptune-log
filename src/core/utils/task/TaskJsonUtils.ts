@@ -31,7 +31,7 @@ export interface TaskJsonRecord {
 export class TaskJsonUtils {
   static readonly BASE_DIR = '_journal/meta';
 
-  constructor(private app: App) {}
+  constructor(private app: App) { }
 
   /** --- JSONファイルへ保存 */
   async save(tasks: MyTask[], date: Date): Promise<string> {
@@ -87,9 +87,9 @@ export class TaskJsonUtils {
 
         pomodoro: t.pomodoro
           ? {
-              planned: t.pomodoro.planned ?? undefined,
-              actual: t.pomodoro.actual ?? undefined,
-            }
+            planned: t.pomodoro.planned ?? undefined,
+            actual: t.pomodoro.actual ?? undefined,
+          }
           : undefined,
 
         status: t.status,

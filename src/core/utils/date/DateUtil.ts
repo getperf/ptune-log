@@ -91,4 +91,24 @@ export class DateUtil {
     const m = link.match(/_journal\/(\d{4}-\d{2}-\d{2})/);
     return m ? m[1] : undefined;
   }
+
+  /** 数値を小数点 n 位で表示（0 / undefined は空欄） */
+  static formatDecimal(
+    value?: number,
+    digits = 1
+  ): string {
+    if (!value || value === 0) return '';
+    return value.toFixed(digits);
+  }
+
+  /** 指定日が「今日」かどうか（ローカル日付ベース）  */
+  static isToday(date: Date): boolean {
+    const now = new Date();
+    return (
+      date.getFullYear() === now.getFullYear() &&
+      date.getMonth() === now.getMonth() &&
+      date.getDate() === now.getDate()
+    );
+  }
+
 }

@@ -4,10 +4,7 @@ import { Plugin, Notice, App, TFile } from 'obsidian';
 import type { GoogleAuthSettings } from '../../config/ConfigManager';
 import { GoogleTasksAPI } from './utils/GoogleTasksAPI';
 import { GoogleTasksCommandUtil } from 'src/features/google_tasks/utils/GoogleTasksCommandUtil';
-import { TasksWinImporter } from './win/TasksWinImporter';
-import { TaskSummaryReportBuilder } from './services/report/TaskSummaryReportBuilder';
 import { logger } from 'src/core/services/logger/loggerInstance';
-import { MyTaskFactory } from 'src/core/models/tasks/MyTaskFactory';
 import { DailyNoteConfig } from 'src/core/utils/daily_note/DailyNoteConfig';
 import { TasksWinReauth } from './win/TasksWinReauth';
 import { GoogleAuth } from './google_auth/GoogleAuth';
@@ -22,8 +19,8 @@ import { TaskReviewReportService } from './services/time_analysis/TaskReviewRepo
 
 export class GoogleTasksFeature {
   private readonly app: App;
-  llmClient: LLMClient;
   reviewService: TaskReviewReportService;
+  llmClient: LLMClient;
 
   constructor(
     private readonly plugin: Plugin,
@@ -32,7 +29,11 @@ export class GoogleTasksFeature {
   ) {
     this.app = plugin.app;
     this.llmClient = new LLMClient(this.app, this.llmSettings);
-    this.reviewService = new TaskReviewReportService(this.app, this.llmClient);
+    this.reviewService = new TaskReviewReportService(
+      this.plugin,
+      this.settings,
+      this.llmClient
+    );
   }
 
   /* =========================
@@ -126,45 +127,9 @@ export class GoogleTasksFeature {
     this.plugin.addCommand({
       id: 'gtasks-import-to-note',
       name: 'Google Tasks: タスクの振り返りレポート',
-      callback: async () => {
-        logger.info('[GoogleTasks] import-to-note command called');
-        if (this.settings.useWinApp) {
-          new TasksWinImporter(this.app).openImportModal();
-          return;
-        }
-
-        await GoogleTasksCommandUtil.wrap(
-          this.plugin,
-          this.settings,
-          async (api: GoogleTasksAPI) => {
-            const listId = await api.findTaskListId('Today');
-            if (!listId) {
-              new Notice("タスクリスト 'Today' が見つかりません");
-              return;
-            }
-
-            const rawTasks = await api.listTasks(listId);
-            const myTasks = rawTasks.map((t) =>
-              MyTaskFactory.fromApiData(t, listId)
-            );
-
-            const builder = new TaskSummaryReportBuilder(this.app);
-            await builder.buildFromMyTasks(myTasks);
-          }
-        )();
-      },
-    });
-
-    this.plugin.addCommand({
-      id: 'generate-task-review-report',
-      name: 'Task Review: Generate Daily Report',
       callback: () => {
-        new TimeReportDateSelectModal(this.app, async (date) => {
-          await this.reviewService.generate(date, {
-            attachNotes: true,
-            enableLLMAnalysis: true,
-            updateDailyNote: false,
-          });
+        new TimeReportDateSelectModal(this.app, async (date, modalOptions) => {
+          await this.reviewService.generate(date, modalOptions);
         }).open();
       },
     });
