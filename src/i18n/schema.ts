@@ -208,7 +208,6 @@ export interface I18nDict {
   settingsSnippet: SettingsSnippetI18n;
   settingsLlm: SettingsLlmI18n;
   settingsReview: SettingsReviewI18n;
-  dailyNoteSections: DailyNoteSectionI18n;
   llmTagGenerate: LlmTagGenerateI18n;
   noteSummaryMarkdown: NoteSummaryMarkdownI18n;
 }

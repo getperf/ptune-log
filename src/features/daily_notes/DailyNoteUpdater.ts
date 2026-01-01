@@ -1,14 +1,10 @@
 // File: src/core/services/notes/DailyNoteUpdater.ts
-import { App, TFile, moment } from 'obsidian';
-import { createDailyNote } from 'obsidian-daily-notes-interface';
+import { App } from 'obsidian';
 import { DailyNoteHelper } from 'src/core/utils/daily_note/DailyNoteHelper';
-import { DailyNoteConfig } from 'src/core/utils/daily_note/DailyNoteConfig';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { NoteSummaries } from 'src/core/models/notes/NoteSummaries';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
 import { KPTMarkdownBuilder } from 'src/features/llm_tags/services/analysis/KPTMarkdownBuilder';
-import { TaskSectionReplacer } from 'src/core/utils/daily_note/TaskSectionReplacer';
-import { ChecklistDecorator } from 'src/core/utils/daily_note/ChecklistDecorator';
 
 /* ===== 既存 API を維持 ===== */
 

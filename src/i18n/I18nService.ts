@@ -45,9 +45,6 @@ export class I18nService {
   }
 
   // その他
-  get dailyNoteSections() {
-    return this.t.dailyNoteSections;
-  }
   get llmTagGenerate() {
     return this.t.llmTagGenerate;
   }

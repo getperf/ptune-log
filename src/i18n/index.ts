@@ -26,8 +26,7 @@ import { settingsLlmJa } from './ja/settings_llm';
 import { settingsLlmEn } from './en/settings_llm';
 import { settingsReviewJa } from './ja/settings_review';
 import { settingsReviewEn } from './en/settings_review';
-import { dailyNoteSectionsJa } from './ja/daily_note_sections';
-import { dailyNoteSectionsEn } from './en/daily_note_sections';
+import { DAILY_NOTE_SECTION_LABELS_JA } from './ja/daily_note_sections';
 import { llmTagGenerateJa } from './ja/llm_tag_generate';
 import { llmTagGenerateEn } from './en/llm_tag_generate';
 import { noteSummaryMarkdownJa } from './ja/note_summary_markdown';
@@ -43,7 +42,6 @@ const dict: Record<Lang, I18nDict> = {
     settingsSnippet: settingsSnippetJa,
     settingsLlm: settingsLlmJa,
     settingsReview: settingsReviewJa,
-    dailyNoteSections: dailyNoteSectionsJa,
     llmTagGenerate: llmTagGenerateJa,
     noteSummaryMarkdown: noteSummaryMarkdownJa,
   },
@@ -55,7 +53,6 @@ const dict: Record<Lang, I18nDict> = {
     settingsSnippet: settingsSnippetEn,
     settingsLlm: settingsLlmEn,
     settingsReview: settingsReviewEn,
-    dailyNoteSections: dailyNoteSectionsEn,
     llmTagGenerate: llmTagGenerateEn,
     noteSummaryMarkdown: noteSummaryMarkdownEn,
   },
@@ -64,3 +61,7 @@ const dict: Record<Lang, I18nDict> = {
 export function getI18n(lang: Lang): I18nDict {
   return dict[lang] ?? dict.ja;
 }
+
+export const dailyNoteSectionLabels = {
+  ja: DAILY_NOTE_SECTION_LABELS_JA,
+};

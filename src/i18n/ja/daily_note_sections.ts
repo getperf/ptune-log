@@ -1,8 +1,13 @@
 // src/i18n/ja/daily_note_sections.ts
-export const dailyNoteSectionsJa = {
-  planned_tasks: '今日の予定タスク',
-  task_review: 'タスク振り返り',
-  daily_report: 'デイリーレポート',
-  kpt: 'KPT分析',
-} as const;
 
+import { DailyNoteSectionKey } from 'src/core/models/daily_notes/DailyNoteSection';
+
+export const DAILY_NOTE_SECTION_LABELS_JA: Record<
+  DailyNoteSectionKey,
+  string
+> = {
+  [DailyNoteSectionKey.PlannedTasks]: '今日の予定タスク',
+  [DailyNoteSectionKey.TaskReview]: 'タスク振り返り',
+  [DailyNoteSectionKey.DailyReport]: 'デイリーレポート',
+  [DailyNoteSectionKey.Kpt]: 'KPT分析',
+};
