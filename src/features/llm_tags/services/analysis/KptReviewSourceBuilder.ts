@@ -1,11 +1,11 @@
 // src/features/llm_tags/services/analysis/KptReviewSourceBuilder.ts
 
-import { ReviewNote } from './ReviewNote';
+import { ReviewedNote } from '../../../../core/models/daily_notes/reviews/ReviewedNote';
 
 export interface KptSourceInput {
   summary: string;
   previousKpt?: string;
-  userReviews?: ReviewNote[];
+  userReviews?: ReviewedNote[];
 }
 
 export class KptReviewSourceBuilder {
@@ -34,7 +34,7 @@ export class KptReviewSourceBuilder {
     return `【${title}】\n${body.trim()}`;
   }
 
-  private formatReviewNotes(notes: ReviewNote[]): string {
+  private formatReviewNotes(notes: ReviewedNote[]): string {
     return notes
       .map((note) => {
         const lines: string[] = [];

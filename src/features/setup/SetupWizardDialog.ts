@@ -57,7 +57,7 @@ export class SetupWizardDialog extends Modal {
     );
     initBtn.addEventListener('click', () => {
       void (async () => {
-        await this.noteHelper.ensureResources();
+        await this.noteHelper.ensureResources({ force: true });
         new Notice('ノート関連のディレクトリとテンプレートを初期化しました');
       })();
     });

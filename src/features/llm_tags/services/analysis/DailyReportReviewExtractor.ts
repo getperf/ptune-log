@@ -1,10 +1,10 @@
 // src/features/llm_tags/services/analysis/DailyReportReviewExtractor.ts
-import { ReviewNote } from './ReviewNote';
+import { ReviewedNote } from '../../../../core/models/daily_notes/reviews/ReviewedNote';
 
 export class DailyReportReviewExtractor {
-  extract(dailyReport: string): ReviewNote[] {
+  extract(dailyReport: string): ReviewedNote[] {
     const lines = dailyReport.split(/\r?\n/);
-    const result: ReviewNote[] = [];
+    const result: ReviewedNote[] = [];
 
     let currentPath: string | null = null;
     let checked: string[] = [];
@@ -13,7 +13,7 @@ export class DailyReportReviewExtractor {
 
     const flush = () => {
       if (!currentPath) return;
-      const note = new ReviewNote(currentPath, checked, reviews);
+      const note = new ReviewedNote(currentPath, checked, reviews);
       if (!note.isEmpty()) result.push(note);
       checked = [];
       reviews = [];

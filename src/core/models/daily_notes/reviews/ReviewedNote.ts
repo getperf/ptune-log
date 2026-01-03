@@ -1,5 +1,5 @@
 // src/features/llm_tags/services/analysis/kpt2/models/ReviewNote.ts
-export class ReviewNote {
+export class ReviewedNote {
   constructor(
     public readonly notePath: string,
     public readonly checkedSummaries: string[],

@@ -1,4 +1,4 @@
-import { MarkdownTaskParser } from 'src/features/google_tasks/services/MarkdownTaskParser';
+import { MarkdownTaskParser } from 'src/features/google_tasks/services/export/MarkdownTaskParser';
 
 describe('MarkdownTaskParser', () => {
   it('parses flat task list', () => {

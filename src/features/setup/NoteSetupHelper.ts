@@ -23,72 +23,74 @@ export class NoteSetupHelper {
     const { vault } = this.app;
     const created: string[] = [];
 
-    logger.debug('[NoteSetupHelper] createNestedFolders start');
-
     for (const [base, subs] of Object.entries(baseDirs)) {
       try {
         if (!(await vault.adapter.exists(base))) {
           await vault.createFolder(base);
           created.push(base);
-          logger.debug(`[NoteSetupHelper] created base: ${base}`);
         }
-
         for (const sub of subs) {
           const full = `${base}/${sub}`;
           if (!(await vault.adapter.exists(full))) {
             await vault.createFolder(full);
             created.push(full);
-            logger.debug(`[NoteSetupHelper] created sub: ${full}`);
           }
         }
       } catch (err) {
         logger.error(`[NoteSetupHelper] failed to create: ${base}`, err);
       }
     }
-
-    logger.debug(
-      `[NoteSetupHelper] createNestedFolders complete (count=${created.length})`
-    );
     return created;
   }
 
-  /** テンプレート作成 */
-  private async ensureTemplateFile(path: string, content: string): Promise<void> {
+  /** テンプレート作成（force=true の場合は上書き） */
+  private async ensureTemplateFile(
+    path: string,
+    content: string,
+    force: boolean
+  ): Promise<void> {
     const { vault } = this.app;
     try {
-      if (!(await vault.adapter.exists(path))) {
-        await vault.create(path, content);
-        logger.debug(`[NoteSetupHelper] created template: ${path}`);
+      const exists = await vault.adapter.exists(path);
+      if (!exists || force) {
+        if (exists) {
+          await vault.adapter.write(path, content);
+          logger.debug(`[NoteSetupHelper] overwritten template: ${path}`);
+        } else {
+          await vault.create(path, content);
+          logger.debug(`[NoteSetupHelper] created template: ${path}`);
+        }
       }
     } catch (err) {
-      logger.error(`[NoteSetupHelper] failed to create template: ${path}`, err);
+      logger.error(`[NoteSetupHelper] failed to ensure template: ${path}`, err);
     }
   }
 
   /** 初期セットアップ */
-  async ensureResources(): Promise<void> {
+  async ensureResources(options?: { force?: boolean }): Promise<void> {
+    const force = options?.force === true;
     const adapter = this.app.vault.adapter;
 
-    // --- すでに初期化済ならスキップ ---
-    if (await adapter.exists(this.initFlagPath)) {
+    if (!force && (await adapter.exists(this.initFlagPath))) {
       logger.debug('[NoteSetupHelper] already initialized, skip');
       return;
     }
 
-    logger.info('[NoteSetupHelper] ensureResources start');
+    logger.info(`[NoteSetupHelper] ensureResources start (force=${force})`);
 
     const created = await this.createNestedFolders(this.targetDirs);
 
     await this.ensureTemplateFile(
       '_templates/note/daily_note.md',
-      DAILY_NOTE_TEMPLATE
+      DAILY_NOTE_TEMPLATE,
+      force
     );
 
-    // --- 初期化済フラグ作成 ---
+    // 初期化済フラグは force 時も更新
     await adapter.write(this.initFlagPath, 'initialized=true');
 
-    if (created.length > 0) {
-      new Notice('ノート構造を初期化しました。', 5000);
+    if (created.length > 0 || force) {
+      new Notice('ノート関連のディレクトリとテンプレートを更新しました。', 5000);
     }
 
     logger.info('[NoteSetupHelper] ensureResources complete');
