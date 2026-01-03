@@ -11,7 +11,7 @@ export function renderLLMSettings(
   settings: PluginSettings,
   settingTab: PluginSettingTab
 ) {
-  const t = i18n.settingsLlm;
+  const t = i18n.ui.settingsLlm;
 
   const heading = containerEl.createEl('h3', { text: t.sectionTitle });
   heading.id = 'llm-settings-title';

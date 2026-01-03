@@ -10,7 +10,7 @@ export function renderSnippetSettings(
   settings: PluginSettings
 ) {
   // --- i18n（既存キー構造を完全維持） ---
-  const t = i18n.settingsSnippet;
+  const t = i18n.ui.settingsSnippet;
 
   new Setting(containerEl)
     .setName(t.snippetFile.name)

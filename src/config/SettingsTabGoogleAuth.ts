@@ -2,7 +2,7 @@
 
 import { Setting } from 'obsidian';
 import type { PluginSettings, ConfigManager } from './ConfigManager';
-import { i18n } from 'src/i18n';
+import { i18n } from 'src/i18n/singleton';
 
 export function renderGoogleAuthSettings(
   containerEl: HTMLElement,
@@ -14,7 +14,7 @@ export function renderGoogleAuthSettings(
   if (section) section.remove();
 
   // --- i18n（既存キー構造をそのまま使用） ---
-  const t = i18n.settingsGoogleAuth;
+  const t = i18n.ui.settingsGoogleAuth;
 
   // --- 新規セクション作成 ---
   const newSection = containerEl.createDiv({ cls: 'google-auth-section' });

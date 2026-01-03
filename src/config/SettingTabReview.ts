@@ -9,7 +9,7 @@ export function renderReviewSettings(
   containerEl: HTMLElement,
   manager: ConfigManager
 ) {
-  const t = i18n.settingsReview;
+  const t = i18n.ui.settingsReview;
 
   // 既存クラス名を維持（CSS / 再描画依存対策）
   const newSection = containerEl.createDiv({ cls: 'review-section' });

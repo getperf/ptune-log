@@ -1,8 +1,13 @@
-// File: src/i18n/singleton.ts
+// src/i18n/singleton.ts
 
-import { I18nService } from './I18nService';
-import { getI18n } from './index';
+import type { I18nRoot } from './I18nRoot';
 
-export const i18n = new I18nService();
+class I18nSingleton {
+  ui!: I18nRoot['ui'];
 
-i18n.init(getI18n('ja'));
+  init(root: I18nRoot) {
+    this.ui = root.ui;
+  }
+}
+
+export const i18n = new I18nSingleton();

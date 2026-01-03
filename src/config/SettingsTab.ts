@@ -33,14 +33,20 @@ export class PtuneSettingTab extends PluginSettingTab {
 
     const lang = (this.config.get<string>('ui.language') || 'ja') as Lang;
 
+    /* =========================
+     * Language
+     * ========================= */
+    // const common = i18n.ui.common;
+    const common = i18n.ui.common;
+
     new Setting(containerEl)
-      .setName(i18n.common.language.name)
-      .setDesc(i18n.common.language.desc)
+      .setName(common.language.name)
+      .setDesc(common.language.desc)
       .addDropdown((dropdown) =>
         dropdown
           .addOptions({
-            ja: i18n.common.language.options.ja,
-            en: i18n.common.language.options.en,
+            ja: common.language.options.ja,
+            en: common.language.options.en,
           })
           .setValue(lang)
           .onChange(async (value) => {
@@ -52,21 +58,26 @@ export class PtuneSettingTab extends PluginSettingTab {
           })
       );
 
+    /* =========================
+     * Basic Settings
+     * ========================= */
+    const settings = i18n.ui.settingsBasic;
+
     new Setting(containerEl)
-      .setName(i18n.settings.basic.heading)
+      .setName(settings.heading)
       .setHeading();
 
     new Setting(containerEl)
-      .setName(i18n.settings.logLevel.name)
-      .setDesc(i18n.settings.logLevel.desc)
+      .setName(settings.logLevel.name)
+      .setDesc(settings.logLevel.desc)
       .addDropdown((dropdown) =>
         dropdown
           .addOptions({
-            debug: i18n.settings.logLevel.options.debug,
-            info: i18n.settings.logLevel.options.info,
-            warn: i18n.settings.logLevel.options.warn,
-            error: i18n.settings.logLevel.options.error,
-            none: i18n.settings.logLevel.options.none,
+            debug: settings.logLevel.options.debug,
+            info: settings.logLevel.options.info,
+            warn: settings.logLevel.options.warn,
+            error: settings.logLevel.options.error,
+            none: settings.logLevel.options.none,
           })
           .setValue(this.config.get<LogLevel>('logLevel'))
           .onChange(async (value) => {
@@ -78,8 +89,8 @@ export class PtuneSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName(i18n.settings.enableLogFile.name)
-      .setDesc(i18n.settings.enableLogFile.desc)
+      .setName(settings.enableLogFile.name)
+      .setDesc(settings.enableLogFile.desc)
       .addToggle((toggle) =>
         toggle
           .setValue(this.config.get('enableLogFile'))
@@ -89,6 +100,9 @@ export class PtuneSettingTab extends PluginSettingTab {
           })
       );
 
+    /* =========================
+     * Sub Tabs
+     * ========================= */
     renderNoteSettings(containerEl, this.config, this.config.settings);
     renderSnippetSettings(containerEl, this.config, this.config.settings);
     renderLLMSettings(containerEl, this.config, this.config.settings, this);

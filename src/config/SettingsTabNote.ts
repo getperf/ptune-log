@@ -10,7 +10,7 @@ export function renderNoteSettings(
   settings: PluginSettings
 ) {
   // --- i18n（既存キー構造を完全維持） ---
-  const t = i18n.settingsNote;
+  const t = i18n.ui.settingsNote;
 
   // --- セクションタイトル（既存仕様） ---
   containerEl.createEl('h2', { text: t.sectionTitle });
