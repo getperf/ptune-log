@@ -1,5 +1,5 @@
 // File: src/features/llm_tags/services/analysis/NoteAnalysisService.ts
-import { App, TFile } from 'obsidian';
+import { App } from 'obsidian';
 import { NoteSummaries } from 'src/core/models/notes/NoteSummaries';
 import { LLMClient } from 'src/core/services/llm/LLMClient';
 import { logger } from 'src/core/services/logger/loggerInstance';
