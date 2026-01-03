@@ -3,7 +3,7 @@ import { DateUtil } from 'src/core/utils/date/DateUtil';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { FrontmatterWriter } from 'src/core/utils/frontmatter/FrontmatterWriter';
 import { TemplateRenderer } from 'src/core/utils/template/TemplateRenderer';
-import { PROJECT_INDEX_TEMPLATE } from 'src/core/templates/project_index_template';
+import { PROJECT_INDEX_TEMPLATE } from 'src/core/templates/project_index/project_index_template';
 
 /**
  * FolderIndexWriterService
@@ -11,7 +11,7 @@ import { PROJECT_INDEX_TEMPLATE } from 'src/core/templates/project_index_templat
  * - フロントマターには created/updated のみを記録
  */
 export class FolderIndexWriterService {
-  constructor(private app: App) {}
+  constructor(private app: App) { }
 
   /**
    * 指定フォルダ内に index.md を新規作成

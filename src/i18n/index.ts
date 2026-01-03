@@ -31,6 +31,7 @@ import { llmTagGenerateJa } from './ja/llm_tag_generate';
 import { llmTagGenerateEn } from './en/llm_tag_generate';
 import { noteSummaryMarkdownJa } from './ja/note_summary_markdown';
 import { noteSummaryMarkdownEn } from './en/note_summary_markdown';
+import { DAILY_NOTE_SECTION_LABELS_EN } from './en/daily_note_sections';
 
 /* --- 辞書本体 --- */
 const dict: Record<Lang, I18nDict> = {
@@ -42,6 +43,7 @@ const dict: Record<Lang, I18nDict> = {
     settingsSnippet: settingsSnippetJa,
     settingsLlm: settingsLlmJa,
     settingsReview: settingsReviewJa,
+    dailyNoteSections: DAILY_NOTE_SECTION_LABELS_JA,
     llmTagGenerate: llmTagGenerateJa,
     noteSummaryMarkdown: noteSummaryMarkdownJa,
   },
@@ -53,6 +55,7 @@ const dict: Record<Lang, I18nDict> = {
     settingsSnippet: settingsSnippetEn,
     settingsLlm: settingsLlmEn,
     settingsReview: settingsReviewEn,
+    dailyNoteSections: DAILY_NOTE_SECTION_LABELS_EN,
     llmTagGenerate: llmTagGenerateEn,
     noteSummaryMarkdown: noteSummaryMarkdownEn,
   },

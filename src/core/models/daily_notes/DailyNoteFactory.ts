@@ -1,7 +1,7 @@
 // src/core/models/daily_notes/DailyNoteFactory.ts
 
 import { DailyNote } from './DailyNote';
-import { DailyNoteSectionKey } from './DailyNoteSection';
+import { DailyNoteSectionKey } from './DailyNoteSectionKey';
 import { DailyNoteSectionParser } from 'src/core/services/daily_notes/DailyNoteSectionParser';
 
 export class DailyNoteFactory {
@@ -13,7 +13,7 @@ export class DailyNoteFactory {
 
     const timeLog = DailyNoteSectionParser.extractAll(
       markdown,
-      DailyNoteSectionKey.TaskReview
+      DailyNoteSectionKey.TimeLog
     );
 
     const dailyReport = DailyNoteSectionParser.extractOnce(

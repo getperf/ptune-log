@@ -1,5 +1,10 @@
 // File: src/i18n/schema.ts
 
+import { DailyNoteSectionKey } from "src/core/models/daily_notes/DailyNoteSectionKey";
+
+// import { DailyNoteSectionKey } from "src/core/models/daily_notes/DailyNoteSection";
+// schema.ts
+
 /**
  * i18n 辞書の「構造のみ」を定義する型
  * 値（文字列内容）は言語ごとに自由
@@ -210,4 +215,5 @@ export interface I18nDict {
   settingsReview: SettingsReviewI18n;
   llmTagGenerate: LlmTagGenerateI18n;
   noteSummaryMarkdown: NoteSummaryMarkdownI18n;
+  dailyNoteSections: Record<DailyNoteSectionKey, string>;
 }

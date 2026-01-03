@@ -1,5 +1,6 @@
 // File: src/i18n/I18nService.ts
 
+import { DailyNoteSectionKey } from 'src/core/models/daily_notes/DailyNoteSectionKey';
 import type { I18nDict } from './schema';
 
 export class I18nService {
@@ -50,6 +51,10 @@ export class I18nService {
   }
   get noteSummaryMarkdown() {
     return this.t.noteSummaryMarkdown;
+  }
+
+  tDailyNoteSection(key: DailyNoteSectionKey): string {
+    return this.t.dailyNoteSections[key];
   }
 
 }
