@@ -8,7 +8,7 @@ import { NoteAnalysisService } from '../analysis/NoteAnalysisService';
 import { ReviewSettings } from 'src/config/settings/ReviewSettings';
 import { DailyNoteReader } from 'src/core/services/daily_notes/DailyNoteReader';
 import { DailyNoteLoader } from 'src/core/services/daily_notes/DailyNoteLoader';
-import { DailyNote } from 'src/core/models/daily_notes/DailyNote';
+import { DailyNoteOld } from 'src/core/models/daily_notes/DailyNoteOld';
 
 export class LLMTagGenerateExecutor {
   private readonly analysis: NoteAnalysisService;

@@ -1,11 +1,11 @@
 // src/core/models/daily_notes/DailyNoteFactory.ts
 
-import { DailyNote } from './DailyNote';
+import { DailyNoteOld } from './DailyNoteOld';
 import { DailyNoteSectionKey } from './DailyNoteSectionKey';
 import { DailyNoteSectionParser } from 'src/core/services/daily_notes/DailyNoteSectionParser';
 
-export class DailyNoteFactory {
-  static fromMarkdown(markdown: string): DailyNote {
+export class DailyNoteFactoryOld {
+  static fromMarkdown(markdown: string): DailyNoteOld {
     const plannedTasks = DailyNoteSectionParser.extractOnce(
       markdown,
       DailyNoteSectionKey.PlannedTasks
@@ -26,6 +26,6 @@ export class DailyNoteFactory {
       DailyNoteSectionKey.Kpt
     );
 
-    return new DailyNote(plannedTasks, timeLog, dailyReport, kptReports);
+    return new DailyNoteOld(plannedTasks, timeLog, dailyReport, kptReports);
   }
 }

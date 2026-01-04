@@ -1,6 +1,6 @@
 // src/core/models/daily_notes/DailyNote.ts
 
-export class DailyNote {
+export class DailyNoteOld {
   constructor(
     /** 今日の予定タスク */
     public readonly plannedTasks: string | undefined,
@@ -13,7 +13,7 @@ export class DailyNote {
 
     /** KPT分析（複数） */
     public readonly kptReports: string[]
-  ) {}
+  ) { }
 
   /** KPT が1件以上存在するか */
   hasKpt(): boolean {

@@ -1,17 +1,17 @@
 // src/core/services/daily_notes/DailyNoteLoader.ts
 
 import { App } from 'obsidian';
-import { DailyNote } from 'src/core/models/daily_notes/DailyNote';
-import { DailyNoteFactory } from 'src/core/models/daily_notes/DailyNoteFactory';
+import { DailyNoteOld } from 'src/core/models/daily_notes/DailyNoteOld';
+import { DailyNoteFactoryOld } from 'src/core/models/daily_notes/DailyNoteFactoryOld';
 import { DailyNoteReader } from './DailyNoteReader';
 
 export class DailyNoteLoader {
   /**
    * App + Date から DailyNote を生成
    */
-  static async load(app: App, date: Date): Promise<DailyNote> {
+  static async load(app: App, date: Date): Promise<DailyNoteOld> {
     const reader = new DailyNoteReader(app);
     const markdown = await reader.readForDate(date);
-    return DailyNoteFactory.fromMarkdown(markdown);
+    return DailyNoteFactoryOld.fromMarkdown(markdown);
   }
 }

@@ -2,7 +2,7 @@
 
 import { NoteSummaries } from 'src/core/models/notes/NoteSummaries';
 import { logger } from 'src/core/services/logger/loggerInstance';
-import { DailyNote } from 'src/core/models/daily_notes/DailyNote';
+import { DailyNoteOld } from 'src/core/models/daily_notes/DailyNoteOld';
 import { DailyReportReviewExtractor } from './DailyReportReviewExtractor';
 import { KptReviewSourceBuilder } from './KptReviewSourceBuilder';
 import { KptPhase } from './KptPhase';
@@ -10,14 +10,14 @@ import { KPTAnalyzer } from './KPTAnalyzer';
 
 export interface KPTExecutionContext {
   summaries: NoteSummaries;
-  dailyNote: DailyNote;
+  dailyNote: DailyNoteOld;
 }
 
 export class KPTExecutor {
   private readonly extractor = new DailyReportReviewExtractor();
   private readonly sourceBuilder = new KptReviewSourceBuilder();
 
-  constructor(private readonly analyzer: KPTAnalyzer) {}
+  constructor(private readonly analyzer: KPTAnalyzer) { }
 
   async run(ctx: KPTExecutionContext): Promise<void> {
     const phase = this.determinePhase(ctx.dailyNote);
@@ -41,7 +41,7 @@ export class KPTExecutor {
   private buildSourceText(
     phase: KptPhase,
     summaries: NoteSummaries,
-    dailyNote: DailyNote
+    dailyNote: DailyNoteOld
   ): string {
     const summary = summaries.summaryMarkdown({
       baseHeadingLevel: 2,
@@ -65,7 +65,7 @@ export class KPTExecutor {
     });
   }
 
-  private determinePhase(dailyNote: DailyNote): KptPhase {
+  private determinePhase(dailyNote: DailyNoteOld): KptPhase {
     return dailyNote.hasKpt() ? KptPhase.Second : KptPhase.First;
   }
 }
