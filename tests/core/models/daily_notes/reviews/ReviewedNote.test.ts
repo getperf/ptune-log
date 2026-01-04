@@ -1,4 +1,4 @@
-import { ReviewedNote } from 'src/core/models/daily_notes/reviews/ReviewedNote';
+import { ReviewedNote } from 'src/core/models/daily_notes/reviews';
 
 describe('ReviewedNote', () => {
   test('isEmpty returns true when both arrays are empty', () => {

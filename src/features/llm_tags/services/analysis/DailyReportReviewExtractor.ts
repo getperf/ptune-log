@@ -1,20 +1,20 @@
-// src/features/llm_tags/services/analysis/DailyReportReviewExtractor.ts
-import { ReviewedNote } from '../../../../core/models/daily_notes/reviews/ReviewedNote';
+import { ReviewedNote } from "src/core/models/daily_notes/reviews/entities/ReviewedNote";
 
 export class DailyReportReviewExtractor {
-  extract(dailyReport: string): ReviewedNote[] {
-    const lines = dailyReport.split(/\r?\n/);
-    const result: ReviewedNote[] = [];
+  extract(markdown: string): ReviewedNote[] {
+    const lines = markdown.split(/\r?\n/);
 
-    let currentPath: string | null = null;
+    const results: ReviewedNote[] = [];
+
+    let currentTitle: string | null = null;
     let checked: string[] = [];
     let reviews: string[] = [];
     let inUserReview = false;
 
     const flush = () => {
-      if (!currentPath) return;
-      const note = new ReviewedNote(currentPath, checked, reviews);
-      if (!note.isEmpty()) result.push(note);
+      if (!currentTitle) return;
+      const note = new ReviewedNote(currentTitle, checked, reviews);
+      if (!note.isEmpty()) results.push(note);
       checked = [];
       reviews = [];
       inUserReview = false;
@@ -23,40 +23,45 @@ export class DailyReportReviewExtractor {
     for (const raw of lines) {
       const line = raw.trim();
 
-      if (line.startsWith('##### ')) {
+      // ----- ノート見出し（#####）
+      if (/^#####\s+/.test(line)) {
         flush();
-        currentPath = this.normalizeNotePath(line);
+        currentTitle = this.normalizeTitle(line);
         continue;
       }
 
-      if (!currentPath) continue;
+      if (!currentTitle) continue;
 
-      if (line.startsWith('###### ユーザレビュー')) {
+      // ----- ユーザレビュー開始（######）
+      if (/^######\s+/.test(line)) {
         inUserReview = true;
         continue;
       }
 
-      if (!inUserReview && line.startsWith('- [x]')) {
-        checked.push(this.stripCheck(line));
+      // ----- チェック済み項目
+      if (!inUserReview) {
+        const m = line.match(/^-+\s*\[[xX]\]\s*(.+)$/);
+        if (m) {
+          checked.push(m[1].trim());
+        }
         continue;
       }
 
-      if (inUserReview && line.startsWith('- ')) {
+      // ----- ユーザレビュー本文
+      if (inUserReview) {
+        if (line === '-' || line === '') continue;
         reviews.push(line.replace(/^-+\s*/, ''));
       }
     }
 
     flush();
-    return result;
+    return results;
   }
 
-  private normalizeNotePath(line: string): string {
-    const head = line.replace(/^#####\s+/, '');
-    const m = head.match(/\[\[([^\]|]+)(\|[^\]]+)?\]\]/);
-    return m ? m[1].replace(/\.md$/, '') : head;
-  }
-
-  private stripCheck(line: string): string {
-    return line.replace(/^-+\s*\[x\]\s*/i, '').trim();
+  /** [[path|label]] → path */
+  private normalizeTitle(line: string): string {
+    const text = line.replace(/^#####\s+/, '');
+    const m = text.match(/\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/);
+    return m ? m[1].replace(/\.md$/, '') : text;
   }
 }

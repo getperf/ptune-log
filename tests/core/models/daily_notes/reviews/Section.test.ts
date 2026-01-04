@@ -1,5 +1,5 @@
-import { Section } from 'src/core/models/daily_notes/reviews/Section';
-import { ReviewedNote } from 'src/core/models/daily_notes/reviews/ReviewedNote';
+import { Section } from 'src/core/models/daily_notes/reviews';
+import { ReviewedNote } from 'src/core/models/daily_notes/reviews';
 
 describe('Section (common behavior)', () => {
   test('stores and returns markdown', () => {

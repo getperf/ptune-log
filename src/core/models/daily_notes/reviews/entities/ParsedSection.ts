@@ -1,9 +1,9 @@
 // src/core/models/daily_notes/reviews/ParsedSection.ts
-import { SectionKey } from './SectionKey';
+import { SectionKey } from '../specs/SectionKey';
 
 export type ParsedSection = {
   key: SectionKey;
-  heading: string;
+  headingText: string; // 実際の見出し（装飾含む）
   level: number;
   body: string;
 };
