@@ -1,9 +1,10 @@
 import { App, Notice } from 'obsidian';
 import { logger } from 'src/core/services/logger/loggerInstance';
+import { buildDailyNoteTemplate } from 'src/core/templates/daily_note';
 import { DAILY_NOTE_TEMPLATE } from 'src/core/templates/daily_note_template';
 
 export class NoteSetupHelper {
-  constructor(private app: App) { }
+  constructor(private app: App) {}
 
   /** 初期化済フラグファイル */
   private readonly initFlagPath = '_tagging/config/.init_done';
@@ -82,7 +83,7 @@ export class NoteSetupHelper {
 
     await this.ensureTemplateFile(
       '_templates/note/daily_note.md',
-      DAILY_NOTE_TEMPLATE,
+      buildDailyNoteTemplate(),
       force
     );
 
@@ -90,7 +91,10 @@ export class NoteSetupHelper {
     await adapter.write(this.initFlagPath, 'initialized=true');
 
     if (created.length > 0 || force) {
-      new Notice('ノート関連のディレクトリとテンプレートを更新しました。', 5000);
+      new Notice(
+        'ノート関連のディレクトリとテンプレートを更新しました。',
+        5000
+      );
     }
 
     logger.info('[NoteSetupHelper] ensureResources complete');

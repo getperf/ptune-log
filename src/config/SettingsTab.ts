@@ -52,7 +52,7 @@ export class PtuneSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             if (isLang(value)) {
               await this.config.update('ui.language', value);
-              i18n.init(getI18n(value));
+              i18n.init(value, getI18n(value));
             }
             this.display();
           })
@@ -63,9 +63,7 @@ export class PtuneSettingTab extends PluginSettingTab {
      * ========================= */
     const settings = i18n.ui.settingsBasic;
 
-    new Setting(containerEl)
-      .setName(settings.heading)
-      .setHeading();
+    new Setting(containerEl).setName(settings.heading).setHeading();
 
     new Setting(containerEl)
       .setName(settings.logLevel.name)

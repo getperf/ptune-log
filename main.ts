@@ -33,7 +33,7 @@ export default class PtunePlugin extends Plugin {
 
     // --- i18n 初期化（段階1：ここだけ追加） ---
     const lang = (this.config.get<Lang>('ui.language') ?? 'ja') as Lang;
-    i18n.init(getI18n(lang));
+    i18n.init(lang, getI18n(lang));
 
     // --- ロガー設定 ---
     await logger.initFileOutput(
