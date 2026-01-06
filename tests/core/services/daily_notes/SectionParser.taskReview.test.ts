@@ -1,9 +1,4 @@
-// tests/core/services/daily_notes/SectionParser.taskReview.test.ts
 import { SectionParser } from 'src/core/services/daily_notes/SectionParser';
-import {
-  TASK_HEADING_SPECS,
-  NOTE_HEADING_SPECS,
-} from 'src/core/models/daily_notes/reviews/specs/HeadingSpec';
 import { ja } from 'src/i18n/domain/daily_note/ja';
 
 const markdown = `
@@ -38,14 +33,11 @@ KPT-2
 
 describe('SectionParser with repeatable task.review', () => {
   test('extracts task.review as repeatable section', () => {
-    const parser = new SectionParser(
-      [...TASK_HEADING_SPECS, ...NOTE_HEADING_SPECS],
-      ja
-    );
+    const parser = new SectionParser(ja); // ✅ 1 引数
 
     const sections = parser.parse(markdown);
 
-    expect(sections.map(s => s.key)).toEqual([
+    expect(sections.map((s) => s.key)).toEqual([
       'task.planned',
       'task.timelog',
       'task.review',
@@ -58,14 +50,11 @@ describe('SectionParser with repeatable task.review', () => {
   });
 
   test('each task.review body is isolated', () => {
-    const parser = new SectionParser(
-      [...TASK_HEADING_SPECS, ...NOTE_HEADING_SPECS],
-      ja
-    );
+    const parser = new SectionParser(ja);
 
     const reviews = parser
       .parse(markdown)
-      .filter(s => s.key === 'task.review');
+      .filter((s) => s.key === 'task.review');
 
     expect(reviews).toHaveLength(2);
     expect(reviews[0].body).toContain('TABLE-1');

@@ -4,7 +4,7 @@ import {
   TASK_HEADING_SPECS,
   NOTE_HEADING_SPECS,
 } from './HeadingSpec';
-import { DailyNoteLabelKey } from './SectionKey';
+import { DailyNoteLabelKey, SectionKey } from './SectionKey';
 
 /**
  * HeadingSpecRegistry
@@ -23,6 +23,13 @@ export class HeadingSpecRegistry {
       throw new Error(`HeadingSpec not found: ${key}`);
     }
     return spec;
+  }
+
+  /** ✅ section 見出しのみ */
+  static sectionSpecs(): Array<HeadingSpec & { key: SectionKey }> {
+    return [...this.registry.values()].filter(
+      (s) => s.kind === 'section'
+    ) as Array<HeadingSpec & { key: SectionKey }>;
   }
 
   static has(key: DailyNoteLabelKey): boolean {

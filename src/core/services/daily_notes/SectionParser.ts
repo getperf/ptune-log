@@ -1,33 +1,18 @@
 // src/core/services/daily_notes/SectionParser.ts
-import { HeadingSpec } from 'src/core/models/daily_notes/reviews/specs/HeadingSpec';
+import { HeadingSpecRegistry } from 'src/core/models/daily_notes/reviews/specs/HeadingSpecRegistry';
 import { SectionKey } from 'src/core/models/daily_notes/reviews/specs/SectionKey';
 import { HeadingNormalizer } from './HeadingNormalizer';
+import { ParsedSection } from 'src/core/models/daily_notes/reviews';
 import { DailyNoteSectionRegex } from 'src/core/utils/daily_note/DailyNoteSectionRegex';
 
-export type ParsedSection = {
-  key: SectionKey;
-  body: string;
-};
-
 export class SectionParser {
-  private readonly sectionSpecs: HeadingSpec[];
-  private readonly labelMap: Map<string, SectionKey>;
+  private readonly labelMap = new Map<string, SectionKey>();
 
-  constructor(
-    specs: HeadingSpec[],
-    labels: Record<string, string>
-  ) {
-    this.sectionSpecs = specs.filter(s => s.kind === 'section');
-
-    this.labelMap = new Map();
-    for (const spec of this.sectionSpecs) {
+  constructor(labels: Record<SectionKey, string>) {
+    for (const spec of HeadingSpecRegistry.sectionSpecs()) {
       const label = labels[spec.key];
       if (!label) continue;
-
-      this.labelMap.set(
-        HeadingNormalizer.normalize(label),
-        spec.key as SectionKey
-      );
+      this.labelMap.set(HeadingNormalizer.normalize(label), spec.key);
     }
   }
 
@@ -43,7 +28,8 @@ export class SectionParser {
 
       if (headingText && isBoundary) {
         if (current) {
-          result.push({ ...current, body: current.body.trim() });
+          current.body = current.body.trim();
+          result.push(current);
           current = null;
         }
 
@@ -58,7 +44,12 @@ export class SectionParser {
         }
 
         if (matchedKey) {
-          current = { key: matchedKey, body: '' };
+          current = {
+            key: matchedKey,
+            headingText,
+            level: this.extractLevel(line),
+            body: '',
+          };
         }
         continue;
       }
@@ -69,9 +60,15 @@ export class SectionParser {
     }
 
     if (current) {
-      result.push({ ...current, body: current.body.trim() });
+      current.body = current.body.trim();
+      result.push(current);
     }
 
     return result;
+  }
+
+  private extractLevel(line: string): number {
+    const m = line.match(/^(#+)\s+/);
+    return m ? m[1].length : 0;
   }
 }
