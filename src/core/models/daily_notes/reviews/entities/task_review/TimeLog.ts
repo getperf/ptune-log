@@ -1,4 +1,4 @@
-import { Section } from './Section';
+import { Section } from '../Section';
 
 /**
  * TimeLog
@@ -11,5 +11,5 @@ export class TimeLog {
     public readonly report: Section<void>,
     /** 再生成単位を識別したい場合のみ */
     public readonly label?: string
-  ) { }
+  ) {}
 }

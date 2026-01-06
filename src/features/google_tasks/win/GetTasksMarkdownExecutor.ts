@@ -5,7 +5,7 @@ import { DailyNoteUpdater } from 'src/features/daily_notes/DailyNoteUpdater';
 import { DailyNoteConfig } from 'src/core/utils/daily_note/DailyNoteConfig';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { ErrorUtils } from 'src/core/utils/common/ErrorUtils';
-import { DailyNoteTaskUpdater } from 'src/core/services/daily_notes/DailyNoteTaskUpdater';
+import { DailyNoteTaskUpdater } from 'src/core/services/daily_notes/task_keys/DailyNoteTaskUpdater';
 
 const DAILY_TASK_HEADING = '## ✅ 今日の予定タスク（手動で追記OK）';
 

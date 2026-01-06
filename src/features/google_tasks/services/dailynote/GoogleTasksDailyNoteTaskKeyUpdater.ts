@@ -1,8 +1,8 @@
 // File: src/core/services/notes/DailyNoteTaskKeyUpdateService.ts
 
 import { App, TFile } from 'obsidian';
-import { DailyNoteTaskKeyExtractor } from 'src/core/services/daily_notes/DailyNoteTaskKeyExtractor';
-import { DailyNoteTaskKeyWriter } from 'src/core/services/daily_notes/DailyNoteTaskKeyWriter';
+import { DailyNoteTaskKeyExtractor } from 'src/core/services/daily_notes/task_keys/DailyNoteTaskKeyExtractor';
+import { DailyNoteTaskKeyWriter } from 'src/core/services/daily_notes/task_keys/DailyNoteTaskKeyWriter';
 import { DailyNoteHelper } from 'src/core/utils/daily_note/DailyNoteHelper';
 
 export interface DailyNoteTaskKeyUpdateResult {

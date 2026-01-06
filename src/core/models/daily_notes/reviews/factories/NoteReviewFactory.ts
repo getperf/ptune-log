@@ -1,45 +1,40 @@
-// src/core/models/daily_notes/reviews/NoteReviewFactory.ts
-
-import { NoteReview } from '../entities/NoteReview';
-import { DailyReport } from '../entities/DailyReport';
-import { Section } from '../entities/Section';
-import { ParsedSection } from '../entities/ParsedSection';
-import { SectionKey } from '../specs/SectionKey';
+// src/core/models/daily_notes/reviews/factories/NoteReviewFactory.ts
+import { NoteReview } from '../entities/note_review/NoteReview';
 import { DailyReportFactory } from './DailyReportFactory';
+import { Section } from '../entities/Section';
+import { ParsedSection } from 'src/core/models/daily_notes/reviews';
+import { SectionKey } from '../specs/SectionKey';
+import { DailyReport } from '../entities/note_review/DailyReport';
 
 export class NoteReviewFactory {
-  static create(params: {
-    dailyTags: Section<void>;
-    dailyReport: DailyReport;
-    kpts: Section<void>[];
-  }): NoteReview {
-    return new NoteReview(params.dailyTags, params.dailyReport, params.kpts);
-  }
-
-  static fromSections(sections: ParsedSection[]): NoteReview {
-    const dailyTags = this.requireSection(sections, 'note.review.memo');
-    const reportSec = this.requireSection(sections, 'note.report');
-    const kpts = this.findSections(sections, 'note.kpt');
-
-    return new NoteReview(
-      new Section('note.tags.daily', 'note.tags.daily', dailyTags.body),
-      DailyReportFactory.fromSection(
-        new Section('note.report', 'note.report', reportSec.body)
-      ),
-      kpts.map((s) => new Section('note.kpt', 'note.kpt', s.body))
+  static build(sections: ParsedSection[]): NoteReview {
+    const reviewMemo = Section.fromParsedOrEmpty(
+      this.findSection(sections, 'note.review.memo'),
+      'note.review.memo'
     );
+
+    const dailyReport = (() => {
+      const parsed = this.findSection(sections, 'note.report');
+      return parsed
+        ? DailyReportFactory.fromSection(Section.fromParsed(parsed))
+        : DailyReport.empty('note.report');
+    })();
+
+    const kpts = this.findAll(sections, 'note.kpt').map((s) =>
+      Section.fromParsed(s)
+    );
+
+    return new NoteReview(reviewMemo, dailyReport, kpts);
   }
 
-  private static requireSection(
+  private static findSection(
     sections: ParsedSection[],
     key: SectionKey
-  ): ParsedSection {
-    const found = sections.find((s) => s.key === key);
-    if (!found) throw new Error(`${key} not found`);
-    return found;
+  ): ParsedSection | undefined {
+    return sections.find((s) => s.key === key);
   }
 
-  private static findSections(
+  private static findAll(
     sections: ParsedSection[],
     key: SectionKey
   ): ParsedSection[] {

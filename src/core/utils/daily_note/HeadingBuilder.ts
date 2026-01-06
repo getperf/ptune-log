@@ -8,7 +8,7 @@ import { DailyNoteLabelKey } from 'src/core/models/daily_notes/reviews/specs/Sec
  * - HeadingSpec + i18n から Markdown 見出しを生成
  */
 export class HeadingBuilder {
-  static create(key: DailyNoteLabelKey): string {
+  static create(key: DailyNoteLabelKey, opts?: { suffix?: string }): string {
     const spec = HeadingSpecRegistry.get(key);
     const label = i18n.domain.daily_note[key];
 
@@ -18,7 +18,8 @@ export class HeadingBuilder {
 
     const prefix = '#'.repeat(spec.level);
     const emoji = spec.emoji ? `${spec.emoji} ` : '';
+    const suffix = opts?.suffix ?? '';
 
-    return `${prefix} ${emoji}${label}`;
+    return `${prefix} ${emoji}${label}${suffix}`;
   }
 }

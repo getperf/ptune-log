@@ -6,8 +6,8 @@ import { LLMClient } from 'src/core/services/llm/LLMClient';
 import { LLMTagGenerationRunner } from './LLMTagGenerationRunner';
 import { NoteAnalysisService } from '../analysis/NoteAnalysisService';
 import { ReviewSettings } from 'src/config/settings/ReviewSettings';
-import { DailyNoteReader } from 'src/core/services/daily_notes/DailyNoteReader';
-import { DailyNoteLoader } from 'src/core/services/daily_notes/DailyNoteLoader';
+import { DailyNoteReader } from 'src/core/services/daily_notes/file_io/DailyNoteReader';
+import { DailyNoteLoader } from 'src/core/services/daily_notes/file_io/DailyNoteLoader';
 import { DailyNoteOld } from 'src/core/models/daily_notes/DailyNoteOld';
 
 export class LLMTagGenerateExecutor {

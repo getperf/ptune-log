@@ -1,4 +1,4 @@
-import { SectionParser } from 'src/core/services/daily_notes/SectionParser';
+import { SectionParser } from 'src/core/services/daily_notes/parse/SectionParser';
 import { ja } from 'src/i18n/domain/daily_note/ja';
 
 const markdown = `

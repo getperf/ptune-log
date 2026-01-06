@@ -3,11 +3,11 @@
 // ===== entities =====
 export { Section } from './entities/Section';
 export { ParsedSection } from './entities/ParsedSection';
-export { ReviewedNote } from './entities/ReviewedNote';
-export { TimeLog } from './entities/TimeLog';
-export { TaskReview } from './entities/TaskReview';
-export { NoteReview } from './entities/NoteReview';
-export { DailyReport } from './entities/DailyReport';
+export { ReviewedNote } from './entities/note_review/ReviewedNote';
+export { TimeLog } from './entities/task_review/TimeLog';
+export { TaskReview } from './entities/task_review/TaskReview';
+export { NoteReview } from './entities/note_review/NoteReview';
+export { DailyReport } from './entities/note_review/DailyReport';
 
 // ===== factories =====
 export { TaskReviewFactory } from './factories/TaskReviewFactory';
@@ -22,7 +22,4 @@ export {
   NOTE_HEADING_SPECS,
 } from './specs/HeadingSpec';
 
-export {
-  SectionKey,
-  DailyNoteLabelKey,
-} from './specs/SectionKey';
+export { SectionKey, DailyNoteLabelKey } from './specs/SectionKey';

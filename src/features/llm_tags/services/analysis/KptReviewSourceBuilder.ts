@@ -1,6 +1,6 @@
 // src/features/llm_tags/services/analysis/KptReviewSourceBuilder.ts
 
-import { ReviewedNote } from '../../../../core/models/daily_notes/reviews/entities/ReviewedNote';
+import { ReviewedNote } from '../../../../core/models/daily_notes/reviews/entities/note_review/ReviewedNote';
 
 export interface KptSourceInput {
   summary: string;

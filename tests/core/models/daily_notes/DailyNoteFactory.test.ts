@@ -1,5 +1,5 @@
 // tests/core/models/daily_notes/DailyNoteFactory.test.ts
-import { SectionParser } from 'src/core/services/daily_notes/SectionParser';
+import { SectionParser } from 'src/core/services/daily_notes/parse/SectionParser';
 import { DailyNoteFactory } from 'src/core/models/daily_notes/reviews/factories/DailyNoteFactory';
 import { ja } from 'src/i18n/domain/daily_note/ja';
 
@@ -60,13 +60,17 @@ describe('DailyNoteFactory (integration)', () => {
     // ===== NoteReview =====
     const noteReview = dailyNote.noteReview;
 
-    expect(noteReview.dailyTags.markdown).toContain('MEMO');
+    expect(noteReview.reviewMemo).toBeDefined();
+    expect(noteReview.reviewMemo.markdown).toContain('MEMO');
 
-    const report = noteReview.dailyReport;
+    // dailyReport
+    expect(noteReview.dailyReport).toBeDefined();
+    const report = noteReview.dailyReport!;
     expect(report.reviewedNotes).toHaveLength(1);
 
     const reviewed = report.reviewedNotes[0];
     expect(reviewed.notePath).toBe('_project/A');
+
     expect(reviewed.checkedSummaries[0]).toContain('done A');
     expect(reviewed.userReviews[0]).toContain('review A');
 

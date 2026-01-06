@@ -2,7 +2,7 @@
 
 import { DailyNoteOld } from './DailyNoteOld';
 import { DailyNoteSectionKey } from './DailyNoteSectionKey';
-import { DailyNoteSectionParser } from 'src/core/services/daily_notes/DailyNoteSectionParser';
+import { DailyNoteSectionParser } from 'src/core/services/daily_notes/parse/DailyNoteSectionParser';
 
 export class DailyNoteFactoryOld {
   static fromMarkdown(markdown: string): DailyNoteOld {

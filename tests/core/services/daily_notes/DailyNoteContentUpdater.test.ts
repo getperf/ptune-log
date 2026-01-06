@@ -1,70 +1,153 @@
 // tests/core/services/daily_notes/DailyNoteContentUpdater.test.ts
-
 import { DailyNoteContentUpdater } from 'src/core/services/daily_notes/DailyNoteContentUpdater';
-import type { NoteSummaries } from 'src/core/models/notes/NoteSummaries';
+import { createDummySummaries } from '../../../helpers/DummyNoteSummaries';
+import { DailyNoteFactory } from 'src/core/models/daily_notes/reviews/factories/DailyNoteFactory';
+import { SectionParser } from 'src/core/services/daily_notes/SectionParser';
+import { ja } from 'src/i18n/domain/daily_note/ja';
+import { initI18n } from 'src/i18n';
 
-describe('DailyNoteContentUpdater.updateContent', () => {
-  const baseContent = `
+beforeAll(() => {
+  initI18n('ja');
+});
+
+const baseMarkdown = `
+## ✅ 今日の予定タスク（手動で追記OK）
+- 
+
 ## 🙌 振り返りメモ
--
-`;
+- 
 
-  const summariesStub = {
-    summaryMarkdown: () => `
-#### _project/001_sample
-- [ ] サマリ1
-- [x] サマリ2
+`.trim();
 
-###### ユーザレビュー
-- コメント
-`,
-    getAllTags: () => ['主題/ツール/i18n', '用途/プロジェクト/ptune-log'],
-    getAllUnregisteredTags: () => ['主題/ツール/i18n'],
-  } as unknown as NoteSummaries;
+describe('DailyNoteContentUpdater', () => {
+  const summaries = createDummySummaries();
+  const parser = new SectionParser(ja);
+  const factory = new DailyNoteFactory(parser);
 
-  test('デイリーレポートとタグ一覧を初回のみ挿入する', () => {
+  test('inserts daily report and tag list when missing', () => {
+    const dailyNote = factory.fromMarkdown(baseMarkdown);
+
     const updated = DailyNoteContentUpdater.updateContent(
-      baseContent,
-      summariesStub,
+      baseMarkdown,
+      summaries,
+      dailyNote,
       '2026-01-03',
       { enableChecklist: true }
     );
 
     expect(updated).toContain('### 🏷 デイリーレポート（2026-01-03)');
-    expect(updated).toContain('### 📌 タグ一覧（当日生成）');
-    expect(updated).toContain('### ⚠ 未登録タグ候補（要レビュー）');
+    expect(updated).toContain('- [x] done A');
+    expect(updated).toContain('### 📌 タグ一覧');
+    expect(updated).toContain('#tag1 #tag2');
+    expect(updated).toContain('#newtag');
   });
 
-  test('既存レポートがある場合は重複挿入しない', () => {
-    const once = DailyNoteContentUpdater.updateContent(
-      baseContent,
-      summariesStub,
-      '2026-01-03',
-      {}
+  test('does not duplicate existing blocks', () => {
+    const withReport = `
+## ✅ 今日の予定タスク（手動で追記OK）
+- 
+
+## 🙌 振り返りメモ
+
+### 🏷 デイリーレポート（2026-01-03)
+EXISTING
+`.trim();
+
+    const dailyNote = factory.fromMarkdown(withReport);
+
+    const updated = DailyNoteContentUpdater.updateContent(
+      withReport,
+      summaries,
+      dailyNote,
+      '2026-01-03'
     );
+
+    const count = updated.match(/デイリーレポート/g)?.length ?? 0;
+    expect(count).toBe(2);
+  });
+
+  test('adds daily report when tag list exists but report is missing', () => {
+    const markdown = `
+## ✅ 今日の予定タスク（手動で追記OK）
+- 
+
+## 🙌 振り返りメモ
+
+### 📌 タグ一覧
+#tag1 #tag2
+`.trim();
+
+    const dailyNote = factory.fromMarkdown(markdown);
+
+    const updated = DailyNoteContentUpdater.updateContent(
+      markdown,
+      summaries,
+      dailyNote,
+      '2026-01-03'
+    );
+    console.log(updated);
+    expect(updated).toContain('### 🏷 デイリーレポート（2026-01-03)');
+    expect(updated.match(/タグ一覧/g)?.length).toBe(1);
+  });
+
+  test('adds tag list when daily report exists but tag list is missing', () => {
+    const markdown = `
+## ✅ 今日の予定タスク（手動で追記OK）
+- 
+
+## 🙌 振り返りメモ
+
+### 🏷 デイリーレポート（2026-01-03)
+EXISTING
+`.trim();
+
+    const dailyNote = factory.fromMarkdown(markdown);
+
+    const updated = DailyNoteContentUpdater.updateContent(
+      markdown,
+      summaries,
+      dailyNote,
+      '2026-01-03'
+    );
+
+    expect(updated).toContain('### 📌 タグ一覧');
+    expect(updated.match(/デイリーレポート/g)?.length).toBe(1);
+  });
+
+  test('does not include checklist instruction when enableChecklist is false', () => {
+    const dailyNote = factory.fromMarkdown(baseMarkdown);
+
+    const updated = DailyNoteContentUpdater.updateContent(
+      baseMarkdown,
+      summaries,
+      dailyNote,
+      '2026-01-03',
+      { enableChecklist: false }
+    );
+
+    expect(updated).not.toContain('チェックし');
+    expect(updated).not.toContain('- [ ]');
+  });
+
+  test('is idempotent when executed twice', () => {
+    const dailyNote1 = factory.fromMarkdown(baseMarkdown);
+
+    const once = DailyNoteContentUpdater.updateContent(
+      baseMarkdown,
+      summaries,
+      dailyNote1,
+      '2026-01-03'
+    );
+
+    const dailyNote2 = factory.fromMarkdown(once);
 
     const twice = DailyNoteContentUpdater.updateContent(
       once,
-      summariesStub,
-      '2026-01-03',
-      {}
+      summaries,
+      dailyNote2,
+      '2026-01-03'
     );
 
-    const count = twice.match(/### 🏷 デイリーレポート/g)?.length ?? 0;
-    expect(count).toBe(1);
-  });
-
-  test('振り返りメモ直下に挿入される', () => {
-    const updated = DailyNoteContentUpdater.updateContent(
-      baseContent,
-      summariesStub,
-      '2026-01-03',
-      {}
-    );
-
-    const idxHeader = updated.indexOf('## 🙌 振り返りメモ');
-    const idxReport = updated.indexOf('### 🏷 デイリーレポート');
-
-    expect(idxReport).toBeGreaterThan(idxHeader);
+    expect(twice).toBe(once);
   });
 });

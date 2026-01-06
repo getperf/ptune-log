@@ -1,6 +1,6 @@
 // tests/core/services/daily_notes/DailyNoteSectionParser.test.ts
 
-import { DailyNoteSectionParser } from 'src/core/services/daily_notes/DailyNoteSectionParser';
+import { DailyNoteSectionParser } from 'src/core/services/daily_notes/parse/DailyNoteSectionParser';
 
 const MD = `
 ## 🧠 KPT分析

@@ -11,7 +11,7 @@ import { LLMClient } from 'src/core/services/llm/LLMClient';
 import { ExportTask } from 'src/core/models/tasks/ExportTasks';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { TagListSection } from './components/TagListSection';
-import { DailyNoteTaskKeyReader } from 'src/core/services/daily_notes/DailyNoteTaskKeyReader';
+import { DailyNoteTaskKeyReader } from 'src/core/services/daily_notes/task_keys/DailyNoteTaskKeyReader';
 
 export class NoteReviewModal extends Modal {
   private editable?: EditableNoteSummary;

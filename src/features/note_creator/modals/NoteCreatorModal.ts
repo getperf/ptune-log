@@ -6,7 +6,7 @@ import { NoteCreator } from '../commands/NoteCreator';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { GoalCategory, GoalCategoryLabels } from '../services/GoalCategory';
 import { GoalTemplateService } from '../services/GoalTemplateService';
-import { DailyNoteTaskKeyReader } from 'src/core/services/daily_notes/DailyNoteTaskKeyReader';
+import { DailyNoteTaskKeyReader } from 'src/core/services/daily_notes/task_keys/DailyNoteTaskKeyReader';
 
 export enum SerialNoteCreationType {
   FILE = 'file',

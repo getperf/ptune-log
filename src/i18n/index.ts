@@ -14,3 +14,4 @@ export function getI18n(lang: Lang): I18nRoot {
 
 export type { Lang };
 export { i18n } from './singleton';
+export { initI18n } from './initI18n';
