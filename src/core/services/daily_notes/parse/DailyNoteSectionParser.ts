@@ -19,7 +19,10 @@ export class DailyNoteSectionParser {
       .trim();
   }
 
-  static extractOnce(markdown: string, headingLabel: string): string | undefined {
+  static extractOnce(
+    markdown: string,
+    headingLabel: string
+  ): string | undefined {
     return this.extractAll(markdown, headingLabel)[0];
   }
 

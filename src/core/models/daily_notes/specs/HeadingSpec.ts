@@ -1,5 +1,5 @@
 // src/core/models/daily_notes/reviews/HeadingSpec.ts
-import { DailyNoteLabelKey } from '../../SectionKey';
+import { DailyNoteLabelKey } from '../SectionKey';
 
 export type HeadingKind =
   | 'section' // モデル・Parser が使う

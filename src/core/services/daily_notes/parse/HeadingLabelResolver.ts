@@ -1,6 +1,6 @@
 // src/core/services/daily_notes/parse/HeadingLabelResolver.ts
 
-import { HeadingSpecRegistry } from 'src/core/models/daily_notes/reviews/specs/HeadingSpecRegistry';
+import { HeadingSpecRegistry } from 'src/core/models/daily_notes/specs/HeadingSpecRegistry';
 import { DailyNoteLabelKey } from 'src/core/models/daily_notes/SectionKey';
 import { i18n } from 'src/i18n';
 import { HeadingNormalizer } from './HeadingNormalizer';

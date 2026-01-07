@@ -1,6 +1,6 @@
 // src/core/utils/daily_note/HeadingBuilder.ts
 import { i18n } from 'src/i18n';
-import { HeadingSpecRegistry } from 'src/core/models/daily_notes/reviews/specs/HeadingSpecRegistry';
+import { HeadingSpecRegistry } from 'src/core/models/daily_notes/specs/HeadingSpecRegistry';
 import { DailyNoteLabelKey } from 'src/core/models/daily_notes/SectionKey';
 
 /**

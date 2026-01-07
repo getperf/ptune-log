@@ -1,7 +1,7 @@
 // src/core/services/daily_notes/parse/HeadingSpecResolver.ts
 
-import { HeadingSpec } from 'src/core/models/daily_notes/reviews/specs/HeadingSpec';
-import { HeadingSpecRegistry } from 'src/core/models/daily_notes/reviews/specs/HeadingSpecRegistry';
+import { HeadingSpec } from 'src/core/models/daily_notes/specs/HeadingSpec';
+import { HeadingSpecRegistry } from 'src/core/models/daily_notes/specs/HeadingSpecRegistry';
 import { HeadingLabelResolver } from './HeadingLabelResolver';
 import { HeadingNormalizer } from './HeadingNormalizer';
 
