@@ -55,4 +55,36 @@ export class Section {
       present: true,
     });
   }
+
+  /** 空（未出現）セクション */
+  static empty(key: SectionKey): Section {
+    return new Section({ key, present: false });
+  }
+
+  /** 見出し検出時に生成 */
+  static start(key: SectionKey, suffix?: string): Section {
+    return new Section({ key, suffix, present: true });
+  }
+
+  /** body 確定済み（list 用） */
+  static fromBody(
+    key: SectionKey,
+    body: string,
+    suffix?: string
+  ): Section {
+    return new Section({
+      key,
+      body,
+      suffix,
+      present: true,
+    });
+  }
+
+  /** body 確定（immutability を保つ場合） */
+  withBody(body: string): Section {
+    return new Section({
+      ...this,
+      body,
+    });
+  }
 }

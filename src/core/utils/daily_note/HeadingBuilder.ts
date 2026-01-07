@@ -1,5 +1,4 @@
 // src/core/utils/daily_note/HeadingBuilder.ts
-import { i18n } from 'src/i18n';
 import { HeadingSpecRegistry } from 'src/core/models/daily_notes/specs/HeadingSpecRegistry';
 import { DailyNoteLabelKey } from 'src/core/models/daily_notes/SectionKey';
 
@@ -9,12 +8,7 @@ import { DailyNoteLabelKey } from 'src/core/models/daily_notes/SectionKey';
  */
 export class HeadingBuilder {
   static create(key: DailyNoteLabelKey, opts?: { suffix?: string }): string {
-    const spec = HeadingSpecRegistry.get(key);
-    const label = i18n.domain.daily_note[key];
-
-    if (!label) {
-      throw new Error(`DailyNote i18n label not found: ${key}`);
-    }
+    const { spec, label } = HeadingSpecRegistry.resolve(key);
 
     const prefix = '#'.repeat(spec.level);
     const emoji = spec.emoji ? `${spec.emoji} ` : '';

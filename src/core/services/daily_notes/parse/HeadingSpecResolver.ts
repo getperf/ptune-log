@@ -1,9 +1,7 @@
 // src/core/services/daily_notes/parse/HeadingSpecResolver.ts
-
-import { HeadingSpec } from 'src/core/models/daily_notes/specs/HeadingSpec';
 import { HeadingSpecRegistry } from 'src/core/models/daily_notes/specs/HeadingSpecRegistry';
-import { HeadingLabelResolver } from './HeadingLabelResolver';
 import { HeadingNormalizer } from './HeadingNormalizer';
+import { HeadingSpec } from 'src/core/models/daily_notes/specs/HeadingSpec';
 
 export class HeadingSpecResolver {
   static resolve(line: string): {
@@ -18,20 +16,16 @@ export class HeadingSpecResolver {
     const level = m[1].length;
     const raw = m[2];
 
-    // suffix（末尾括弧）抽出
-    const sm = raw.match(/^(.*?)(\s*[\(（].*[\)）])$/);
+    const sm = raw.match(/^(.*?)(\s*[(（].*[)）])$/);
     const titlePart = sm ? sm[1] : raw;
     const suffix = sm ? sm[2].trim() : undefined;
 
     const normalized = HeadingNormalizer.normalize(titlePart);
 
-    for (const spec of HeadingSpecRegistry.sectionSpecs()) {
+    for (const { spec, label } of HeadingSpecRegistry.sectionLabels()) {
       if (spec.level !== level) continue;
-
-      const label = HeadingLabelResolver.normalizedTitle(spec.key);
-      if (!label) continue;
-
-      if (normalized.includes(label)) {
+      const normalizedLabel = HeadingNormalizer.normalize(label);
+      if (normalized.includes(normalizedLabel)) {
         return { spec, level, suffix };
       }
     }

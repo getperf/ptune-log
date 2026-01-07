@@ -1,13 +1,11 @@
 // tests/core/services/daily_notes/parse/HeadingSpecResolver.test.ts
 
 import { HeadingSpecResolver } from 'src/core/services/daily_notes/parse/HeadingSpecResolver';
-import { HeadingLabelResolver } from 'src/core/services/daily_notes/parse/HeadingLabelResolver';
-import { initI18n } from 'src/i18n';
+import { initLang } from './_helpers';
 
 describe('HeadingSpecResolver', () => {
   beforeAll(async () => {
-    await initI18n('ja');
-    HeadingLabelResolver.rebuild();
+    await initLang('ja');
   });
 
   test('review memo heading with emoji', () => {
@@ -17,6 +15,16 @@ describe('HeadingSpecResolver', () => {
     expect(level).toBe(2);
     expect(spec?.key).toBe('note.review.memo');
   });
+
+
+  test('time log heading with suffix', () => {
+    const line = '## 🕒 タイムログ／メモ（午後）';
+    const { spec, suffix } = HeadingSpecResolver.resolve(line);
+
+    expect(spec?.key).toBe('task.timelog');
+    expect(suffix).toContain('午後');
+  });
+
 
   test('kpt heading with suffix', () => {
     const line = '### 🧠 KPT分析（2回目）';
