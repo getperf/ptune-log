@@ -1,8 +1,8 @@
 // src/core/models/daily_notes/reviews/HeadingSpec.ts
-import { DailyNoteLabelKey } from './SectionKey';
+import { DailyNoteLabelKey } from '../../SectionKey';
 
 export type HeadingKind =
-  | 'section'   // モデル・Parser が使う
+  | 'section' // モデル・Parser が使う
   | 'fragment'; // Writer/Generator 専用（非セクション）
 
 export type HeadingSpec = {
@@ -13,7 +13,6 @@ export type HeadingSpec = {
   parent?: DailyNoteLabelKey;
   repeatable?: boolean;
 };
-
 
 export const TASK_HEADING_SPECS: HeadingSpec[] = [
   {
@@ -84,4 +83,3 @@ export const NOTE_HEADING_SPECS: HeadingSpec[] = [
     repeatable: true,
   },
 ];
-

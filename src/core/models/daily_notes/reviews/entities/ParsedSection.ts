@@ -1,5 +1,5 @@
 // src/core/models/daily_notes/reviews/ParsedSection.ts
-import { SectionKey } from '../specs/SectionKey';
+import { SectionKey } from '../../SectionKey';
 
 export type ParsedSection = {
   key: SectionKey;

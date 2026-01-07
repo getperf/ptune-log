@@ -1,5 +1,5 @@
 // src/i18n/domain/daily_note/en.ts
-import { DailyNoteLabelKey } from 'src/core/models/daily_notes/reviews/specs/SectionKey';
+import { DailyNoteLabelKey } from 'src/core/models/daily_notes/SectionKey';
 
 export const en: Record<DailyNoteLabelKey, string> = {
   'task.planned': 'Planned Tasks',

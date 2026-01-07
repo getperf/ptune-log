@@ -1,4 +1,4 @@
-import { ReviewedNote } from 'src/core/models/daily_notes/reviews/entities/note_review/ReviewedNote';
+import { ReviewedNote } from 'src/core/models/daily_notes/ReviewedNote';
 
 export class DailyReportReviewExtractor {
   extract(markdown: string): ReviewedNote[] {

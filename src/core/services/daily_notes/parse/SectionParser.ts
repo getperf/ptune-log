@@ -1,6 +1,6 @@
 // src/core/services/daily_notes/SectionParser.ts
 import { HeadingSpecRegistry } from 'src/core/models/daily_notes/reviews/specs/HeadingSpecRegistry';
-import { SectionKey } from 'src/core/models/daily_notes/reviews/specs/SectionKey';
+import { SectionKey } from 'src/core/models/daily_notes/SectionKey';
 import { HeadingNormalizer } from './HeadingNormalizer';
 import { ParsedSection } from 'src/core/models/daily_notes/reviews';
 import { DailyNoteSectionRegex } from 'src/core/utils/daily_note/DailyNoteSectionRegex';

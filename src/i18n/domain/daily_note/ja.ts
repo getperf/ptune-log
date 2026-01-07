@@ -1,5 +1,5 @@
 // src/core/i18n/domain/daily_note/ja.ts
-import { DailyNoteLabelKey } from 'src/core/models/daily_notes/reviews/specs/SectionKey';
+import { DailyNoteLabelKey } from 'src/core/models/daily_notes/SectionKey';
 
 export const ja: Record<DailyNoteLabelKey, string> = {
   // --- TaskReview (section) ---

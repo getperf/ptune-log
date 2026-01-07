@@ -4,7 +4,7 @@ import {
   TASK_HEADING_SPECS,
   NOTE_HEADING_SPECS,
 } from './HeadingSpec';
-import { DailyNoteLabelKey, SectionKey } from './SectionKey';
+import { DailyNoteLabelKey, SectionKey } from '../../SectionKey';
 
 /**
  * HeadingSpecRegistry
