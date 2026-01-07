@@ -3,7 +3,7 @@ import { ParsedSection } from 'src/core/models/daily_notes/reviews';
 
 export type MarkdownText = string;
 
-export class Section<TMeaning = void> {
+export class SectionOld<TMeaning = void> {
   private meaning?: TMeaning;
 
   constructor(
@@ -15,21 +15,21 @@ export class Section<TMeaning = void> {
   /* ===== factory helpers ===== */
 
   /** 空セクション生成（Factory 用） */
-  static empty<T = void>(key: string, heading?: string): Section<T> {
-    return new Section<T>(key, heading ?? key, '');
+  static empty<T = void>(key: string, heading?: string): SectionOld<T> {
+    return new SectionOld<T>(key, heading ?? key, '');
   }
 
   /** ParsedSection → Section 変換 */
-  static fromParsed<T = void>(parsed: ParsedSection): Section<T> {
-    return new Section<T>(parsed.key, parsed.key, parsed.body);
+  static fromParsed<T = void>(parsed: ParsedSection): SectionOld<T> {
+    return new SectionOld<T>(parsed.key, parsed.key, parsed.body);
   }
 
   /** ParsedSection | undefined → Section（null-safe） */
   static fromParsedOrEmpty<T = void>(
     parsed: ParsedSection | undefined,
     key: string
-  ): Section<T> {
-    return parsed ? Section.fromParsed<T>(parsed) : Section.empty<T>(key);
+  ): SectionOld<T> {
+    return parsed ? SectionOld.fromParsed<T>(parsed) : SectionOld.empty<T>(key);
   }
 
   /* ===== accessors ===== */

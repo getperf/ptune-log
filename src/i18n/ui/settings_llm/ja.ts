@@ -9,9 +9,10 @@ export const UI_SETTINGS_LLM_JA: UiSettingsLlmI18n = {
     name: 'プロバイダ',
     desc: '使用する LLM プロバイダを選択します',
     options: {
-      openai: 'OpenAI',
-      azure: 'Azure OpenAI',
-      ollama: 'Ollama',
+      'OpenAI Chat': 'OpenAI',
+      'Anthropic Claude': 'Claude',
+      Gemini: 'Gemini',
+      Custom: 'Custom',
     },
   },
 
@@ -35,6 +36,7 @@ export const UI_SETTINGS_LLM_JA: UiSettingsLlmI18n = {
     name: '埋め込みモデル',
     desc: 'ベクトル検索に使用するモデル',
     options: {
+      '': '未使用',
       'text-embedding-3-small': 'text-embedding-3-small',
       'text-embedding-3-large': 'text-embedding-3-large',
     },

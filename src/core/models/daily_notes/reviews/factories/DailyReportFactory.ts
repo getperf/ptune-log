@@ -1,6 +1,6 @@
 // src/core/models/daily_notes/reviews/DailyReportFactory.ts
 
-import { Section } from '../entities/Section';
+import { SectionOld } from '../entities/SectionOld';
 import { DailyReport } from '../entities/note_review/DailyReport';
 import { ReviewedNote } from '../entities/note_review/ReviewedNote';
 import { DailyReportReviewExtractor } from 'src/features/llm_tags/services/analysis/DailyReportReviewExtractor';
@@ -13,7 +13,7 @@ import { DailyReportReviewExtractor } from 'src/features/llm_tags/services/analy
 export class DailyReportFactory {
   private static extractor = new DailyReportReviewExtractor();
 
-  static fromSection(section: Section<void>): DailyReport {
+  static fromSection(section: SectionOld<void>): DailyReport {
     const reviewedNotes: ReviewedNote[] = this.extractor.extract(
       section.markdown
     );
@@ -22,7 +22,7 @@ export class DailyReportFactory {
 
   static empty(): DailyReport {
     return new DailyReport(
-      new Section<void>('note.report', 'note.report', ''),
+      new SectionOld<void>('note.report', 'note.report', ''),
       []
     );
   }

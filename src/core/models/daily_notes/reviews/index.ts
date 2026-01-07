@@ -1,7 +1,7 @@
 // src/core/models/daily_notes/reviews/index.ts
 
 // ===== entities =====
-export { Section } from './entities/Section';
+export { SectionOld as Section } from './entities/SectionOld';
 export { ParsedSection } from './entities/ParsedSection';
 export { ReviewedNote } from './entities/note_review/ReviewedNote';
 export { TimeLog } from './entities/task_review/TimeLog';

@@ -9,9 +9,10 @@ export const UI_SETTINGS_LLM_EN: UiSettingsLlmI18n = {
     name: 'Provider',
     desc: 'Select LLM provider',
     options: {
-      openai: 'OpenAI',
-      azure: 'Azure OpenAI',
-      ollama: 'Ollama',
+      'OpenAI Chat': 'OpenAI',
+      'Anthropic Claude': 'Claude',
+      Gemini: 'Gemini',
+      Custom: 'Custom',
     },
   },
 
@@ -35,6 +36,7 @@ export const UI_SETTINGS_LLM_EN: UiSettingsLlmI18n = {
     name: 'Embedding Model',
     desc: 'Model used for embeddings',
     options: {
+      '': 'Disabled',
       'text-embedding-3-small': 'text-embedding-3-small',
       'text-embedding-3-large': 'text-embedding-3-large',
     },

@@ -1,4 +1,4 @@
-import { Section } from '../Section';
+import { SectionOld } from '../SectionOld';
 
 /**
  * TimeLog
@@ -8,7 +8,7 @@ import { Section } from '../Section';
 export class TimeLog {
   constructor(
     /** レポート全体の Markdown（中身は自由） */
-    public readonly report: Section<void>,
+    public readonly report: SectionOld<void>,
     /** 再生成単位を識別したい場合のみ */
     public readonly label?: string
   ) {}

@@ -1,9 +1,9 @@
-import { Section } from '../Section';
+import { SectionOld } from '../SectionOld';
 import { TimeLog } from './TimeLog';
 
 export class TaskReview {
   constructor(
-    public readonly plannedTasks: Section<void>,
+    public readonly plannedTasks: SectionOld<void>,
     public readonly timeLogs: TimeLog[]
   ) {}
 

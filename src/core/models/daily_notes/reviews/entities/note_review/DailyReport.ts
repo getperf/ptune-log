@@ -1,4 +1,4 @@
-import { Section } from '../Section';
+import { SectionOld } from '../SectionOld';
 import { ReviewedNote } from './ReviewedNote';
 import { SectionKey } from '../../specs/SectionKey';
 
@@ -8,12 +8,12 @@ import { SectionKey } from '../../specs/SectionKey';
  */
 export class DailyReport {
   constructor(
-    public readonly section: Section<void>,
+    public readonly section: SectionOld<void>,
     public readonly reviewedNotes: ReviewedNote[]
   ) {}
 
   static empty(key: SectionKey): DailyReport {
-    return new DailyReport(new Section<void>(key, key, ''), []);
+    return new DailyReport(new SectionOld<void>(key, key, ''), []);
   }
 
   hasReviewedNotes(): boolean {
