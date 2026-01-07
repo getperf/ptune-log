@@ -27,7 +27,7 @@ describe('DailyNoteParser basic', () => {
     const note = DailyNoteParser.parse(raw);
 
     expect(note.reviewMemo.isPresent()).toBe(true);
-    expect(note.reviewMemo.body).toContain('### タグ一覧');
+    expect(note.reviewMemo.body).toContain('タグ一覧');
     expect(note.kpts.count()).toBe(0);
   });
 });

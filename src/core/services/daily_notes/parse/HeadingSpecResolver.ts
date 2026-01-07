@@ -11,6 +11,7 @@ export class HeadingSpecResolver {
     level: number;
     suffix?: string;
   } {
+    line = line.replace(/\r$/, '');
     const m = line.match(/^(#+)\s*(.+)$/);
     if (!m) return { level: 0 };
 

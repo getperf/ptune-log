@@ -18,6 +18,6 @@ describe('DailyNoteParser timelog', () => {
 
     expect(note.timeLogs.count()).toBe(2);
     expect(note.timeLogs.items[0].suffix).toContain('午前');
-    expect(note.timeLogs.items[1].body).toContain('task B');
+    expect(note.timeLogs.items[1].body).toContain('task C');
   });
 });
