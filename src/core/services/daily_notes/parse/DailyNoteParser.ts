@@ -6,7 +6,7 @@ import { SectionList } from 'src/core/models/daily_notes/SectionList';
 import { HeadingSpecResolver } from './HeadingSpecResolver';
 
 type CurrentSection =
-  | { kind: 'single'; ref: 'planned' | 'timelog' | 'reviewMemo' | 'reviewed' }
+  | { kind: 'single'; ref: 'planned' | 'timelog' | 'reviewMemo' | 'reviewed'; suffix?: string }
   | { kind: 'list'; ref: 'taskReview' | 'kpt'; suffix?: string }
   | null;
 
@@ -79,8 +79,11 @@ export class DailyNoteParser {
             break;
 
           case 'note.report':
-            current = { kind: 'single', ref: 'reviewed' };
-            reviewedNote = Section.start('note.report');
+            current = { kind: 'single', ref: 'reviewed', suffix };
+            console.debug('note.report line:', line);
+            console.debug('note.report suffix:', suffix);
+
+            reviewedNote = Section.start('note.report', suffix);
             break;
 
           case 'task.timelog':

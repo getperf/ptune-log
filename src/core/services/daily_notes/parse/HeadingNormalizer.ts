@@ -12,7 +12,6 @@ export class HeadingNormalizer {
       .normalize('NFKC')
       .replace(/\p{Extended_Pictographic}/gu, '')
       .replace(/\uFE0F/gu, '')
-      .replace(/\s+/g, '')
       .trim();
   }
 }
