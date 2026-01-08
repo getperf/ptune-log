@@ -7,7 +7,7 @@ import { LLMTagGenerationRunner } from './LLMTagGenerationRunner';
 import { NoteAnalysisService } from '../analysis/NoteAnalysisService';
 import { ReviewSettings } from 'src/config/settings/ReviewSettings';
 import { DailyNoteReader } from 'src/core/services/daily_notes/file_io/DailyNoteReader';
-import { DailyNoteLoader } from 'src/core/services/daily_notes/file_io/DailyNoteLoader';
+import { DailyNoteLoaderOld } from 'src/core/services/daily_notes/file_io/DailyNoteLoaderOld';
 import { DailyNoteOld } from 'src/core/models/daily_notes/DailyNoteOld';
 
 export class LLMTagGenerateExecutor {
@@ -71,7 +71,7 @@ export class LLMTagGenerateExecutor {
         void this.runner
           .runOnFiles(files, modal, forceRegenerate)
           .then(async (summaries) => {
-            const dailyNote = await DailyNoteLoader.load(
+            const dailyNote = await DailyNoteLoaderOld.load(
               this.app,
               selectedDate
             );

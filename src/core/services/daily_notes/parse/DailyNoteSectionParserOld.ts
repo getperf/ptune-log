@@ -3,7 +3,7 @@
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { DailyNoteSectionRegex } from 'src/core/utils/daily_note/DailyNoteSectionRegex';
 
-export class DailyNoteSectionParser {
+export class DailyNoteSectionParserOld {
   /**
    * 見出し比較用キーを生成
    * - Unicode 正規化

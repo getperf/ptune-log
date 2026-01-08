@@ -1,7 +1,7 @@
 // src/core/models/daily_notes/DailyNoteSection.ts
 
 /** デイリーノート内セクションの論理キー */
-export enum DailyNoteSectionKey {
+export enum DailyNoteSectionKeyOld {
   // === 大分類 ===
   PlannedTasks = 'PlannedTasks',
   TimeLog = 'TimeLog',
@@ -18,5 +18,4 @@ export enum DailyNoteSectionKey {
   DeltaLarge = 'DeltaLarge',
   WorkTypeSummary = 'WorkTypeSummary',
   DailySummary = 'DailySummary',
-
 }

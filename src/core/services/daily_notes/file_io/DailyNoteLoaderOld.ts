@@ -5,7 +5,7 @@ import { DailyNoteOld } from 'src/core/models/daily_notes/DailyNoteOld';
 import { DailyNoteFactoryOld } from 'src/core/models/daily_notes/DailyNoteFactoryOld';
 import { DailyNoteReader } from './DailyNoteReader';
 
-export class DailyNoteLoader {
+export class DailyNoteLoaderOld {
   /**
    * App + Date から DailyNote を生成
    */
