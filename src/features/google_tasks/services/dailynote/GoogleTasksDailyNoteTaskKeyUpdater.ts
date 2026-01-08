@@ -1,8 +1,10 @@
-// File: src/core/services/notes/DailyNoteTaskKeyUpdateService.ts
+// src/features/google_tasks/services/dailynote/GoogleTasksDailyNoteTaskKeyUpdater.ts
 
 import { App, TFile } from 'obsidian';
+import { DailyNoteLoader } from 'src/core/services/daily_notes/file_io/DailyNoteLoader';
 import { DailyNoteTaskKeyExtractor } from 'src/core/services/daily_notes/task_keys/DailyNoteTaskKeyExtractor';
 import { DailyNoteTaskKeyWriter } from 'src/core/services/daily_notes/task_keys/DailyNoteTaskKeyWriter';
+import { logger } from 'src/core/services/logger/loggerInstance';
 import { DailyNoteHelper } from 'src/core/utils/daily_note/DailyNoteHelper';
 
 export interface DailyNoteTaskKeyUpdateResult {
@@ -26,10 +28,12 @@ export class GoogleTasksDailyNoteTaskKeyUpdater {
       throw new Error('Daily note not found');
     }
 
-    const extractor = new DailyNoteTaskKeyExtractor(this.app);
-    const writer = new DailyNoteTaskKeyWriter(this.app);
+    const dailyNote = await DailyNoteLoader.load(this.app, date);
+    const lines = dailyNote.plannedTask.getRawLines();
+    const extractor = new DailyNoteTaskKeyExtractor();
+    const taskKeys = await extractor.extractFromLines(lines);
 
-    const taskKeys = await extractor.extract(file);
+    const writer = new DailyNoteTaskKeyWriter(this.app);
     await writer.write(file, taskKeys);
 
     return { file, taskKeys };

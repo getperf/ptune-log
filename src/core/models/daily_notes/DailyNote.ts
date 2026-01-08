@@ -89,4 +89,8 @@ export class DailyNote {
       ),
     });
   }
+
+  toMarkdown(): string {
+    return this.raw;
+  }
 }

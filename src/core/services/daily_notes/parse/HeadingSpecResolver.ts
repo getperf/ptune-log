@@ -2,8 +2,12 @@
 import { HeadingSpecRegistry } from 'src/core/models/daily_notes/specs/HeadingSpecRegistry';
 import { HeadingNormalizer } from './HeadingNormalizer';
 import { HeadingSpec } from 'src/core/models/daily_notes/specs/HeadingSpec';
+import { i18n } from 'src/i18n';
+import { logger } from '../../logger/loggerInstance';
 
 export class HeadingSpecResolver {
+  // src/core/services/daily_notes/parse/HeadingSpecResolver.ts
+
   static resolve(line: string): {
     spec?: HeadingSpec;
     level: number;
@@ -16,20 +20,20 @@ export class HeadingSpecResolver {
     const level = m[1].length;
     const raw = m[2];
 
-    const sm = raw.match(/^(.*?)(\s*[(（].*[)）])$/);
-    const titlePart = sm ? sm[1] : raw;
-    const suffix = sm ? sm[2].trim() : undefined;
-
-    const normalized = HeadingNormalizer.normalize(titlePart);
+    const normalized = HeadingNormalizer.normalize(raw);
 
     for (const { spec, label } of HeadingSpecRegistry.sectionLabels()) {
       if (spec.level !== level) continue;
+
       const normalizedLabel = HeadingNormalizer.normalize(label);
-      if (normalized.includes(normalizedLabel)) {
+
+      if (normalized.startsWith(normalizedLabel)) {
+        const rest = raw.slice(label.length).trim();
+        const suffix = rest.length > 0 ? rest : undefined;
+
         return { spec, level, suffix };
       }
     }
-
     return { level };
   }
 }

@@ -1,8 +1,10 @@
-// File: src/core/services/notes/DailyNoteTaskKeyExtractor.ts
+// src/core/services/daily_notes/task_keys/DailyNoteTaskKeyExtractor.ts
 
-import { TFile, App } from 'obsidian';
-import { TaskKeyGenerator, ParsedTask } from 'src/core/services/tasks/TaskKeyGenerator';
-import { FileUtils } from 'src/core/utils/common/FileUtils';
+import {
+  TaskKeyGenerator,
+  ParsedTask,
+} from 'src/core/services/tasks/TaskKeyGenerator';
+import { logger } from '../../logger/loggerInstance';
 
 interface ParsedTaskLine {
   indent: number;
@@ -11,19 +13,13 @@ interface ParsedTaskLine {
 }
 
 export class DailyNoteTaskKeyExtractor {
-  constructor(private readonly app: App) { }
-
-  async extract(file: TFile): Promise<string[]> {
-    // --- 「今日の予定タスク」セクションのみ取得 ---
-    const lines = await FileUtils.readSection(
-      this.app,
-      file,
-      '今日の予定タスク'
-    );
-
+  /**
+   * plannedTask の raw lines から taskKeys を生成
+   */
+  async extractFromLines(lines: string[]): Promise<string[]> {
     const parsedLines: ParsedTaskLine[] = [];
 
-    // --- チェックリスト行のみ抽出 ---
+    // --- チェックリスト行のみ抽出（既存ロジック維持） ---
     for (const line of lines) {
       const m = line.match(/^(\s*)- \[[ xX]\] (.+)$/);
       if (!m) continue;
@@ -37,7 +33,7 @@ export class DailyNoteTaskKeyExtractor {
     const taskKeys: string[] = [];
     let currentParentTitle: string | undefined;
 
-    // --- 親子判定結果を ParsedTaskLine に反映 ---
+    // --- 親子判定（既存ロジック維持） ---
     for (const line of parsedLines) {
       if (line.indent === 0) {
         currentParentTitle = line.title;
@@ -51,9 +47,7 @@ export class DailyNoteTaskKeyExtractor {
         parentTitle: line.parentTitle,
       };
 
-      taskKeys.push(
-        TaskKeyGenerator.createByParsedTask(parsedTask)
-      );
+      taskKeys.push(TaskKeyGenerator.createByParsedTask(parsedTask));
     }
 
     return taskKeys;

@@ -14,6 +14,7 @@ import { NoteSetupHelper } from 'src/features/setup/NoteSetupHelper';
 
 // ★ i18n 初期化（段階1）
 import { i18n, getI18n, type Lang } from 'src/i18n';
+import { I18nBootstrap } from 'src/i18n/I18nBootstrap';
 
 export default class PtunePlugin extends Plugin {
   private config!: ConfigManager;
@@ -33,7 +34,7 @@ export default class PtunePlugin extends Plugin {
 
     // --- i18n 初期化（段階1：ここだけ追加） ---
     const lang = (this.config.get<Lang>('ui.language') ?? 'ja') as Lang;
-    i18n.init(lang, getI18n(lang));
+    I18nBootstrap.initialize(lang);
 
     // --- ロガー設定 ---
     await logger.initFileOutput(

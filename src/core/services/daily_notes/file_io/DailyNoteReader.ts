@@ -12,6 +12,9 @@ export class DailyNoteReader {
     );
     if (!note) return '';
 
-    return await this.app.vault.read(note);
+    const raw = await this.app.vault.read(note);
+
+    // ★ 改行正規化（Windows / macOS / Linux 対応）
+    return raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   }
 }

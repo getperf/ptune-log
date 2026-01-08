@@ -8,6 +8,7 @@ import { TasksReset } from '../bootstrap/TasksReset';
 import { ParsedTask, TasksExporter } from './TasksExporter';
 import { MarkdownTaskParser } from './MarkdownTaskParser';
 import { TasksExportModal } from './TasksExportModal';
+import { DailyNoteLoader } from 'src/core/services/daily_notes/file_io/DailyNoteLoader';
 
 export class TasksExport {
   constructor(
@@ -31,13 +32,16 @@ export class TasksExport {
   }
 
   private async extractTasks(): Promise<ParsedTask[]> {
-    const lines = await FileUtils.readSection(
-      this.app,
-      this.file,
-      '今日の予定タスク'
-    );
+    const dailyNote = await DailyNoteLoader.load(this.app, new Date());
+
+    const lines = dailyNote.plannedTask.getRawLines();
     const tasks = MarkdownTaskParser.parse(lines);
-    logger.debug(`[TasksExport.extractTasks] count=${tasks.length}`);
+
+    logger.debug('[TasksExport.extractTasks]', {
+      lineCount: lines.length,
+      taskCount: tasks.length,
+    });
+
     return tasks;
   }
 

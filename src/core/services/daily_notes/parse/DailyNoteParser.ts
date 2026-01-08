@@ -4,6 +4,7 @@ import { DailyNote } from 'src/core/models/daily_notes/DailyNote';
 import { Section } from 'src/core/models/daily_notes/Section';
 import { SectionList } from 'src/core/models/daily_notes/SectionList';
 import { HeadingSpecResolver } from './HeadingSpecResolver';
+import { logger } from '../../logger/loggerInstance';
 
 type CurrentSection =
   | { kind: 'single'; ref: 'planned' | 'reviewMemo' | 'reviewed' }
@@ -57,7 +58,6 @@ export class DailyNoteParser {
 
     for (const line of lines) {
       const { spec, suffix } = HeadingSpecResolver.resolve(line);
-
       if (spec?.kind === 'section') {
         // --- 新セクション開始 ---
         flush();

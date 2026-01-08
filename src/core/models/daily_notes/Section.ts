@@ -40,6 +40,17 @@ export class Section {
     return this.body.split('\n').length;
   }
 
+  /**
+   * Section.body をそのまま行配列で返す
+   * - trim / filter などの加工は行わない
+   * - Extractor 側での既存解析（indent 等）前提
+   */
+  getRawLines(): string[] {
+    if (!this.body) return [];
+    // Markdown の改行をそのまま保持
+    return this.body.split('\n');
+  }
+
   replaceBody(markdown: string): Section {
     return new Section({
       ...this,
@@ -67,11 +78,7 @@ export class Section {
   }
 
   /** body 確定済み（list 用） */
-  static fromBody(
-    key: SectionKey,
-    body: string,
-    suffix?: string
-  ): Section {
+  static fromBody(key: SectionKey, body: string, suffix?: string): Section {
     return new Section({
       key,
       body,

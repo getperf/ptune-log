@@ -13,6 +13,7 @@ import { renderReviewSettings } from './SettingTabReview';
 import type { LogLevel } from 'src/core/services/logger/Logger';
 import { isLang, type Lang } from 'src/i18n/types';
 import { i18n, getI18n } from 'src/i18n';
+import { I18nBootstrap } from 'src/i18n/I18nBootstrap';
 
 function isLogLevel(v: string): v is LogLevel {
   return ['debug', 'info', 'warn', 'error', 'none'].includes(v);
@@ -52,7 +53,7 @@ export class PtuneSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             if (isLang(value)) {
               await this.config.update('ui.language', value);
-              i18n.init(value, getI18n(value));
+              I18nBootstrap.initialize(value);
             }
             this.display();
           })
