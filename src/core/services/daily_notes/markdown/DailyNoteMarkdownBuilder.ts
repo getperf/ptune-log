@@ -38,11 +38,6 @@ export class DailyNoteMarkdownBuilder {
     // 元ノートに存在しないセクションは出力しない
     if (!section.present) return;
 
-    console.debug('[Builder]', {
-      key: section.key,
-      bodyJson: JSON.stringify(section.body),
-    });
-
     out.push(HeadingBuilder.create(section.key, { suffix: section.suffix }));
 
     out.push('');

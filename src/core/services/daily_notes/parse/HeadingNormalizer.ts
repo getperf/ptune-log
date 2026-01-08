@@ -1,5 +1,4 @@
-// src/core/services/daily_notes/HeadingNormalizer.ts
-
+// src/core/services/daily_notes/parse/HeadingNormalizer.ts
 export class HeadingNormalizer {
   /**
    * 見出し比較用キーを生成

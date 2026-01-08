@@ -29,6 +29,6 @@ describe('DailyNoteParser basic', () => {
 
     expect(note.reviewMemo.isPresent()).toBe(true);
     expect(note.reviewMemo.body).toContain('NOTE_REVIEW_MEMO');
-    expect(note.kpts.count()).toBe(0);
+    expect(note.kpts.count()).toBe(2);
   });
 });

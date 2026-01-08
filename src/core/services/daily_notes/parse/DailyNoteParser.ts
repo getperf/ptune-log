@@ -80,8 +80,6 @@ export class DailyNoteParser {
 
           case 'note.report':
             current = { kind: 'single', ref: 'reviewed', suffix };
-            console.debug('note.report line:', line);
-            console.debug('note.report suffix:', suffix);
 
             reviewedNote = Section.start('note.report', suffix);
             break;

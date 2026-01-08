@@ -34,7 +34,6 @@ describe('DailyNoteParser basic', () => {
 
     const note1 = DailyNoteParser.parse(raw);
     const rebuilt = DailyNoteMarkdownBuilder.build(note1);
-    console.log(rebuilt);
     const note2 = DailyNoteParser.parse(rebuilt);
 
     expect(note2.plannedTask.body).toBe(note1.plannedTask.body);

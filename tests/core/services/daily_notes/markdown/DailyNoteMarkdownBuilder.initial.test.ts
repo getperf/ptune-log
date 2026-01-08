@@ -28,7 +28,6 @@ describe('DailyNoteMarkdownBuilder (daily_ja_initial)', () => {
 
     const note = DailyNoteParser.parse(raw);
     const built = DailyNoteMarkdownBuilder.build(note);
-    console.log(built);
     expect(normalize(built)).toBe(normalize(raw));
   });
 });
