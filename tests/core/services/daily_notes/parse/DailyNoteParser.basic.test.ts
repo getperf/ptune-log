@@ -1,4 +1,5 @@
 // tests/core/services/daily_notes/parse/DailyNoteParser.basic.test.ts
+
 import { DailyNoteParser } from 'src/core/services/daily_notes/parse/DailyNoteParser';
 import { initLang } from './_helpers';
 import fs from 'fs';
@@ -27,7 +28,7 @@ describe('DailyNoteParser basic', () => {
     const note = DailyNoteParser.parse(raw);
 
     expect(note.reviewMemo.isPresent()).toBe(true);
-    expect(note.reviewMemo.body).toContain('タグ一覧');
+    expect(note.reviewMemo.body).toContain('NOTE_REVIEW_MEMO');
     expect(note.kpts.count()).toBe(0);
   });
 });

@@ -111,7 +111,6 @@ describe('MyTask', () => {
       false
     );
     const result = task.toString();
-    console.log('DEBUG:', result);
     expect(result).toBe('[x] リグレッション 🍅x1 9:47:49 - 9:48:16');
   });
 });

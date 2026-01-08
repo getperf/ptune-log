@@ -8,36 +8,47 @@ export class DailyNoteMarkdownBuilder {
   static build(note: DailyNote): string {
     const out: string[] = [];
 
-    // --- planned task ---
+    // --- 今日の予定タスク ---
     this.writeSingleSection(out, note.plannedTask);
 
-    // --- time logs (list) ---
-    for (const section of note.timeLogs.items()) {
+    // --- タイムログ（単一） ---
+    this.writeSingleSection(out, note.taskTimelog);
+
+    // --- タスク振り返り（複数） ---
+    for (const section of note.taskReviews.items) {
       this.writeSingleSection(out, section);
     }
 
-    // --- review memo ---
+    // --- 振り返りメモ ---
     this.writeSingleSection(out, note.reviewMemo);
 
-    // --- reviewed note ---
+    // --- デイリーレポート ---
     this.writeSingleSection(out, note.reviewedNote);
 
     // --- KPT ---
-    for (const section of note.kpts.items()) {
+    for (const section of note.kpts.items) {
       this.writeSingleSection(out, section);
     }
 
-    // 末尾改行は 1 行に統一
+    // 末尾改行は 1 行に正規化
     return out.join('\n').trimEnd() + '\n';
   }
 
   private static writeSingleSection(out: string[], section: Section): void {
+    // 元ノートに存在しないセクションは出力しない
     if (!section.present) return;
-    if (!section.hasContent()) return;
+
+    console.debug('[Builder]', {
+      key: section.key,
+      bodyJson: JSON.stringify(section.body),
+    });
 
     out.push(HeadingBuilder.create(section.key, { suffix: section.suffix }));
+
     out.push('');
-    out.push(section.body.trimEnd());
+    if (section.hasContent()) {
+      out.push(section.body.trimEnd());
+    }
     out.push('');
   }
 }

@@ -5,19 +5,28 @@ import { Section } from './Section';
 import { SectionList } from './SectionList';
 
 export class DailyNote {
+  /** 元ノートの生Markdown（解析ソース） */
   readonly raw: string;
+
+  /** 対象日付（既定：生成時点） */
   readonly date: Date;
 
+  /** 今日の予定タスク */
   readonly plannedTask: Section;
 
-  /** ★ 単一セクション */
+  /** タイムログ（単一） */
   readonly taskTimelog: Section;
 
-  /** ★ 複数レビュー */
+  /** タスク振り返り（複数） */
   readonly taskReviews: SectionList;
 
+  /** 振り返りメモ */
   readonly reviewMemo: Section;
+
+  /** デイリーレポート */
   readonly reviewedNote: Section;
+
+  /** KPT（複数） */
   readonly kpts: SectionList;
 
   constructor(params: {
@@ -42,6 +51,7 @@ export class DailyNote {
     this.kpts = params.kpts ?? new SectionList();
   }
 
+  /** Parser 用ファクトリ */
   static fromParsed(params: {
     raw: string;
     date?: Date;
@@ -55,7 +65,8 @@ export class DailyNote {
     return new DailyNote(params);
   }
 
-  /* ---------- Immutable APIs ---------- */
+  /* ---------- Immutable Update APIs ---------- */
+
   updatePlannedTask(markdown: string): DailyNote {
     return new DailyNote({
       ...this,
@@ -74,12 +85,7 @@ export class DailyNote {
     return new DailyNote({
       ...this,
       taskReviews: this.taskReviews.append(
-        new Section({
-          key: 'task.review',
-          body: markdown,
-          suffix,
-          present: true,
-        })
+        Section.fromBody('task.review', markdown, suffix)
       ),
     });
   }
@@ -105,21 +111,14 @@ export class DailyNote {
     });
   }
 
-  /** --- KPT 追記（template 不要） */
   appendKpt(markdown: string, suffix?: string): DailyNote {
     return new DailyNote({
       ...this,
-      kpts: this.kpts.append(
-        new Section({
-          key: 'note.kpt',
-          body: markdown,
-          suffix,
-          present: true,
-        })
-      ),
+      kpts: this.kpts.append(Section.fromBody('note.kpt', markdown, suffix)),
     });
   }
 
+  /** Markdown 生成（保存用） */
   toMarkdown(): string {
     return DailyNoteMarkdownBuilder.build(this);
   }

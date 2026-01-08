@@ -4,7 +4,6 @@ import { DailyNote } from 'src/core/models/daily_notes/DailyNote';
 import { Section } from 'src/core/models/daily_notes/Section';
 import { SectionList } from 'src/core/models/daily_notes/SectionList';
 import { HeadingSpecResolver } from './HeadingSpecResolver';
-import { logger } from '../../logger/loggerInstance';
 
 type CurrentSection =
   | { kind: 'single'; ref: 'planned' | 'timelog' | 'reviewMemo' | 'reviewed' }
@@ -13,7 +12,8 @@ type CurrentSection =
 
 export class DailyNoteParser {
   static parse(raw: string): DailyNote {
-    const lines = raw.split('\n');
+    // CRLF/LF を吸収（行末の \r を除去）
+    const lines = raw.split('\n').map((l) => l.replace(/\r$/, ''));
 
     // --- 初期（空定義） ---
     let plannedTask = Section.empty('task.planned');
@@ -29,7 +29,8 @@ export class DailyNoteParser {
     const flush = () => {
       if (!current) return;
 
-      const body = buffer.join('\n').trimEnd();
+      // 先頭・末尾の余分な改行を除去（本文のみを保持）
+      const body = buffer.join('\n').trim();
       buffer = [];
 
       if (current.kind === 'single') {
