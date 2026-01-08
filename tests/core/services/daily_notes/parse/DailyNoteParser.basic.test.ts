@@ -19,7 +19,7 @@ describe('DailyNoteParser basic', () => {
     expect(note.reviewMemo.isPresent()).toBe(false);
     expect(note.reviewedNote.isPresent()).toBe(false);
     expect(note.kpts.count()).toBe(0);
-    expect(note.timeLogs.count()).toBe(0);
+    expect(note.taskReviews.count()).toBe(0);
   });
 
   test('振り返りメモのみ', () => {

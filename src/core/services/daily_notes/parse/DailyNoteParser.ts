@@ -7,8 +7,8 @@ import { HeadingSpecResolver } from './HeadingSpecResolver';
 import { logger } from '../../logger/loggerInstance';
 
 type CurrentSection =
-  | { kind: 'single'; ref: 'planned' | 'reviewMemo' | 'reviewed' }
-  | { kind: 'list'; ref: 'timelog' | 'kpt'; suffix?: string }
+  | { kind: 'single'; ref: 'planned' | 'timelog' | 'reviewMemo' | 'reviewed' }
+  | { kind: 'list'; ref: 'taskReview' | 'kpt'; suffix?: string }
   | null;
 
 export class DailyNoteParser {
@@ -19,7 +19,8 @@ export class DailyNoteParser {
     let plannedTask = Section.empty('task.planned');
     let reviewMemo = Section.empty('note.review.memo');
     let reviewedNote = Section.empty('note.report');
-    let timeLogs = new SectionList();
+    let taskTimelog = Section.empty('task.timelog');
+    let taskReviews = new SectionList();
     let kpts = new SectionList();
 
     let current: CurrentSection = null;
@@ -36,6 +37,9 @@ export class DailyNoteParser {
           case 'planned':
             plannedTask = plannedTask.withBody(body);
             break;
+          case 'timelog':
+            taskTimelog = taskTimelog.withBody(body);
+            break;
           case 'reviewMemo':
             reviewMemo = reviewMemo.withBody(body);
             break;
@@ -44,9 +48,9 @@ export class DailyNoteParser {
             break;
         }
       } else {
-        if (current.ref === 'timelog') {
-          timeLogs = timeLogs.append(
-            Section.fromBody('task.timelog', body, current.suffix)
+        if (current.ref === 'taskReview') {
+          taskReviews = taskReviews.append(
+            Section.fromBody('task.review', body, current.suffix)
           );
         } else {
           kpts = kpts.append(
@@ -79,7 +83,12 @@ export class DailyNoteParser {
             break;
 
           case 'task.timelog':
-            current = { kind: 'list', ref: 'timelog', suffix };
+            current = { kind: 'single', ref: 'timelog' };
+            taskTimelog = Section.start('task.timelog');
+            break;
+
+          case 'task.review':
+            current = { kind: 'list', ref: 'taskReview', suffix };
             break;
 
           case 'note.kpt':
@@ -101,9 +110,10 @@ export class DailyNoteParser {
     return new DailyNote({
       raw,
       plannedTask,
+      taskTimelog,
+      taskReviews,
       reviewMemo,
       reviewedNote,
-      timeLogs,
       kpts,
     });
   }

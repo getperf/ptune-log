@@ -16,8 +16,11 @@ describe('DailyNoteParser timelog', () => {
     const raw = load('daily_timelog_multi.md');
     const note = DailyNoteParser.parse(raw);
 
-    expect(note.timeLogs.count()).toBe(2);
-    expect(note.timeLogs.items[0].suffix).toContain('午前');
-    expect(note.timeLogs.items[1].body).toContain('task C');
+    expect(note.taskTimelog.isPresent()).toBe(true);
+    expect(note.taskTimelog.body).toContain('MEMO');
+
+    expect(note.taskReviews.count()).toBe(2);
+    expect(note.taskReviews.items[0].suffix).toContain('午前');
+    expect(note.taskReviews.items[1].body).toContain('task C');
   });
 });

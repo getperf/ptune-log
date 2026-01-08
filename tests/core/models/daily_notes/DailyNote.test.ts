@@ -8,9 +8,10 @@ const baseNote = () =>
   new DailyNote({
     raw: '',
     plannedTask: new Section({ key: 'task.planned' }),
+    taskTimelog: new Section({ key: 'task.timelog' }),
     reviewMemo: new Section({ key: 'note.review.memo' }),
     reviewedNote: new Section({ key: 'note.report' }),
-    timeLogs: new SectionList(),
+    taskReviews: new SectionList(),
     kpts: new SectionList(),
   });
 
@@ -35,9 +36,9 @@ describe('DailyNote immutable APIs', () => {
 
   test('appendTimeLog adds new section', () => {
     const note = baseNote();
-    const next = note.appendTimeLog('log');
+    const next = note.appendTaskReview('log');
 
-    expect(next.timeLogs.items.length).toBe(1);
-    expect(next.timeLogs.items[0].body).toBe('log');
+    expect(next.taskReviews.items.length).toBe(1);
+    expect(next.taskReviews.items[0].body).toBe('log');
   });
 });
