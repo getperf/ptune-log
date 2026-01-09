@@ -28,17 +28,17 @@ describe('DailyNote immutable APIs', () => {
     const note = baseNote();
     const next = note.appendKpt('kpt1', '(1回目)');
 
-    expect(note.kpts.items.length).toBe(0);
-    expect(next.kpts.items.length).toBe(1);
-    expect(next.kpts.items[0].suffix).toBe('(1回目)');
-    expect(next.kpts.items[0].body).toBe('kpt1');
+    expect(note.kpts.sections.length).toBe(0);
+    expect(next.kpts.sections.length).toBe(1);
+    expect(next.kpts.sections[0].suffix).toBe('(1回目)');
+    expect(next.kpts.sections[0].body).toBe('kpt1');
   });
 
   test('appendTimeLog adds new section', () => {
     const note = baseNote();
     const next = note.appendTaskReview('log');
 
-    expect(next.taskReviews.items.length).toBe(1);
-    expect(next.taskReviews.items[0].body).toBe('log');
+    expect(next.taskReviews.sections.length).toBe(1);
+    expect(next.taskReviews.sections[0].body).toBe('log');
   });
 });

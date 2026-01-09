@@ -17,8 +17,8 @@ describe('DailyNoteParser KPT', () => {
     const note = DailyNoteParser.parse(raw);
 
     expect(note.kpts.count()).toBe(2);
-    expect(note.kpts.items[0].suffix).toContain('1回目');
-    expect(note.kpts.items[1].suffix).toContain('2回目');
-    expect(note.kpts.items[0].body).toContain('Keep');
+    expect(note.kpts.sections[0].suffix).toContain('1回目');
+    expect(note.kpts.sections[1].suffix).toContain('2回目');
+    expect(note.kpts.sections[0].body).toContain('Keep');
   });
 });

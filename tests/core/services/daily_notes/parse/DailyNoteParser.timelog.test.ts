@@ -20,7 +20,7 @@ describe('DailyNoteParser timelog', () => {
     expect(note.taskTimelog.body).toContain('MEMO');
 
     expect(note.taskReviews.count()).toBe(2);
-    expect(note.taskReviews.items[0].suffix).toContain('午前');
-    expect(note.taskReviews.items[1].body).toContain('task C');
+    expect(note.taskReviews.sections[0].suffix).toContain('午前');
+    expect(note.taskReviews.sections[1].body).toContain('task C');
   });
 });

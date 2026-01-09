@@ -18,7 +18,7 @@ export class TimeReportBacklogWriter {
     }
 
     if (lines.length === 0) return '';
-    return `### 未完了タスク\n${lines.join('\n')}`;
+    return `#### 未完了タスク\n${lines.join('\n')}`;
   }
 
   private buildTree(report: TimeReport): EntryNode[] {

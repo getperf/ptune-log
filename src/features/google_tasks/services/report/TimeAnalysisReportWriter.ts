@@ -22,7 +22,7 @@ export class TimeAnalysisReportWriter {
     // 3) LLM
     if (llmResult) {
       sections.push('');
-      sections.push('## ⏱ 時間分析サマリ（LLM）');
+      sections.push('#### ⏱ 時間分析（LLM）');
       sections.push('');
       sections.push(llmResult);
     }

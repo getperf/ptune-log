@@ -19,6 +19,10 @@ import { HEADER_TIME_LOG } from '../report/TimeAnalysisDailyNote';
 import { TaskNoteRelationService } from './services/TaskNoteRelationService';
 import { MyTask } from 'src/core/models/tasks/MyTask';
 import { TaskJsonUtils } from 'src/core/utils/task/TaskJsonUtils';
+import { TaskReviewAnalysisService } from './services/TaskReviewAnalysisService';
+import { DailyNoteLoader } from 'src/core/services/daily_notes/file_io/DailyNoteLoader';
+import { DailyNoteWriter } from 'src/core/services/daily_notes/file_io/DailyNoteWriter';
+import { DateUtil } from 'src/core/utils/date/DateUtil';
 
 export type TaskReviewStatus =
   | 'idle'
@@ -64,11 +68,7 @@ export class TaskReviewReportService {
   private async withApi(
     fn: (api: GoogleTasksAPI) => Promise<void>
   ): Promise<void> {
-    return GoogleTasksCommandUtil.wrap(
-      this.plugin,
-      this.settings,
-      fn
-    )();
+    return GoogleTasksCommandUtil.wrap(this.plugin, this.settings, fn)();
   }
 
   /** 振り返り実行（単一入口） */
@@ -90,37 +90,23 @@ export class TaskReviewReportService {
     const saver = new TaskJsonUtils(this.app);
     await saver.save(tasks, date);
 
-    // --- 時間分析 ---
-    notify?.('loading', 'タスク実績を読み込み中');
-    const execTasks = await this.loader.load(date);
+    // --- 分析フェーズ ---
+    notify?.('aggregating', '時間分析中');
 
-    notify?.('aggregating', '時間を集計中');
-    const report = this.aggregator.aggregate(execTasks, date);
-    await this.noteRelation.attachRelatedNotes(report, date);
+    const analysis = new TaskReviewAnalysisService(this.app, this.llmAnalysis);
+    const enableLLM = options.enableLLMAnalysis ?? false;
+    const result = await analysis.analyze(date, enableLLM);
 
-    // --- YAML 保存（事実ログ） ---
-    notify?.('writing', 'YAML を書き込み中');
-    const yamlPath = await this.writer.write(report);
+    // --- DailyNote 更新 ---
+    const dailyNote = await DailyNoteLoader.load(this.app, date);
 
-    // --- LLM 分析（任意） ---
-    let llmResult: string | null = null;
-    if (options.enableLLMAnalysis && this.llmAnalysis) {
-      notify?.('llm-analyzing', 'LLM による時間分析中');
-      llmResult = await this.llmAnalysis.analyzeFromYamlFile(yamlPath);
-    }
-
-    // --- 表＋LLM 統合レポート ---
-    notify?.('writing', 'レポートを書き込み中');
-    const reportWriter = new TimeAnalysisReportWriter();
-    const markdown = reportWriter.write(report, llmResult);
-
-    // ★ デイリーノートへ追記（backlog 廃止）
-    await DailyNoteHelper.appendToSectionInDailyNote(
-      this.app,
-      new Date(report.date),
-      HEADER_TIME_LOG,
-      markdown
+    const updated = dailyNote.appendTaskReview(
+      result.markdown,
+      `(${DateUtil.localTime()})`,
+      'first'
     );
+    const writer = new DailyNoteWriter(this.app);
+    await writer.write(updated, date);
 
     notify?.('completed', '完了');
   }

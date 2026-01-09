@@ -6,8 +6,7 @@ export class TimeReportTableWriter {
   writeMarkdown(report: TimeReport): string {
     const lines: string[] = [];
 
-    lines.push(`## タスク振り返り (${report.date})`);
-    lines.push('');
+    lines.push(`#### タイムテーブル`);
     lines.push('| 状態 | タイトル | 計画🍅 | 実績✅ | 開始 | 完了 |');
     lines.push('| --- | --- | --- | --- | --- | --- |');
 

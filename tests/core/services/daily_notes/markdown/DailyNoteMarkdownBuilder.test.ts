@@ -38,6 +38,8 @@ describe('DailyNoteParser basic', () => {
 
     expect(note2.plannedTask.body).toBe(note1.plannedTask.body);
 
-    expect(note2.taskReviews.items.length).toBe(note1.taskReviews.items.length);
+    expect(note2.taskReviews.sections.length).toBe(
+      note1.taskReviews.sections.length
+    );
   });
 });

@@ -3,30 +3,38 @@
 import { Section } from './Section';
 
 export class SectionList {
-  readonly items: readonly Section[];
+  readonly sections: readonly Section[];
 
   constructor(items: Section[] = []) {
-    this.items = items;
+    this.sections = items;
   }
 
   isEmpty(): boolean {
-    return this.items.length === 0;
+    return this.sections.length === 0;
   }
 
   count(): number {
-    return this.items.length;
+    return this.sections.length;
   }
 
   /** present なものだけ数える（再実行耐性） */
   presentCount(): number {
-    return this.items.filter((s) => s.present).length;
+    return this.sections.filter((s) => s.present).length;
   }
 
   append(section: Section): SectionList {
-    return new SectionList([...this.items, section]);
+    return new SectionList([...this.sections, section]);
+  }
+
+  prepend(section: Section): SectionList {
+    return new SectionList([section, ...this.sections]);
+  }
+
+  insert(section: Section, position: 'first' | 'last' = 'last'): SectionList {
+    return position === 'first' ? this.prepend(section) : this.append(section);
   }
 
   map(fn: (s: Section) => Section): SectionList {
-    return new SectionList(this.items.map(fn));
+    return new SectionList(this.sections.map(fn));
   }
 }

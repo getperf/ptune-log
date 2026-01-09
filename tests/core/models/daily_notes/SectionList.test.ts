@@ -10,9 +10,9 @@ describe('SectionList', () => {
 
     const next = list.append(s);
 
-    expect(list.items.length).toBe(0);
-    expect(next.items.length).toBe(1);
-    expect(next.items[0].body).toBe('k1');
+    expect(list.sections.length).toBe(0);
+    expect(next.sections.length).toBe(1);
+    expect(next.sections[0].body).toBe('k1');
   });
 
   test('map returns new list', () => {
@@ -22,7 +22,7 @@ describe('SectionList', () => {
 
     const next = list.map((s) => s.replaceBody('b'));
 
-    expect(list.items[0].body).toBe('a');
-    expect(next.items[0].body).toBe('b');
+    expect(list.sections[0].body).toBe('a');
+    expect(next.sections[0].body).toBe('b');
   });
 });

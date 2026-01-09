@@ -81,11 +81,16 @@ export class DailyNote {
     });
   }
 
-  appendTaskReview(markdown: string, suffix?: string): DailyNote {
+  appendTaskReview(
+    markdown: string,
+    suffix?: string,
+    position: 'first' | 'last' = 'last'
+  ): DailyNote {
     return new DailyNote({
       ...this,
-      taskReviews: this.taskReviews.append(
-        Section.fromBody('task.review', markdown, suffix)
+      taskReviews: this.taskReviews.insert(
+        Section.fromBody('task.review', markdown, suffix),
+        position
       ),
     });
   }
@@ -111,10 +116,17 @@ export class DailyNote {
     });
   }
 
-  appendKpt(markdown: string, suffix?: string): DailyNote {
+  appendKpt(
+    markdown: string,
+    suffix?: string,
+    position: 'first' | 'last' = 'last'
+  ): DailyNote {
     return new DailyNote({
       ...this,
-      kpts: this.kpts.append(Section.fromBody('note.kpt', markdown, suffix)),
+      kpts: this.kpts.insert(
+        Section.fromBody('note.kpt', markdown, suffix),
+        position
+      ),
     });
   }
 

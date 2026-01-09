@@ -15,7 +15,7 @@ export class DailyNoteMarkdownBuilder {
     this.writeSingleSection(out, note.taskTimelog);
 
     // --- タスク振り返り（複数） ---
-    for (const section of note.taskReviews.items) {
+    for (const section of note.taskReviews.sections) {
       this.writeSingleSection(out, section);
     }
 
@@ -26,7 +26,7 @@ export class DailyNoteMarkdownBuilder {
     this.writeSingleSection(out, note.reviewedNote);
 
     // --- KPT ---
-    for (const section of note.kpts.items) {
+    for (const section of note.kpts.sections) {
       this.writeSingleSection(out, section);
     }
 
