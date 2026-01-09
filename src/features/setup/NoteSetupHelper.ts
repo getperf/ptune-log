@@ -1,7 +1,6 @@
 import { App, Notice } from 'obsidian';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { buildDailyNoteTemplate } from 'src/core/templates/daily_note';
-import { DAILY_NOTE_TEMPLATE } from 'src/core/templates/daily_note_template';
 
 export class NoteSetupHelper {
   constructor(private app: App) {}

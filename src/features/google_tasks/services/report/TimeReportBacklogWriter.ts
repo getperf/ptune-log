@@ -2,6 +2,7 @@
 
 import { TimeReport } from '../time_analysis/models/TimeReport';
 import { TaskExecutionEntry } from '../time_analysis/models/TaskExecutionEntry';
+import { i18n } from 'src/i18n';
 
 type EntryNode = {
   entry: TaskExecutionEntry;
@@ -18,7 +19,10 @@ export class TimeReportBacklogWriter {
     }
 
     if (lines.length === 0) return '';
-    return `#### 未完了タスク\n${lines.join('\n')}`;
+    // 未完了タスク
+    return `#### ${i18n.domain.timeReview.heading.backlog}\n${lines.join(
+      '\n'
+    )}`;
   }
 
   private buildTree(report: TimeReport): EntryNode[] {

@@ -1,3 +1,4 @@
+import { i18n } from 'src/i18n';
 import { TaskExecutionEntry } from '../time_analysis/models/TaskExecutionEntry';
 import { TimeReport } from '../time_analysis/models/TimeReport';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
@@ -6,8 +7,18 @@ export class TimeReportTableWriter {
   writeMarkdown(report: TimeReport): string {
     const lines: string[] = [];
 
-    lines.push(`#### タイムテーブル`);
-    lines.push('| 状態 | タイトル | 計画🍅 | 実績✅ | 開始 | 完了 |');
+    const t = i18n.domain.timeReview;
+    // タイムテーブル
+    lines.push(`#### ${t.heading.timeTable}`);
+    // | 状態 | タイトル | 計画🍅 | 実績✅ | 開始 | 完了 |
+    lines.push(
+      `| ${t.table.status} | ` +
+        `${t.table.title} | ` +
+        `${t.table.planned} | ` +
+        `${t.table.actual} | ` +
+        `${t.table.started} | ` +
+        `${t.table.completed} |`
+    );
     lines.push('| --- | --- | --- | --- | --- | --- |');
 
     for (const entry of report.tasks.values()) {

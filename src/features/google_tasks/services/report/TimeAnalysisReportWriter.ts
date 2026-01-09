@@ -1,6 +1,7 @@
 import { TimeReportTableWriter } from './TimeReportTableWriter';
 import { TimeReport } from '../time_analysis/models/TimeReport';
 import { TimeReportBacklogWriter } from './TimeReportBacklogWriter';
+import { i18n } from 'src/i18n';
 
 export class TimeAnalysisReportWriter {
   private readonly tableWriter = new TimeReportTableWriter();
@@ -22,7 +23,8 @@ export class TimeAnalysisReportWriter {
     // 3) LLM
     if (llmResult) {
       sections.push('');
-      sections.push('#### ⏱ 時間分析（LLM）');
+      // ⏱ 時間分析（LLM）
+      sections.push(`#### ${i18n.domain.timeReview.heading.llmAnalysis}`);
       sections.push('');
       sections.push(llmResult);
     }

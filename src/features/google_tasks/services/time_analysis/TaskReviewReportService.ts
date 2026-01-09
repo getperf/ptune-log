@@ -15,7 +15,6 @@ import { WinTaskImportSource } from '../import/WinTaskImportSource';
 import { ApiTaskImportSource } from '../import/ApiTaskImportSource';
 import { TimeAnalysisReportWriter } from '../report/TimeAnalysisReportWriter';
 import { DailyNoteHelper } from 'src/core/utils/daily_note/DailyNoteHelper';
-import { HEADER_TIME_LOG } from '../report/TimeAnalysisDailyNote';
 import { TaskNoteRelationService } from './services/TaskNoteRelationService';
 import { MyTask } from 'src/core/models/tasks/MyTask';
 import { TaskJsonUtils } from 'src/core/utils/task/TaskJsonUtils';
