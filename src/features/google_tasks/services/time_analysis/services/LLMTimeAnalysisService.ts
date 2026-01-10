@@ -27,7 +27,7 @@ export class LLMTimeAnalysisService {
     const systemPrompt =
       'あなたは1日の作業ログを分析し、改善点を示すアシスタントです。';
 
-    const userPrompt = this.promptBuilder.buildUserPrompt(yamlText);
+    const userPrompt = this.promptBuilder.buildUserPrompt(yamlText, { headingLevel: 5 });
 
     const result = await this.llmClient.complete(systemPrompt, userPrompt);
 

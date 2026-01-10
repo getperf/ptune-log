@@ -13,8 +13,6 @@ import { LLMTimeAnalysisService } from '../time_analysis/services/LLMTimeAnalysi
 
 import { WinTaskImportSource } from '../import/WinTaskImportSource';
 import { ApiTaskImportSource } from '../import/ApiTaskImportSource';
-import { TimeAnalysisReportWriter } from '../report/TimeAnalysisReportWriter';
-import { DailyNoteHelper } from 'src/core/utils/daily_note/DailyNoteHelper';
 import { TaskNoteRelationService } from './services/TaskNoteRelationService';
 import { MyTask } from 'src/core/models/tasks/MyTask';
 import { TaskJsonUtils } from 'src/core/utils/task/TaskJsonUtils';
