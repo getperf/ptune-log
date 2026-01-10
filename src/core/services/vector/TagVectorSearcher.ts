@@ -1,13 +1,13 @@
 import { App } from 'obsidian';
-import { LLMClient } from 'src/core/services/llm/LLMClient';
 import { TagVectors } from 'src/core/models/vectors/TagVectors';
 import { TagCandidate } from 'src/core/models/tags/TagCandidate';
 import { logger } from 'src/core/services/logger/loggerInstance';
+import { LLMClient } from '../llm/client/LLMClient';
 
 /** 検索オプション（すべて降順固定） */
 export interface TagSearchOptions {
-  limit?: number;         // 最大件数（default: 50）
-  minScore?: number;      // score の閾値（default: 0.0）
+  limit?: number; // 最大件数（default: 50）
+  minScore?: number; // score の閾値（default: 0.0）
   sortBy?: 'score' | 'count'; // 降順固定（default: score）
 }
 
@@ -20,7 +20,7 @@ export class TagVectorSearcher {
   private vectors: TagVectors | null = null;
   private loaded = false;
 
-  constructor(private app: App, private llmClient: LLMClient) { }
+  constructor(private app: App, private llmClient: LLMClient) {}
 
   /** ベクトルDBの初期ロードを保証 */
   async ensure(): Promise<void> {
@@ -38,9 +38,7 @@ export class TagVectorSearcher {
   async isAvailable(): Promise<boolean> {
     await this.ensure();
 
-    const hasVectors =
-      !!this.vectors &&
-      this.vectors.size() > 0;
+    const hasVectors = !!this.vectors && this.vectors.size() > 0;
 
     // LLM側のベクトル検索可否は Promise の可能性があるため await
     const llmAvailable = this.llmClient.isVectorSearchAvailable();
@@ -50,7 +48,7 @@ export class TagVectorSearcher {
     // boolean を明示的に出力
     logger.debug(
       `[TagVectorSearcher.isAvailable] available=${String(available)}, ` +
-      `hasVectors=${hasVectors}, llmAvailable=${llmAvailable}`
+        `hasVectors=${hasVectors}, llmAvailable=${llmAvailable}`
     );
 
     return available;
@@ -75,9 +73,7 @@ export class TagVectorSearcher {
     const opt: Required<TagSearchOptions> = {
       limit: options.limit ?? 50,
       minScore:
-        options.minScore ??
-        this.llmClient.settings.minSimilarityScore ??
-        0.0, // ★ LLM設定が優先
+        options.minScore ?? this.llmClient.settings.minSimilarityScore ?? 0.0, // ★ LLM設定が優先
       sortBy: options.sortBy ?? 'score',
     };
 

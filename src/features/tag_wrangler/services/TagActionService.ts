@@ -1,11 +1,11 @@
 import { App, Notice } from 'obsidian';
 import { TagRenamer } from './TagRenamer';
-import { LLMClient } from 'src/core/services/llm/LLMClient';
 import { logger } from 'src/core/services/logger/loggerInstance';
-import { TagSuggestionService } from 'src/features/llm_tags/services/tags/TagSuggestionService';
-import { TagAliasUpdater } from 'src/features/llm_tags/services/tags/TagAliasUpdater';
-import { TagEditDialog } from 'src/features/llm_tags/services/tags/TagEditDialog';
 import { ErrorUtils } from 'src/core/utils/common/ErrorUtils';
+import { TagSuggestionService } from 'src/features/tags/services/TagSuggestionService';
+import { TagAliasUpdater } from 'src/features/tags/services/TagAliasUpdater';
+import { TagEditDialog } from 'src/features/tags/ui/TagEditDialog';
+import { LLMClient } from 'src/core/services/llm/client/LLMClient';
 
 /**
  * Tagアクション共通サービス

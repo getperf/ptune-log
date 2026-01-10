@@ -2,8 +2,8 @@ import { App, Notice, parseYaml, stringifyYaml, TFile } from 'obsidian';
 import { Replacement } from '../models/Replacement';
 import { TagPosition } from '../models/TagPosition';
 import { logger } from 'src/core/services/logger/loggerInstance';
-import { TagAliasUpdater } from 'src/features/llm_tags/services/tags/TagAliasUpdater';
 import { ErrorUtils } from 'src/core/utils/common/ErrorUtils';
+import { TagAliasUpdater } from 'src/features/tags/services/TagAliasUpdater';
 
 /**
  * ノートファイル内のタグ置換サービス
@@ -19,7 +19,7 @@ export class TagFileUpdater {
     private tagPositions: TagPosition[],
     private hasFrontMatter: boolean,
     private aliasUpdater?: TagAliasUpdater
-  ) { }
+  ) {}
 
   /** タグ置換を実行 */
   async update(replace: Replacement): Promise<boolean> {

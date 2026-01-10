@@ -1,8 +1,8 @@
 import { App, Vault } from 'obsidian';
 import { YamlIOBase } from './YamlIOBase';
-import { TagRow } from '../../models/tags/Tags';
+import { TagExtractor } from 'src/features/tags/services/TagExtractor';
 import { logger } from '../logger/loggerInstance';
-import { TagExtractor } from 'src/features/llm_tags/services/tags/TagExtractor';
+import { TagRow } from 'src/core/models/tags/Tags';
 
 /**
  * --- TagYamlIO

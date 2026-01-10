@@ -3,10 +3,10 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 
 import { NoteSummary } from './NoteSummary';
 import { NoteProjectFolder } from './NoteProjectFolder';
-import { KPTResult } from 'src/features/llm_tags/services/analysis/KPTAnalyzer';
 import { UnregisteredTagService } from 'src/core/services/tags/UnregisteredTagService';
 import { NoteSummaryFactory } from './NoteSummaryFactory';
 import { SummaryRenderOptions } from 'src/core/services/notes/NoteSummaryMarkdownBuilder';
+import { KPTResult } from '../daily_notes/KPTResult';
 
 /**
  * --- NoteSummaries

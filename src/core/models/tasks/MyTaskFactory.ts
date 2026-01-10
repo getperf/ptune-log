@@ -1,9 +1,9 @@
 // File: src/core/models/tasks/MyTaskFactory.ts
 import { MyTask } from './MyTask';
 import { PomodoroInfo } from './MyTask/PomodoroInfo';
-import { ParsedTask } from 'src/features/google_tasks/services/export/TasksExporter';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
 import { GoogleTaskDto } from './GoogleTaskDto';
+import { ParsedTask } from './ParsedTask';
 
 export class MyTaskFactory {
   static fromApiData(task: GoogleTaskDto, tasklistId?: string): MyTask {

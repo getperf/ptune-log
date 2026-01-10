@@ -2,7 +2,7 @@
 
 import { App, normalizePath } from 'obsidian';
 import { TimeAnalysisPromptBuilder } from '../llm/TimeAnalysisPromptBuilder';
-import { LLMClient } from 'src/core/services/llm/LLMClient';
+import { LLMClient } from 'src/core/services/llm/client/LLMClient';
 import { logger } from 'src/core/services/logger/loggerInstance';
 
 export class LLMTimeAnalysisService {
@@ -11,7 +11,7 @@ export class LLMTimeAnalysisService {
   constructor(
     private readonly app: App,
     private readonly llmClient: LLMClient
-  ) { }
+  ) {}
 
   /**
    * 時間分析 YAML を入力として LLM 分析を実行し、
@@ -27,7 +27,9 @@ export class LLMTimeAnalysisService {
     const systemPrompt =
       'あなたは1日の作業ログを分析し、改善点を示すアシスタントです。';
 
-    const userPrompt = this.promptBuilder.buildUserPrompt(yamlText, { headingLevel: 5 });
+    const userPrompt = this.promptBuilder.buildUserPrompt(yamlText, {
+      headingLevel: 5,
+    });
 
     const result = await this.llmClient.complete(systemPrompt, userPrompt);
 

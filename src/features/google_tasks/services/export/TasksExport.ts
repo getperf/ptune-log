@@ -5,10 +5,11 @@ import { TaskJsonUtils } from 'src/core/utils/task/TaskJsonUtils';
 import { MyTask } from 'src/core/models/tasks/MyTask';
 import { FileUtils } from 'src/core/utils/common/FileUtils';
 import { TasksReset } from '../bootstrap/TasksReset';
-import { ParsedTask, TasksExporter } from './TasksExporter';
+import { TasksExporter } from './TasksExporter';
 import { MarkdownTaskParser } from './MarkdownTaskParser';
 import { TasksExportModal } from './TasksExportModal';
 import { DailyNoteLoader } from 'src/core/services/daily_notes/file_io/DailyNoteLoader';
+import { ParsedTask } from 'src/core/models/tasks/ParsedTask';
 
 export class TasksExport {
   constructor(

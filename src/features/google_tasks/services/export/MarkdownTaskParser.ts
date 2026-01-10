@@ -1,4 +1,4 @@
-import { ParsedTask } from './TasksExporter';
+import { ParsedTask } from 'src/core/models/tasks/ParsedTask';
 import { logger } from 'src/core/services/logger/loggerInstance';
 
 /**

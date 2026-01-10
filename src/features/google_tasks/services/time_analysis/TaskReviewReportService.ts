@@ -4,7 +4,6 @@ import { Plugin } from 'obsidian';
 import { GoogleTasksCommandUtil } from '../../utils/GoogleTasksCommandUtil';
 import { GoogleTasksAPI } from '../../utils/GoogleTasksAPI';
 import type { GoogleAuthSettings } from 'src/config/ConfigManager';
-import { LLMClient } from 'src/core/services/llm/LLMClient';
 
 import { TaskExecutionLoader } from '../time_analysis/services/TaskExecutionLoader';
 import { TaskTimeAggregator } from '../time_analysis/services/TaskTimeAggregator';
@@ -20,6 +19,7 @@ import { TaskReviewAnalysisService } from './services/TaskReviewAnalysisService'
 import { DailyNoteLoader } from 'src/core/services/daily_notes/file_io/DailyNoteLoader';
 import { DailyNoteWriter } from 'src/core/services/daily_notes/file_io/DailyNoteWriter';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
+import { LLMClient } from 'src/core/services/llm/client/LLMClient';
 
 export type TaskReviewStatus =
   | 'idle'

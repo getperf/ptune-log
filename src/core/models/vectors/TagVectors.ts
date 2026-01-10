@@ -1,9 +1,9 @@
 import { Vault, normalizePath } from 'obsidian';
 import { Tags } from '../tags/Tags';
-import { LLMClient } from 'src/core/services/llm/LLMClient';
 import { cosineSimilarity } from 'src/core/utils/vector/vectorUtils';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
+import { LLMClient } from 'src/core/services/llm/client/LLMClient';
 
 /** タグ1件分のEmbeddingデータ構造 */
 export interface TagVector {

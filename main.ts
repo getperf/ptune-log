@@ -4,13 +4,13 @@ import { PtuneSettingTab } from './src/config/SettingsTab';
 import { LayoutRelocator } from 'src/app/LayoutRelocator';
 import { PomodoroSuggest } from 'src/app/PomodoroSuggest';
 import { GoogleTasksFeature } from 'src/features/google_tasks/GoogleTasksFeature';
-import { LLMTagGenerator } from 'src/features/llm_tags/LLMTagGenerator';
 import { TagContextMenuHandler } from 'src/features/tag_wrangler/TagContextMenuHandler';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { NoteCreator } from 'src/features/note_creator/commands/NoteCreator';
 import { OutlineUpdator } from 'src/features/outline_updator/OutlineUpdator';
 import { InitialSetupManager } from 'src/features/setup/InitialSetupManager';
 import { NoteSetupHelper } from 'src/features/setup/NoteSetupHelper';
+import { LLMTagGenerator } from 'src/features/daily_review/pipeline/LLMTagGenerator';
 
 // ★ i18n 初期化（段階1）
 import { i18n, getI18n, type Lang } from 'src/i18n';

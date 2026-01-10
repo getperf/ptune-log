@@ -14,8 +14,8 @@ import { GoogleTasksDailyNoteTaskKeyUpdater } from './services/dailynote/GoogleT
 import { TasksExport } from './services/export/TasksExport';
 import { TimeReportDateSelectModal } from './services/time_analysis/ui/TimeReportDateSelectModal';
 import { LLMSettings } from 'src/config/settings/LLMSettings';
-import { LLMClient } from 'src/core/services/llm/LLMClient';
 import { TaskReviewReportService } from './services/time_analysis/TaskReviewReportService';
+import { LLMClient } from 'src/core/services/llm/client/LLMClient';
 
 export class GoogleTasksFeature {
   private readonly app: App;

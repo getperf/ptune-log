@@ -1,7 +1,7 @@
 import { App, Notice } from 'obsidian';
 import { WinAppUriBuilder } from './WinAppUriBuilder';
 import { WinAppLauncher } from './WinAppLauncher';
-import { DailyNoteUpdater } from 'src/features/daily_notes/DailyNoteUpdater';
+import { DailyNoteUpdater } from 'src/features/daily_review/services/DailyNoteUpdater';
 import { DailyNoteConfig } from 'src/core/utils/daily_note/DailyNoteConfig';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { ErrorUtils } from 'src/core/utils/common/ErrorUtils';

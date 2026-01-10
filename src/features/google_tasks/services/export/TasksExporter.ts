@@ -4,14 +4,7 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 import { MyTask } from 'src/core/models/tasks/MyTask';
 import { PomodoroInfo } from 'src/core/models/tasks/MyTask/PomodoroInfo';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
-
-export interface ParsedTask {
-  index: number;
-  title: string;
-  pomodoro: number;
-  parent_index?: number;
-  rawLine: string;
-}
+import { ParsedTask } from 'src/core/models/tasks/ParsedTask';
 
 /**
  * ParsedTask配列をGoogle Tasksへ登録し、登録済みMyTask配列を返す
@@ -20,7 +13,7 @@ export class TasksExporter {
   constructor(
     private api: GoogleTasksAPI,
     private tasklistTitle: string = 'Today'
-  ) { }
+  ) {}
 
   /**
    * 親→子順で登録し、MyTask[] を返す
@@ -70,7 +63,8 @@ export class TasksExporter {
       }
 
       const parentIndex = task.parent_index;
-      const parentId = parentIndex !== undefined ? indexToId.get(parentIndex) : undefined;
+      const parentId =
+        parentIndex !== undefined ? indexToId.get(parentIndex) : undefined;
 
       if (parentId) {
         await this.api.moveTask(created.id, tasklistId, parentId);

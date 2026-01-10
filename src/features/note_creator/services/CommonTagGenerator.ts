@@ -1,5 +1,4 @@
 import { App, TFolder, Notice } from 'obsidian';
-import { LLMClient } from 'src/core/services/llm/LLMClient';
 import { TagAliases } from 'src/core/models/tags/TagAliases';
 import { TagVectorSearcher } from 'src/core/services/vector/TagVectorSearcher';
 import { FolderIndexWriterService } from 'src/core/services/notes/FolderIndexWriterService';
@@ -7,6 +6,7 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 
 import type { ITagSuggestionStrategy } from '../strategies/ITagSuggestionStrategy';
 import { SummaryTagSuggestionStrategy } from '../strategies/SummaryTagSuggestionStrategy';
+import { LLMClient } from 'src/core/services/llm/client/LLMClient';
 
 /**
  * 共通タグ生成サービス

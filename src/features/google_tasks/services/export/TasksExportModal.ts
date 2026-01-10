@@ -1,5 +1,5 @@
 import { App, Modal, Setting } from 'obsidian';
-import type { ParsedTask } from './TasksExporter';
+import { ParsedTask } from 'src/core/models/tasks/ParsedTask';
 
 export class TasksExportModal extends Modal {
   private statusEl!: HTMLElement;

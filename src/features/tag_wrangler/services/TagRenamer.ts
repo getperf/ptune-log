@@ -8,7 +8,7 @@ import { Replacement } from '../models/Replacement';
 import { TagFileUpdater } from './TagFileUpdater';
 import { Tag } from '../models/Tag';
 import { logger } from 'src/core/services/logger/loggerInstance';
-import { TagAliasUpdater } from 'src/features/llm_tags/services/tags/TagAliasUpdater';
+import { TagAliasUpdater } from 'src/features/tags/services/TagAliasUpdater';
 
 /**
  * タグリネーム処理クラス
@@ -16,7 +16,7 @@ import { TagAliasUpdater } from 'src/features/llm_tags/services/tags/TagAliasUpd
  * - TagAliasUpdater による辞書更新も連携
  */
 export class TagRenamer {
-  constructor(private app: App, private updater?: TagAliasUpdater) { }
+  constructor(private app: App, private updater?: TagAliasUpdater) {}
 
   /** タグ名を新しい名前にリネーム */
   async rename(tagName: string, newName: string): Promise<void> {
