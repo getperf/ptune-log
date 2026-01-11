@@ -1,7 +1,7 @@
-// File: src/features/daily_review/application/NoteAnalysisUpdateUseCase.ts
+// File: src/features/daily_review/application/DailyReviewUseCase.ts
 import { App, Notice, TFile, TFolder } from 'obsidian';
 import { DailyNoteUpdater } from 'src/features/daily_review/services/DailyNoteUpdater';
-import { LLMTagGeneratorModal } from '../ui/LLMTagGeneratorModal';
+import { DailyReviewModal } from '../ui/DailyReviewModal';
 import { NoteAnalysisRunner } from '../../../core/services/llm/note_analysis/NoteAnalysisRunner';
 import { NoteAnalysisService } from '../../note_analysis/analysis/NoteAnalysisService';
 import { ReviewSettings } from 'src/config/settings/ReviewSettings';
@@ -9,7 +9,7 @@ import { DailyNoteLoaderOld } from 'src/core/services/daily_notes/file_io/DailyN
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
 import { NoteAnalysisPromptService } from 'src/core/services/llm/note_analysis/NoteAnalysisPromptService';
 
-export class NoteAnalysisUpdateUseCase {
+export class DailyReviewUseCase {
   private readonly analysis: NoteAnalysisService;
 
   constructor(
@@ -45,7 +45,7 @@ export class NoteAnalysisUpdateUseCase {
 
     const prompt = await NoteAnalysisPromptService.build(this.app);
 
-    const modal = new LLMTagGeneratorModal(this.app, {
+    const modal = new DailyReviewModal(this.app, {
       mode: 'folder',
       initialFiles: files,
       onConfirm: async (modal, files) => {
@@ -70,7 +70,7 @@ export class NoteAnalysisUpdateUseCase {
     const initialFiles = await this.runner.findFilesByDate(initialDate);
     const prompt = await NoteAnalysisPromptService.build(this.app);
 
-    const modal = new LLMTagGeneratorModal(this.app, {
+    const modal = new DailyReviewModal(this.app, {
       mode: 'date',
       initialDate,
       initialFiles,

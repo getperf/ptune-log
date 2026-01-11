@@ -1,4 +1,4 @@
-// File: src/features/daily_review/pipeline/LLMTagGenerator.ts
+// File: src/features/daily_review/pipeline/DailyReviewFeature.ts
 import { App, Plugin } from 'obsidian';
 import { logger } from 'src/core/services/logger/loggerInstance';
 
@@ -6,7 +6,7 @@ import { LLMSettings } from 'src/config/settings/LLMSettings';
 import { ReviewSettings } from 'src/config/settings/ReviewSettings';
 
 // --- コマンド登録 ---
-import { LLMTagCommandRegistrar } from '../commands/LLMTagCommandRegistrar';
+import { DailyReviewCommandRegistrar } from '../commands/DailyReviewCommandRegistrar';
 import { VectorCommandRegistrar } from '../../vectors/commands/VectorCommandRegistrar';
 import { NoteReviewCommandRegistrar } from '../../note_review/commands/NoteReviewCommandRegistrar';
 import { TagCommandRegistrar } from '../../tags/commands/TagCommandRegistrar';
@@ -22,18 +22,18 @@ import { NoteLLMAnalyzer } from 'src/core/services/llm/note_analysis/NoteLLMAnal
 import { TagNormalizationService } from 'src/core/services/tags/TagNormalizationService';
 
 // --- feature usecase ---
-import { NoteAnalysisUpdateUseCase } from '../application/NoteAnalysisUpdateUseCase';
+import { DailyReviewUseCase } from '../application/DailyReviewUseCase';
 
 /**
  * --- LLM タグ／分析機能のエントリーポイント
  * core service を組み立て、UseCase と Command を接続する
  */
-export class LLMTagGenerator {
+export class DailyReviewFeature {
   private readonly llmClient: LLMClient;
   private readonly runner: NoteAnalysisRunner;
-  private readonly executor: NoteAnalysisUpdateUseCase;
+  private readonly executor: DailyReviewUseCase;
 
-  private readonly llmRegistrar: LLMTagCommandRegistrar;
+  private readonly llmRegistrar: DailyReviewCommandRegistrar;
   private readonly tagRegistrar: TagCommandRegistrar;
   private readonly vectorRegistrar: VectorCommandRegistrar;
   private readonly reviewRegistrar: NoteReviewCommandRegistrar;
@@ -43,7 +43,7 @@ export class LLMTagGenerator {
     llmSettings: LLMSettings,
     reviewSettings: ReviewSettings
   ) {
-    logger.debug('[LLMTagGenerator] initializing');
+    logger.debug('[DailyReviewFeature] initializing');
 
     // --- LLM クライアント
     this.llmClient = new LLMClient(app, llmSettings);
@@ -58,7 +58,7 @@ export class LLMTagGenerator {
     this.runner = new NoteAnalysisRunner(app, processor);
 
     // --- UseCase（prompt を保持）
-    this.executor = new NoteAnalysisUpdateUseCase(
+    this.executor = new DailyReviewUseCase(
       app,
       this.llmClient,
       this.runner,
@@ -66,17 +66,17 @@ export class LLMTagGenerator {
     );
 
     // --- コマンド登録
-    this.llmRegistrar = new LLMTagCommandRegistrar(app, this.executor);
+    this.llmRegistrar = new DailyReviewCommandRegistrar(app, this.executor);
     this.tagRegistrar = new TagCommandRegistrar(app, this.llmClient);
     this.vectorRegistrar = new VectorCommandRegistrar(app, this.llmClient);
     this.reviewRegistrar = new NoteReviewCommandRegistrar(app, this.llmClient);
 
-    logger.debug('[LLMTagGenerator] initialized successfully');
+    logger.debug('[DailyReviewFeature] initialized successfully');
   }
 
   /** --- コマンド登録 */
   async register(plugin: Plugin): Promise<void> {
-    logger.debug('[LLMTagGenerator.register] start');
+    logger.debug('[DailyReviewFeature.register] start');
 
     const registry = TagKindRegistry.getInstance(plugin.app.vault);
     await registry.ensure();
@@ -86,6 +86,6 @@ export class LLMTagGenerator {
     this.vectorRegistrar.register(plugin);
     this.reviewRegistrar.register(plugin);
 
-    logger.debug('[LLMTagGenerator.register] complete');
+    logger.debug('[DailyReviewFeature.register] complete');
   }
 }

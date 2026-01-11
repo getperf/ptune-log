@@ -1,26 +1,25 @@
 import { App, Plugin, TFolder } from 'obsidian';
-import { NoteAnalysisUpdateUseCase } from 'src/features/daily_review/application/NoteAnalysisUpdateUseCase';
+import { DailyReviewUseCase } from 'src/features/daily_review/application/DailyReviewUseCase';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { PromptTemplateManager } from 'src/core/services/prompts/PromptTemplateManager';
 import { LLMPromptPreviewer } from 'src/features/llm_settings/ui/LLMPromptPreviewer';
 
 /**
- * --- LLMTagCommandRegistrar
  * LLMタグ生成関連のコマンド登録クラス
  * （ファイルメニュー・日付指定・テンプレート選択・プロンプトプレビュー含む）
  */
-export class LLMTagCommandRegistrar {
+export class DailyReviewCommandRegistrar {
   private promptManager: PromptTemplateManager;
 
   constructor(
     private readonly app: App,
-    private readonly executor: NoteAnalysisUpdateUseCase
+    private readonly executor: DailyReviewUseCase
   ) {
     this.promptManager = new PromptTemplateManager(app);
   }
 
   register(plugin: Plugin) {
-    logger.debug('[LLMTagCommandRegistrar.register] start');
+    logger.debug('[DailyReviewCommandRegistrar.register] start');
 
     // --- ファイルメニュー登録 ---
     plugin.registerEvent(
@@ -32,7 +31,7 @@ export class LLMTagCommandRegistrar {
               .setIcon('bot')
               .onClick(() => {
                 logger.debug(
-                  `[LLMTagCommandRegistrar] runOnFolder: ${file.path}`
+                  `[DailyReviewCommandRegistrar] runOnFolder: ${file.path}`
                 );
                 void this.executor.runOnFolder(file);
               })
@@ -48,7 +47,7 @@ export class LLMTagCommandRegistrar {
       id: 'llm-tag-generate-by-date',
       name: 'タグ更新: 今日の振り返り（日付指定）',
       callback: () => {
-        logger.debug('[LLMTagCommandRegistrar] command: runOnDate');
+        logger.debug('[DailyReviewCommandRegistrar] command: runOnDate');
         void this.executor.runOnDate();
       },
     });
@@ -58,7 +57,7 @@ export class LLMTagCommandRegistrar {
       id: 'llm-select-template',
       name: 'タグ更新: LLMタグ生成テンプレートを選択',
       callback: () => {
-        logger.debug('[LLMTagCommandRegistrar] command: select-template');
+        logger.debug('[DailyReviewCommandRegistrar] command: select-template');
         this.promptManager.updateTemplate();
       },
     });
@@ -69,13 +68,13 @@ export class LLMTagCommandRegistrar {
       name: 'LLM Tags: 生成プロンプトをプレビュー表示',
       callback: async () => {
         logger.debug(
-          '[LLMTagCommandRegistrar] command: preview-llm-tag-prompt'
+          '[DailyReviewCommandRegistrar] command: preview-llm-tag-prompt'
         );
         const previewer = new LLMPromptPreviewer(this.app);
         await previewer.showPromptPreview();
       },
     });
 
-    logger.debug('[LLMTagCommandRegistrar.register] complete');
+    logger.debug('[DailyReviewCommandRegistrar.register] complete');
   }
 }

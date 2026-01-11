@@ -10,7 +10,7 @@ import { NoteCreator } from 'src/features/note_creator/commands/NoteCreator';
 import { OutlineUpdator } from 'src/features/outline_updator/OutlineUpdator';
 import { InitialSetupManager } from 'src/features/setup/InitialSetupManager';
 import { NoteSetupHelper } from 'src/features/setup/NoteSetupHelper';
-import { LLMTagGenerator } from 'src/features/daily_review/pipeline/LLMTagGenerator';
+import { DailyReviewFeature } from 'src/features/daily_review/pipeline/DailyReviewFeature';
 
 // ★ i18n 初期化（段階1）
 import { i18n, getI18n, type Lang } from 'src/i18n';
@@ -20,7 +20,7 @@ export default class PtunePlugin extends Plugin {
   private config!: ConfigManager;
   private noteCreator!: NoteCreator;
   private suggest!: PomodoroSuggest;
-  private llmTagGenerator!: LLMTagGenerator;
+  private dailyReviewFeature!: DailyReviewFeature;
   private googleTasks!: GoogleTasksFeature;
   private requiredPluginChecker!: InitialSetupManager;
   private noteSetupHelper!: NoteSetupHelper;
@@ -49,7 +49,7 @@ export default class PtunePlugin extends Plugin {
     await this.noteSetupHelper.ensureResources();
 
     // --- LLMタギング ---
-    this.llmTagGenerator = new LLMTagGenerator(
+    this.dailyReviewFeature = new DailyReviewFeature(
       this.app,
       this.config.settings.llm,
       this.config.settings.review
@@ -92,7 +92,7 @@ export default class PtunePlugin extends Plugin {
       const relocator = new LayoutRelocator(this.app);
       await relocator.ensureDefaultViewsInLeftPane();
       await this.requiredPluginChecker.checkAll();
-      await this.llmTagGenerator.register(this);
+      await this.dailyReviewFeature.register(this);
     });
 
     // --- 設定タブ登録（A案）---

@@ -1,9 +1,9 @@
-// File: src/features/daily_review/ui/LLMTagGeneratorModal.ts
+// File: src/features/daily_review/ui/DailyReviewModal.ts
 import { App, Modal, Setting, TFile } from 'obsidian';
 import { IProgressReporter } from 'src/core/services/llm/note_analysis/IProgressReporter';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
 
-export class LLMTagGeneratorModal extends Modal implements IProgressReporter {
+export class DailyReviewModal extends Modal implements IProgressReporter {
   private isRunning = false;
   private messageEl!: HTMLDivElement;
   private countTextEl!: HTMLParagraphElement;
@@ -20,7 +20,7 @@ export class LLMTagGeneratorModal extends Modal implements IProgressReporter {
       initialDate?: Date;
       onDateChange?: (date: Date) => Promise<TFile[]>;
       onConfirm: (
-        modal: LLMTagGeneratorModal,
+        modal: DailyReviewModal,
         files: TFile[],
         selectedDate: Date,
         forceRegenerate: boolean
