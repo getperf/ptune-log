@@ -5,6 +5,7 @@ import { MyTask } from 'src/core/models/tasks/MyTask';
 import { PomodoroInfo } from 'src/core/models/tasks/MyTask/PomodoroInfo';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
 import { ParsedTask } from 'src/core/models/tasks/ParsedTask';
+import { createAndLogError } from 'src/core/utils/errors/errorFactory';
 
 /**
  * ParsedTask配列をGoogle Tasksへ登録し、登録済みMyTask配列を返す
@@ -13,7 +14,7 @@ export class TasksExporter {
   constructor(
     private api: GoogleTasksAPI,
     private tasklistTitle: string = 'Today'
-  ) {}
+  ) { }
 
   /**
    * 親→子順で登録し、MyTask[] を返す
@@ -26,11 +27,11 @@ export class TasksExporter {
 
     const tasklistId = await this.api.findTaskListId(this.tasklistTitle);
     if (!tasklistId)
-      throw new Error(`${this.tasklistTitle} タスクリストが見つかりません`);
+      throw createAndLogError(`${this.tasklistTitle} タスクリストが見つかりません`);
 
     const existing = await this.api.listTasks(tasklistId);
     if (existing.length > 0)
-      throw new Error(`既存のタスクが存在します。リセットしてください`);
+      throw createAndLogError(`既存のタスクが存在します。リセットしてください`);
 
     const parents = parsed
       .filter((t) => t.parent_index === undefined)
@@ -46,7 +47,7 @@ export class TasksExporter {
       const created = await this.api.addTask(myTask, tasklistId);
 
       if (!created.id) {
-        throw new Error(`タスクIDが取得できませんでした: ${task.title}`);
+        throw createAndLogError(`タスクIDが取得できませんでした: ${task.title}`);
       }
 
       myTask.id = created.id;
@@ -59,7 +60,7 @@ export class TasksExporter {
       const created = await this.api.addTask(myTask, tasklistId);
 
       if (!created.id) {
-        throw new Error(`子タスクIDが取得できませんでした: ${task.title}`);
+        throw createAndLogError(`子タスクIDが取得できませんでした: ${task.title}`);
       }
 
       const parentIndex = task.parent_index;

@@ -2,6 +2,7 @@ import { normalizePath, Vault } from 'obsidian';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { VaultUtils } from '../common/VaultUtils';
 import { DateUtil } from '../date/DateUtil';
+import { createAndLogError } from '../errors/errorFactory';
 
 interface DailyNoteSettings {
   folder: string;
@@ -69,7 +70,7 @@ export class DailyNoteConfig {
 
     try {
       const exists = await vault.adapter.exists(path);
-      if (!exists) throw new Error('daily-notes.json does not exist');
+      if (!exists) throw createAndLogError('daily-notes.json does not exist');
 
       const content = await vault.adapter.read(path);
       const json = JSON.parse(content);

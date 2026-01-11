@@ -7,6 +7,7 @@ import { NoteAnalysisService } from '../../note_analysis/analysis/NoteAnalysisSe
 import { ReviewSettings } from 'src/config/settings/ReviewSettings';
 import { DailyNoteLoaderOld } from 'src/core/services/daily_notes/file_io/DailyNoteLoaderOld';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
+import { NoteAnalysisPromptService } from 'src/core/services/llm/note_analysis/NoteAnalysisPromptService';
 
 export class NoteAnalysisUpdateUseCase {
   private readonly analysis: NoteAnalysisService;
@@ -25,7 +26,9 @@ export class NoteAnalysisUpdateUseCase {
       new Notice('⚠️ APIキー未設定');
       return;
     }
-    await this.runner.runOnFiles([file]);
+
+    const prompt = await NoteAnalysisPromptService.build(this.app);
+    await this.runner.runOnFiles([file], prompt);
   }
 
   async runOnFolder(folder: TFolder): Promise<void> {
@@ -40,11 +43,15 @@ export class NoteAnalysisUpdateUseCase {
       return;
     }
 
+    const prompt = await NoteAnalysisPromptService.build(this.app);
+
     const modal = new LLMTagGeneratorModal(this.app, {
       mode: 'folder',
       initialFiles: files,
       onConfirm: async (modal, files) => {
-        void this.runner.runOnFiles(files, modal).then(() => modal.close());
+        void this.runner
+          .runOnFiles(files, prompt, modal)
+          .then(() => modal.close());
       },
     });
 
@@ -61,15 +68,16 @@ export class NoteAnalysisUpdateUseCase {
     const enableChecklist = this.client.settings.enableChecklist ?? true;
     const initialDate = new Date();
     const initialFiles = await this.runner.findFilesByDate(initialDate);
+    const prompt = await NoteAnalysisPromptService.build(this.app);
 
     const modal = new LLMTagGeneratorModal(this.app, {
       mode: 'date',
       initialDate,
       initialFiles,
       onDateChange: (date) => this.runner.findFilesByDate(date),
-      onConfirm: (modal, files, selectedDate, forceRegenerate) => {
+      onConfirm: async (modal, files, selectedDate, forceRegenerate) => {
         void this.runner
-          .runOnFiles(files, modal, forceRegenerate)
+          .runOnFiles(files, prompt, modal, forceRegenerate)
           .then(async (summaries) => {
             const dailyNote = await DailyNoteLoaderOld.load(
               this.app,

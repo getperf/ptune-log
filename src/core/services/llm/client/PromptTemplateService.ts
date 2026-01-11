@@ -1,4 +1,5 @@
 import { TFile, Vault } from 'obsidian';
+import { createAndLogError } from 'src/core/utils/errors/errorFactory';
 
 export class PromptTemplateService {
   constructor(private vault: Vault) { }
@@ -25,7 +26,7 @@ export class PromptTemplateService {
   ): Promise<string> {
     const file = this.vault.getAbstractFileByPath(templatePath);
     if (!(file instanceof TFile)) {
-      throw new Error(`テンプレートが見つかりません: ${templatePath}`);
+      throw createAndLogError(`テンプレートが見つかりません: ${templatePath}`);
     }
     const content = await this.vault.read(file);
 

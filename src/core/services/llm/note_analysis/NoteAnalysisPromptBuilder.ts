@@ -5,8 +5,8 @@ import { PromptTemplateService } from 'src/core/services/llm/client/PromptTempla
 export class NoteAnalysisPromptBuilder {
   constructor(
     private readonly templates: PromptTemplateService,
-    private readonly systemTemplate = 'core/services/prompt_templates/templates/tag_generate_system.md',
-    private readonly userTemplate = 'core/services/prompt_templates/templates/tag_generate.md'
+    private readonly systemTemplate = '_templates/llm/system/tag_generate_system.md',
+    private readonly userTemplate = '_templates/llm/tag_generate.md'
   ) { }
 
   async build(params: { topTags: TagRank[] }): Promise<string> {

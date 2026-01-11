@@ -4,6 +4,7 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 import { GoogleAuthSettings } from 'src/config/ConfigManager';
 
 import type * as http from 'http';
+import { createAndLogError } from 'src/core/utils/errors/errorFactory';
 
 interface WindowWithRequire extends Window {
   require: (module: string) => unknown;
@@ -96,7 +97,7 @@ export class GoogleAuth {
       });
 
       if (res.status < 200 || res.status >= 300) {
-        throw new Error(`Token exchange failed: ${res.status} - ${res.text}`);
+        throw createAndLogError(`Token exchange failed: ${res.status} - ${res.text}`);
       }
 
       const tokens = res.json;

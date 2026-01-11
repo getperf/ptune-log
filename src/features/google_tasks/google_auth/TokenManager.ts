@@ -2,6 +2,7 @@ import { Notice, Plugin, requestUrl } from 'obsidian';
 import { GoogleAuthSettings } from 'src/config/ConfigManager';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { ErrorUtils } from 'src/core/utils/common/ErrorUtils';
+import { createAndLogError } from 'src/core/utils/errors/errorFactory';
 
 export interface TokenResponse {
   access_token: string;
@@ -26,8 +27,7 @@ export class TokenManager {
   ) {
     const { clientId, clientSecret } = this.authSettings;
     if (!clientId?.trim() || !clientSecret?.trim()) {
-      logger.error('[TokenManager.constructor] Missing Client ID or Secret');
-      throw new Error('Google 認証設定（Client ID / Secret）が未設定です');
+      throw createAndLogError('Google 認証設定（Client ID / Secret）が未設定です');
     }
     logger.debug('[TokenManager.constructor] initialized', { clientId });
   }

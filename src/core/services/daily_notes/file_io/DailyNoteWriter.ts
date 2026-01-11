@@ -4,9 +4,10 @@ import { App, TFile } from 'obsidian';
 import { DailyNote } from 'src/core/models/daily_notes/DailyNote';
 import { DailyNoteHelper } from 'src/core/utils/daily_note/DailyNoteHelper';
 import { FrontmatterHandler } from './FrontmatterHandler';
+import { createAndLogError } from 'src/core/utils/errors/errorFactory';
 
 export class DailyNoteWriter {
-  constructor(private readonly app: App) {}
+  constructor(private readonly app: App) { }
 
   /**
    * DailyNote を指定日のデイリーノートとして保存
@@ -18,7 +19,7 @@ export class DailyNoteWriter {
     const file = this.app.vault.getAbstractFileByPath(path);
 
     if (!(file instanceof TFile)) {
-      throw new Error('Daily note not found');
+      throw createAndLogError('Daily note not found');
     }
 
     const original = await this.app.vault.read(file);

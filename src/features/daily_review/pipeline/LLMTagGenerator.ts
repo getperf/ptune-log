@@ -1,3 +1,4 @@
+// File: src/features/daily_review/pipeline/LLMTagGenerator.ts
 import { App, Plugin } from 'obsidian';
 import { logger } from 'src/core/services/logger/loggerInstance';
 
@@ -12,13 +13,13 @@ import { TagCommandRegistrar } from '../../tags/commands/TagCommandRegistrar';
 
 // --- core services ---
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
-import { PromptTemplateService } from 'src/core/services/llm/client/PromptTemplateService';
 import { TagKindRegistry } from 'src/core/models/tags/TagKindRegistry';
-import { TagYamlIO } from 'src/core/services/yaml/TagYamlIO';
-import { TagRankCalculator } from 'src/core/services/tags/TagRankCalculator';
 
-import { NoteAnalysisPromptBuilder } from 'src/core/services/llm/note_analysis/NoteAnalysisPromptBuilder';
 import { NoteAnalysisRunner } from 'src/core/services/llm/note_analysis/NoteAnalysisRunner';
+import { NoteAnalysisProcessor } from 'src/core/services/llm/note_analysis/NoteAnalysisProcessor';
+import { LLMYamlExtractor } from 'src/core/services/llm/note_analysis/LLMYamlExtractor';
+import { NoteLLMAnalyzer } from 'src/core/services/llm/note_analysis/NoteLLMAnalyzer';
+import { TagNormalizationService } from 'src/core/services/tags/TagNormalizationService';
 
 // --- feature usecase ---
 import { NoteAnalysisUpdateUseCase } from '../application/NoteAnalysisUpdateUseCase';
@@ -47,29 +48,16 @@ export class LLMTagGenerator {
     // --- LLM クライアント
     this.llmClient = new LLMClient(app, llmSettings);
 
-    // --- TagRank 計算系（core）
-    const tagRegistry = TagKindRegistry.getInstance(app.vault);
-    const tagYamlIO = new TagYamlIO();
-    const tagRankCalculator = new TagRankCalculator(
-      tagRegistry,
-      tagYamlIO
-    );
+    // --- Processor 組み立て（core）
+    const extractor = new LLMYamlExtractor();
+    const analyzer = new NoteLLMAnalyzer(this.llmClient, extractor);
+    const normalizer = new TagNormalizationService();
+    const processor = new NoteAnalysisProcessor(app, analyzer, normalizer);
 
-    // --- Prompt 系（core）
-    const templateService = new PromptTemplateService(app.vault);
-    const promptBuilder = new NoteAnalysisPromptBuilder(templateService);
+    // --- Runner（prompt を知らない）
+    this.runner = new NoteAnalysisRunner(app, processor);
 
-    // --- 分析処理（core）
-    // const processor = new NoteAnalysisProcessor(app, this.llmClient);
-
-    this.runner = new NoteAnalysisRunner(
-      app,
-      this.llmClient,
-      promptBuilder,
-      tagRankCalculator
-    );
-
-    // --- UseCase（feature）
+    // --- UseCase（prompt を保持）
     this.executor = new NoteAnalysisUpdateUseCase(
       app,
       this.llmClient,
@@ -86,13 +74,10 @@ export class LLMTagGenerator {
     logger.debug('[LLMTagGenerator] initialized successfully');
   }
 
-  /**
-   * --- コマンド登録
-   */
+  /** --- コマンド登録 */
   async register(plugin: Plugin): Promise<void> {
     logger.debug('[LLMTagGenerator.register] start');
 
-    // TagKindRegistry 初期化
     const registry = TagKindRegistry.getInstance(plugin.app.vault);
     await registry.ensure();
 

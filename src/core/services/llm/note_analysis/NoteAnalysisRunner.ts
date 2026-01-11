@@ -1,3 +1,4 @@
+// File: src/core/services/llm/note_analysis/NoteAnalysisRunner.ts
 import { App, Notice, TFile, TFolder } from 'obsidian';
 import { TagAliases } from 'src/core/models/tags/TagAliases';
 import { logger } from 'src/core/services/logger/loggerInstance';
@@ -7,25 +8,25 @@ import { NoteSearchService } from 'src/core/services/notes/NoteSearchService';
 import { IProgressReporter } from './IProgressReporter';
 import { TagYamlIO } from 'src/core/services/yaml/TagYamlIO';
 import { UnregisteredTagService } from 'src/core/services/tags/UnregisteredTagService';
-import { LLMClient } from 'src/core/services/llm/client/LLMClient';
-import { NoteAnalysisPromptBuilder } from './NoteAnalysisPromptBuilder';
-import { TagRankCalculator } from '../../tags/TagRankCalculator';
-import { LLMYamlExtractor } from './LLMYamlExtractor';
-import { NoteLLMAnalyzer } from './NoteLLMAnalyzer';
-import { TagNormalizationService } from '../../tags/TagNormalizationService';
 
 /**
  * LLM による複数ノート解析の統括クラス。
- * 既存メソッド構成を維持したまま、内部処理を NoteSummaryFactory ベースに調整。
+ *
+ * 責務:
+ * - ノート検索（date / folder）
+ * - 複数ノートの逐次処理
+ * - 進捗通知（IProgressReporter）
+ *
+ * 非責務:
+ * - プロンプト生成
+ * - タグランキング計算
  */
 export class NoteAnalysisRunner {
-  private noteSearch: NoteSearchService;
+  private readonly noteSearch: NoteSearchService;
 
   constructor(
     private readonly app: App,
-    private readonly client: LLMClient,
-    private readonly promptBuilder: NoteAnalysisPromptBuilder,
-    private readonly tagRankCalculator: TagRankCalculator
+    private readonly processor: NoteAnalysisProcessor
   ) {
     this.noteSearch = new NoteSearchService(app);
   }
@@ -42,24 +43,22 @@ export class NoteAnalysisRunner {
 
   /**
    * runOnFiles
-   * - LLM によるタグ生成のメイン処理
+   * - 完成済み prompt を用いてノートを解析する
    * - UI 依存部分（進行表示）は IProgressReporter に委譲
    */
   async runOnFiles(
     files: TFile[],
+    prompt: string,
     reporter?: IProgressReporter,
     force = false
   ): Promise<NoteSummaries> {
     logger.debug(
-      `[LLMTagGenerationRunner.runOnFiles] start total=${files.length} force=${force}`
+      `[NoteAnalysisRunner.runOnFiles] start total=${files.length} force=${force}`
     );
 
-    if (!this.client) {
-      throw new Error('LLMTagGenerationRunner: Missing dependencies.');
-    }
-
+    // --- 対象ファイルなし
     if (files.length === 0) {
-      logger.warn('[LLMTagGenerationRunner] no files found');
+      logger.warn('[NoteAnalysisRunner] no files found');
       new Notice('対象ノートが見つかりません。');
       return new NoteSummaries();
     }
@@ -67,26 +66,11 @@ export class NoteAnalysisRunner {
     // --- Reporter に開始通知
     reporter?.onStart(files.length);
 
-    // --- タグエイリアス
+    // --- タグエイリアス（1回だけロード）
     const aliases = new TagAliases();
     await aliases.load(this.app.vault);
-    logger.debug('[LLMTagGenerationRunner] TagAliases loaded');
+    logger.debug('[NoteAnalysisRunner] TagAliases loaded');
 
-    // --- プロンプト生成
-    const tagRanks = await this.tagRankCalculator.calculateTop(this.app.vault);
-    const prompt = await this.promptBuilder.build({ topTags: tagRanks });
-
-    logger.debug('[LLMTagGenerationRunner] prompt ready');
-
-    const extractor = new LLMYamlExtractor();
-    const analyzer = new NoteLLMAnalyzer(this.client, extractor);
-    const normalizer = new TagNormalizationService();
-
-    const processor = new NoteAnalysisProcessor(
-      this.app,
-      analyzer,
-      normalizer
-    );
     const summaries = new NoteSummaries();
     let errorCount = 0;
 
@@ -99,22 +83,27 @@ export class NoteAnalysisRunner {
 
       try {
         logger.debug(
-          `[LLMTagGenerationRunner] processing file=${file.path} index=${i}`
+          `[NoteAnalysisRunner] processing file=${file.path} index=${i}`
         );
 
-        const summary = await processor.process(file, prompt, aliases, force);
+        const summary = await this.processor.process(
+          file,
+          prompt,
+          aliases,
+          force
+        );
         summaries.add(summary);
 
         logger.debug(
-          `[LLMTagGenerationRunner] processed: ${file.path} (index ${i})`
+          `[NoteAnalysisRunner] processed: ${file.path} (index ${i})`
         );
       } catch (e) {
-        logger.error(`[LLMTagGenerationRunner] error in ${file.path}`, e);
+        logger.error(`[NoteAnalysisRunner] error in ${file.path}`, e);
         errorCount++;
       }
     }
 
-    // 未登録タグを一括セット
+    // --- 未登録タグを一括セット（後処理）
     const tagYamlIO = new TagYamlIO();
     const unregisteredService = new UnregisteredTagService(tagYamlIO);
     const updatedSummaries = await summaries.applyUnregisteredTags(
@@ -132,11 +121,11 @@ export class NoteAnalysisRunner {
     reporter?.onFinish(files.length - errorCount, errorCount);
 
     logger.info(
-      `[LLMTagGenerationRunner] complete. total=${files.length}, errors=${errorCount}`
+      `[NoteAnalysisRunner] complete. total=${files.length}, errors=${errorCount}`
     );
     if (errorCount > 0) {
       new Notice(
-        `⚠️ ${errorCount}件のエラー発生。詳細はログを確認してください。`
+        `⚠️ ${errorCount}件のエラーが発生しました。詳細はログを確認してください。`
       );
     }
 

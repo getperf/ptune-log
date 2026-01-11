@@ -5,6 +5,7 @@ import {
 } from 'obsidian-daily-notes-interface';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
+import { createAndLogError } from '../errors/errorFactory';
 
 /** --- デイリーノート操作のユーティリティクラス */
 export class DailyNoteHelper {
@@ -154,7 +155,7 @@ export class DailyNoteHelper {
 
     const headingIndex = content.indexOf(heading);
     if (headingIndex === -1) {
-      throw new Error(`Heading not found: ${heading}`);
+      throw createAndLogError(`Heading not found: ${heading}`);
     }
 
     // 次の同レベル or 上位レベル見出しを探す

@@ -1,5 +1,6 @@
 import { Vault, TFile, normalizePath, parseYaml } from 'obsidian';
 import { logger } from 'src/core/services/logger/loggerInstance';
+import { createAndLogError } from 'src/core/utils/errors/errorFactory';
 
 // --- タグ種別の管理とロードを行うクラス
 export interface TagKindDefinition {
@@ -23,12 +24,12 @@ export class TagKindRegistry {
   private kinds: TagKindDefinition[] = [];
   private loaded = false;
 
-  private constructor(private readonly vault: Vault) {}
+  private constructor(private readonly vault: Vault) { }
 
   static getInstance(vault?: Vault): TagKindRegistry {
     if (!TagKindRegistry.instance) {
       if (!vault)
-        throw new Error('TagKindRegistry requires Vault for first init');
+        throw createAndLogError('TagKindRegistry requires Vault for first init');
       TagKindRegistry.instance = new TagKindRegistry(vault);
     }
     return TagKindRegistry.instance;
@@ -44,7 +45,7 @@ export class TagKindRegistry {
       const yaml = await this.vault.read(file);
       const parsed = parseYaml(yaml);
       if (!Array.isArray(parsed))
-        throw new Error('タグ種別設定ファイルの形式が不正です');
+        throw createAndLogError('タグ種別設定ファイルの形式が不正です');
       this.kinds = parsed as TagKindDefinition[];
       logger.info(`[TagKindRegistry] loaded ${this.kinds.length} kinds`);
     } else {

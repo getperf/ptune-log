@@ -1,4 +1,4 @@
-import { App, Plugin, TFile, TFolder } from 'obsidian';
+import { App, Plugin, TFolder } from 'obsidian';
 import { NoteAnalysisUpdateUseCase } from 'src/features/daily_review/application/NoteAnalysisUpdateUseCase';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { PromptTemplateManager } from 'src/core/services/prompts/PromptTemplateManager';
