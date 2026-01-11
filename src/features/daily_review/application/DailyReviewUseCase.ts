@@ -1,5 +1,5 @@
 // File: src/features/daily_review/application/DailyReviewUseCase.ts
-import { App, Notice, TFile, TFolder } from 'obsidian';
+import { App, Notice, TFolder } from 'obsidian';
 import { DailyReviewModal } from '../ui/DailyReviewModal';
 import { NoteAnalysisRunner } from '../../../core/services/llm/note_analysis/NoteAnalysisRunner';
 import { NoteAnalysisService } from '../../note_analysis/analysis/NoteAnalysisService';
@@ -7,6 +7,7 @@ import { ReviewSettings } from 'src/config/settings/ReviewSettings';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
 import { NoteAnalysisPromptService } from 'src/core/services/llm/note_analysis/NoteAnalysisPromptService';
 import { DailyReviewApplier } from '../services/DailyReviewApplier';
+import { logger } from 'src/core/services/logger/loggerInstance';
 
 export class DailyReviewUseCase {
   private readonly analysis: NoteAnalysisService;
@@ -18,16 +19,6 @@ export class DailyReviewUseCase {
     private readonly reviewSettings: ReviewSettings
   ) {
     this.analysis = new NoteAnalysisService(app, client);
-  }
-
-  async runOnFile(file: TFile): Promise<void> {
-    if (!this.client.hasValidApiKey()) {
-      new Notice('⚠️ APIキー未設定');
-      return;
-    }
-
-    const prompt = await NoteAnalysisPromptService.build(this.app);
-    await this.runner.runOnFiles([file], prompt);
   }
 
   async runOnFolder(folder: TFolder): Promise<void> {
@@ -68,8 +59,8 @@ export class DailyReviewUseCase {
     const initialFiles = await this.runner.findFilesByDate(initialDate);
     const prompt = await NoteAnalysisPromptService.build(this.app);
 
-    const applier = new DailyReviewApplier(this.app);
-
+    const applier = new DailyReviewApplier(this.app, this.reviewSettings);
+    logger.debug(`[DEBUG] 設定確認 : ${JSON.stringify(this.reviewSettings)}`);
     const modal = new DailyReviewModal(this.app, {
       mode: 'date',
       initialDate,

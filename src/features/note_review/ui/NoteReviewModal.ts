@@ -11,10 +11,10 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 import { TagListSection } from '../components/TagListSection';
 import { DailyNoteTaskKeyReader } from 'src/core/services/daily_notes/task_keys/DailyNoteTaskKeyReader';
 import { NoteReviewService } from '../services/NoteReviewService';
-import { TagRankService } from 'src/features/tags/services/TagRankService';
 import { TagEditDialog } from 'src/features/tags/ui/TagEditDialog';
 import { PromptTemplateService } from 'src/core/services/llm/client/PromptTemplateService';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
+import { NoteAnalysisPromptService } from 'src/core/services/llm/note_analysis/NoteAnalysisPromptService';
 
 export class NoteReviewModal extends Modal {
   private editable?: EditableNoteSummary;
@@ -78,12 +78,7 @@ export class NoteReviewModal extends Modal {
 
   private async runLLMAnalysis() {
     try {
-      const topTags = await new TagRankService(this.app).getFormattedTopTags();
-      const prompt = await this.promptService.mergeSystemAndUser(
-        '_templates/llm/system/tag_generate_system.md',
-        '_templates/llm/tag_generate.md',
-        { TOP_TAGS: topTags }
-      );
+      const prompt = await NoteAnalysisPromptService.build(this.app);
 
       const aliases = new TagAliases();
       await aliases.load(this.app.vault);

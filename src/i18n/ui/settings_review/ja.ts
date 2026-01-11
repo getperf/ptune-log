@@ -9,4 +9,9 @@ export const UI_SETTINGS_REVIEW_JA: UiSettingsReviewI18n = {
     name: '共通タグの自動付与',
     desc: '振り返り時に、フォルダ内ノートの共通タグを自動で付与します。',
   },
+
+  enableDailyNoteUserReview: {
+    name: 'ユーザーレビュー有効化',
+    desc: 'デイリーノートのユーザレビューカスタマイズを有効にします。',
+  }
 };

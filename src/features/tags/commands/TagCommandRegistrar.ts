@@ -9,14 +9,14 @@ export class TagCommandRegistrar {
   constructor(
     private readonly app: App,
     private readonly llmClient: LLMClient
-  ) {}
+  ) { }
 
   register(plugin: Plugin) {
     logger.debug('[TagCommandRegistrar.register] start');
 
     plugin.addCommand({
       id: 'rebuild-tag-db',
-      name: 'LLM tags: タグ辞書を再構築',
+      name: 'タグ管理：タグ辞書を再構築',
       callback: async () => {
         new Notice('⏳ タグ辞書の再構築を開始しました', 8000);
         logger.info('[TagCommandRegistrar] rebuild-tag-db start');
@@ -37,7 +37,7 @@ export class TagCommandRegistrar {
 
     plugin.addCommand({
       id: 'merge-tag-aliases',
-      name: 'LLM tags: エイリアス辞書にタグを登録・マージ',
+      name: 'タグ管理：エイリアス辞書にタグを登録・マージ',
       callback: async () => {
         const merger = new TagAliasMerger(this.app, this.llmClient);
         await merger.run();

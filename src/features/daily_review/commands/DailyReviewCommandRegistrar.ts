@@ -29,7 +29,7 @@ export class DailyReviewCommandRegistrar {
         if (file instanceof TFolder) {
           menu.addItem((item) =>
             item
-              .setTitle('日次振り返り: このフォルダを実行')
+              .setTitle('振り返り: フォルダを指定して実行')
               .setIcon('bot')
               .onClick(() => {
                 logger.debug(
@@ -45,7 +45,7 @@ export class DailyReviewCommandRegistrar {
     // --- コマンド：今日の振り返り ---
     plugin.addCommand({
       id: 'daily-review-run-today',
-      name: '日次振り返り: 今日を実行',
+      name: '振り返り: 日付を指定して実行',
       callback: () => {
         logger.debug('[DailyReviewCommandRegistrar] command: runOnDate');
         void this.useCase.runOnDate();

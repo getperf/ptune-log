@@ -1,19 +1,35 @@
 // File: src/features/daily_review/services/DailyReviewSummaryBuilder.ts
-
 import { NoteSummaries } from 'src/core/models/notes/NoteSummaries';
+import { ReviewSettings } from 'src/config/settings/ReviewSettings';
+import { SummaryRenderOptions } from 'src/core/services/notes/NoteSummaryMarkdownBuilder';
 
 export class DailyReviewSummaryBuilder {
-  /**
-   * デイリーノート用のサマリ Markdown を生成
-   * - 表示形式のみを責務とする
-   * - DailyNote や Vault には依存しない
-   */
-  static build(summaries: NoteSummaries): string {
+  static build(summaries: NoteSummaries, settings: ReviewSettings): string {
+    const options = this.toRenderOptions(settings);
+
     return summaries.summaryMarkdown({
-      baseHeadingLevel: 3,
-      checklist: true,
-      sentenceSplit: true,
-      withUserReview: true,
+      baseHeadingLevel: 4,
+      ...options,
     });
+  }
+
+  private static toRenderOptions(
+    settings: ReviewSettings,
+  ): SummaryRenderOptions {
+    if (settings.enableDailyNoteUserReview) {
+      return {
+        checklist: true,
+        sentenceSplit: true,
+        withLink: true,
+        withUserReview: true,
+      };
+    }
+
+    return {
+      checklist: false,
+      sentenceSplit: false,
+      withLink: true,
+      withUserReview: false,
+    };
   }
 }

@@ -7,4 +7,9 @@ export interface UiSettingsReviewI18n {
     name: string;
     desc: string;
   };
+
+  enableDailyNoteUserReview: {
+    name: string;
+    desc: string;
+  }
 }

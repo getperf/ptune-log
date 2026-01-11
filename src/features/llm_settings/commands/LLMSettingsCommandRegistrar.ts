@@ -7,12 +7,8 @@ import { LLMPromptPreviewer } from '../ui/LLMPromptPreviewer';
 /**
  * LLMSettingsCommandRegistrar
  *
- * 責務:
  * - LLM プロンプトテンプレートの管理
  * - プロンプト内容の確認（プレビュー）
- *
- * 非責務:
- * - 日次振り返りの実行
  */
 export class LLMSettingsCommandRegistrar {
   private readonly promptManager: PromptTemplateManager;

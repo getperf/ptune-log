@@ -25,4 +25,16 @@ export function renderReviewSettings(
           await manager.update('review.enableCommonTag', value);
         });
     });
+
+  new Setting(containerEl)
+    .setName(t.enableDailyNoteUserReview.name)
+    .setDesc(t.enableDailyNoteUserReview.desc)
+    .addToggle((toggle) => {
+      toggle
+        .setValue(manager.get<boolean>('review.enableDailyNoteUserReview'))
+        .onChange(async (value) => {
+          await manager.update('review.enableDailyNoteUserReview', value);
+        });
+    });
+
 }

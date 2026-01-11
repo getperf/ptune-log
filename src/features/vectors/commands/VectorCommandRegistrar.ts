@@ -6,14 +6,14 @@ export class VectorCommandRegistrar {
   constructor(
     private readonly app: App,
     private readonly llmClient: LLMClient
-  ) {}
+  ) { }
 
   register(plugin: Plugin) {
     logger.debug('[VectorCommandRegistrar.register] start');
 
     plugin.addCommand({
       id: 'test-embedding-api',
-      name: 'LLM tags: Embedding API 接続テスト',
+      name: 'タグ管理：Embedding API 接続テスト',
       callback: async () => {
         if (!this.llmClient.hasValidApiKey()) {
           new Notice('⚠️ LLM APIキーが設定されていません');

@@ -19,7 +19,7 @@ export class NoteReviewCommandRegistrar {
 
     plugin.addCommand({
       id: 'ptune-note-review',
-      name: 'レビュー: 現在のノートをLLMで解析・確認',
+      name: '振り返り: 現在のノートをレビュー',
       callback: async () => {
         const file = this.app.workspace.getActiveFile();
         if (!file) {
@@ -40,7 +40,7 @@ export class NoteReviewCommandRegistrar {
         if (file instanceof TFile && file.extension === 'md') {
           menu.addItem((item) =>
             item
-              .setTitle('LLMでノートレビュー（解析・確認）')
+              .setTitle('ノートレビュー')
               .setIcon('bot')
               .onClick(() => {
                 this.openReviewModal(file);

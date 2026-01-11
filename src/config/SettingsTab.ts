@@ -12,7 +12,7 @@ import { renderReviewSettings } from './SettingTabReview';
 
 import type { LogLevel } from 'src/core/services/logger/Logger';
 import { isLang, type Lang } from 'src/i18n/types';
-import { i18n, getI18n } from 'src/i18n';
+import { i18n } from 'src/i18n';
 import { I18nBootstrap } from 'src/i18n/I18nBootstrap';
 
 function isLogLevel(v: string): v is LogLevel {
