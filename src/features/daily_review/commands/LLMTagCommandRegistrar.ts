@@ -1,5 +1,5 @@
 import { App, Plugin, TFile, TFolder } from 'obsidian';
-import { LLMTagGenerateExecutor } from 'src/core/services/llm/workflow/LLMTagGenerateExecutor';
+import { NoteAnalysisUpdateUseCase } from 'src/features/daily_review/application/NoteAnalysisUpdateUseCase';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { PromptTemplateManager } from 'src/core/services/prompts/PromptTemplateManager';
 import { LLMPromptPreviewer } from 'src/features/llm_settings/ui/LLMPromptPreviewer';
@@ -14,7 +14,7 @@ export class LLMTagCommandRegistrar {
 
   constructor(
     private readonly app: App,
-    private readonly executor: LLMTagGenerateExecutor
+    private readonly executor: NoteAnalysisUpdateUseCase
   ) {
     this.promptManager = new PromptTemplateManager(app);
   }

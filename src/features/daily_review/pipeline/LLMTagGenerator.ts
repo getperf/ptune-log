@@ -1,37 +1,41 @@
 import { App, Plugin } from 'obsidian';
-import { LLMSettings } from 'src/config/settings/LLMSettings';
-import { PromptTemplateManager } from '../../../core/services/prompts/PromptTemplateManager';
-import { TagKindRegistry } from 'src/core/models/tags/TagKindRegistry';
 import { logger } from 'src/core/services/logger/loggerInstance';
 
-// --- コマンド登録クラス群 ---
+import { LLMSettings } from 'src/config/settings/LLMSettings';
+import { ReviewSettings } from 'src/config/settings/ReviewSettings';
+
+// --- コマンド登録 ---
 import { LLMTagCommandRegistrar } from '../commands/LLMTagCommandRegistrar';
 import { VectorCommandRegistrar } from '../../vectors/commands/VectorCommandRegistrar';
-
-// --- 実行・処理系 ---
-import { LLMTagGenerationRunner } from '../../../core/services/llm/workflow/LLMTagGenerationRunner';
-import { LLMTagGenerateExecutor } from '../../../core/services/llm/workflow/LLMTagGenerateExecutor';
-import { ReviewSettings } from 'src/config/settings/ReviewSettings';
 import { NoteReviewCommandRegistrar } from '../../note_review/commands/NoteReviewCommandRegistrar';
 import { TagCommandRegistrar } from '../../tags/commands/TagCommandRegistrar';
+
+// --- core services ---
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
-import { LLMPromptService } from 'src/core/services/llm/client/LLMPromptService';
+import { PromptTemplateService } from 'src/core/services/llm/client/PromptTemplateService';
+import { TagKindRegistry } from 'src/core/models/tags/TagKindRegistry';
+import { TagYamlIO } from 'src/core/services/yaml/TagYamlIO';
+import { TagRankCalculator } from 'src/core/services/tags/TagRankCalculator';
+
+import { NoteAnalysisPromptBuilder } from 'src/core/services/llm/note_analysis/NoteAnalysisPromptBuilder';
+import { NoteAnalysisRunner } from 'src/core/services/llm/note_analysis/NoteAnalysisRunner';
+
+// --- feature usecase ---
+import { NoteAnalysisUpdateUseCase } from '../application/NoteAnalysisUpdateUseCase';
 
 /**
- * --- LLMタグ生成のエントリーポイント
- * 初期化・テンプレート準備・コマンド登録を統括
+ * --- LLM タグ／分析機能のエントリーポイント
+ * core service を組み立て、UseCase と Command を接続する
  */
 export class LLMTagGenerator {
-  private llmClient: LLMClient;
-  private promptService: LLMPromptService;
-  private promptManager: PromptTemplateManager;
-  private runner: LLMTagGenerationRunner;
-  private executor: LLMTagGenerateExecutor;
+  private readonly llmClient: LLMClient;
+  private readonly runner: NoteAnalysisRunner;
+  private readonly executor: NoteAnalysisUpdateUseCase;
 
-  private llmRegistrar: LLMTagCommandRegistrar;
-  private tagRegistrar: TagCommandRegistrar;
-  private vectorRegistrar: VectorCommandRegistrar;
-  private reviewRegistrar: NoteReviewCommandRegistrar;
+  private readonly llmRegistrar: LLMTagCommandRegistrar;
+  private readonly tagRegistrar: TagCommandRegistrar;
+  private readonly vectorRegistrar: VectorCommandRegistrar;
+  private readonly reviewRegistrar: NoteReviewCommandRegistrar;
 
   constructor(
     private readonly app: App,
@@ -40,25 +44,40 @@ export class LLMTagGenerator {
   ) {
     logger.debug('[LLMTagGenerator] initializing');
 
-    // --- コア依存の初期化
+    // --- LLM クライアント
     this.llmClient = new LLMClient(app, llmSettings);
-    this.promptService = new LLMPromptService(app.vault);
-    this.promptManager = new PromptTemplateManager(app);
 
-    // --- 解析・実行層
-    this.runner = new LLMTagGenerationRunner(
+    // --- TagRank 計算系（core）
+    const tagRegistry = TagKindRegistry.getInstance(app.vault);
+    const tagYamlIO = new TagYamlIO();
+    const tagRankCalculator = new TagRankCalculator(
+      tagRegistry,
+      tagYamlIO
+    );
+
+    // --- Prompt 系（core）
+    const templateService = new PromptTemplateService(app.vault);
+    const promptBuilder = new NoteAnalysisPromptBuilder(templateService);
+
+    // --- 分析処理（core）
+    // const processor = new NoteAnalysisProcessor(app, this.llmClient);
+
+    this.runner = new NoteAnalysisRunner(
       app,
       this.llmClient,
-      this.promptService
+      promptBuilder,
+      tagRankCalculator
     );
-    this.executor = new LLMTagGenerateExecutor(
+
+    // --- UseCase（feature）
+    this.executor = new NoteAnalysisUpdateUseCase(
       app,
       this.llmClient,
       this.runner,
       reviewSettings
     );
 
-    // --- コマンド登録層
+    // --- コマンド登録
     this.llmRegistrar = new LLMTagCommandRegistrar(app, this.executor);
     this.tagRegistrar = new TagCommandRegistrar(app, this.llmClient);
     this.vectorRegistrar = new VectorCommandRegistrar(app, this.llmClient);
@@ -68,17 +87,15 @@ export class LLMTagGenerator {
   }
 
   /**
-   * --- コマンドやイベントの登録を行う
+   * --- コマンド登録
    */
   async register(plugin: Plugin): Promise<void> {
     logger.debug('[LLMTagGenerator.register] start');
 
-    // --- テンプレートとレジストリ初期化
-    await this.promptManager.initializeTemplate();
+    // TagKindRegistry 初期化
     const registry = TagKindRegistry.getInstance(plugin.app.vault);
     await registry.ensure();
 
-    // --- コマンド登録を各領域に分離
     this.llmRegistrar.register(plugin);
     this.tagRegistrar.register(plugin);
     this.vectorRegistrar.register(plugin);

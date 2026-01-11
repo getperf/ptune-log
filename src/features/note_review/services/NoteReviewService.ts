@@ -11,15 +11,27 @@ import {
   EditableNoteSummary,
   EditableNoteSummaryFactory,
 } from '../models/EditableNoteSummary';
-import { LLMTagFileProcessor } from 'src/core/services/llm/workflow/LLMTagFileProcessor';
+import { NoteAnalysisProcessor } from 'src/core/services/llm/note_analysis/NoteAnalysisProcessor';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
+import { NoteAnalysisPreviewService } from 'src/core/services/llm/note_analysis/NoteAnalysisPreviewService';
+import { LLMYamlExtractor } from 'src/core/services/llm/note_analysis/LLMYamlExtractor';
+import { NoteLLMAnalyzer } from 'src/core/services/llm/note_analysis/NoteLLMAnalyzer';
+import { TagNormalizationService } from 'src/core/services/tags/TagNormalizationService';
 
 export class NoteReviewService {
-  private readonly processor: LLMTagFileProcessor;
+  private readonly processor: NoteAnalysisProcessor;
   private readonly fmWriter: FrontmatterWriter;
+  private readonly previewService: NoteAnalysisPreviewService;
 
   constructor(private readonly app: App, client: LLMClient) {
-    this.processor = new LLMTagFileProcessor(app, client);
+    const extractor = new LLMYamlExtractor();
+    const analyzer = new NoteLLMAnalyzer(client, extractor);
+    const normalizer = new TagNormalizationService();
+    this.previewService = new NoteAnalysisPreviewService(
+      app,
+      analyzer,
+      normalizer
+    );
     this.fmWriter = new FrontmatterWriter(app.vault);
   }
 
@@ -31,7 +43,7 @@ export class NoteReviewService {
     prompt: string,
     aliases: TagAliases
   ): Promise<NoteSummary> {
-    return this.processor.preview(file, prompt, aliases);
+    return this.previewService.preview(file, prompt, aliases);
   }
 
   /**

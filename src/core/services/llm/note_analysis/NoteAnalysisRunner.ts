@@ -2,28 +2,30 @@ import { App, Notice, TFile, TFolder } from 'obsidian';
 import { TagAliases } from 'src/core/models/tags/TagAliases';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { NoteSummaries } from 'src/core/models/notes/NoteSummaries';
-import { LLMTagFileProcessor } from './LLMTagFileProcessor';
+import { NoteAnalysisProcessor } from './NoteAnalysisProcessor';
 import { NoteSearchService } from 'src/core/services/notes/NoteSearchService';
 import { IProgressReporter } from './IProgressReporter';
 import { TagYamlIO } from 'src/core/services/yaml/TagYamlIO';
 import { UnregisteredTagService } from 'src/core/services/tags/UnregisteredTagService';
-import { NoteSummaryFactory } from 'src/core/models/notes/NoteSummaryFactory';
-import { TagRankService } from 'src/features/tags/services/TagRankService';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
-import { LLMPromptService } from 'src/core/services/llm/client/LLMPromptService';
+import { NoteAnalysisPromptBuilder } from './NoteAnalysisPromptBuilder';
+import { TagRankCalculator } from '../../tags/TagRankCalculator';
+import { LLMYamlExtractor } from './LLMYamlExtractor';
+import { NoteLLMAnalyzer } from './NoteLLMAnalyzer';
+import { TagNormalizationService } from '../../tags/TagNormalizationService';
 
 /**
- * --- LLMTagGenerationRunner
  * LLM による複数ノート解析の統括クラス。
  * 既存メソッド構成を維持したまま、内部処理を NoteSummaryFactory ベースに調整。
  */
-export class LLMTagGenerationRunner {
+export class NoteAnalysisRunner {
   private noteSearch: NoteSearchService;
 
   constructor(
     private readonly app: App,
-    private readonly client?: LLMClient,
-    private readonly promptService?: LLMPromptService
+    private readonly client: LLMClient,
+    private readonly promptBuilder: NoteAnalysisPromptBuilder,
+    private readonly tagRankCalculator: TagRankCalculator
   ) {
     this.noteSearch = new NoteSearchService(app);
   }
@@ -52,7 +54,7 @@ export class LLMTagGenerationRunner {
       `[LLMTagGenerationRunner.runOnFiles] start total=${files.length} force=${force}`
     );
 
-    if (!this.promptService || !this.client) {
+    if (!this.client) {
       throw new Error('LLMTagGenerationRunner: Missing dependencies.');
     }
 
@@ -71,15 +73,20 @@ export class LLMTagGenerationRunner {
     logger.debug('[LLMTagGenerationRunner] TagAliases loaded');
 
     // --- プロンプト生成
-    const topTags = await new TagRankService(this.app).getFormattedTopTags();
-    const prompt = await this.promptService.loadAndApply(
-      '_templates/llm/system/tag_generate_system.md',
-      '_templates/llm/tag_generate.md',
-      { TOP_TAGS: topTags }
-    );
+    const tagRanks = await this.tagRankCalculator.calculateTop(this.app.vault);
+    const prompt = await this.promptBuilder.build({ topTags: tagRanks });
+
     logger.debug('[LLMTagGenerationRunner] prompt ready');
 
-    const processor = new LLMTagFileProcessor(this.app, this.client);
+    const extractor = new LLMYamlExtractor();
+    const analyzer = new NoteLLMAnalyzer(this.client, extractor);
+    const normalizer = new TagNormalizationService();
+
+    const processor = new NoteAnalysisProcessor(
+      this.app,
+      analyzer,
+      normalizer
+    );
     const summaries = new NoteSummaries();
     let errorCount = 0;
 

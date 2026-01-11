@@ -1,17 +1,17 @@
 import { App, Plugin, TFile, Notice } from 'obsidian';
-import { NoteReviewModal } from '../ui/NoteReviewModal';
 import { logger } from 'src/core/services/logger/loggerInstance';
-import { NoteReviewService } from '../services/NoteReviewService';
-import { LLMPromptService } from 'src/core/services/llm/client/LLMPromptService';
+import { PromptTemplateService } from 'src/core/services/llm/client/PromptTemplateService';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
+import { NoteReviewModal } from '../ui/NoteReviewModal';
+import { NoteReviewService } from '../services/NoteReviewService';
 
 export class NoteReviewCommandRegistrar {
   private reviewService: NoteReviewService;
-  private promptService: LLMPromptService;
+  private promptService: PromptTemplateService;
 
   constructor(private readonly app: App, private readonly client: LLMClient) {
     this.reviewService = new NoteReviewService(app, client);
-    this.promptService = new LLMPromptService(app.vault);
+    this.promptService = new PromptTemplateService(app.vault);
   }
 
   register(plugin: Plugin): void {

@@ -13,13 +13,13 @@ import { DailyNoteTaskKeyReader } from 'src/core/services/daily_notes/task_keys/
 import { NoteReviewService } from '../services/NoteReviewService';
 import { TagRankService } from 'src/features/tags/services/TagRankService';
 import { TagEditDialog } from 'src/features/tags/ui/TagEditDialog';
-import { LLMPromptService } from 'src/core/services/llm/client/LLMPromptService';
+import { PromptTemplateService } from 'src/core/services/llm/client/PromptTemplateService';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
 
 export class NoteReviewModal extends Modal {
   private editable?: EditableNoteSummary;
   private loading = false;
-  private promptService: LLMPromptService;
+  private promptService: PromptTemplateService;
   private exportTasks: ExportTask[] = [];
 
   constructor(
@@ -29,7 +29,7 @@ export class NoteReviewModal extends Modal {
     private readonly file: TFile
   ) {
     super(app);
-    this.promptService = new LLMPromptService(app.vault);
+    this.promptService = new PromptTemplateService(app.vault);
   }
 
   onOpen() {
@@ -79,7 +79,7 @@ export class NoteReviewModal extends Modal {
   private async runLLMAnalysis() {
     try {
       const topTags = await new TagRankService(this.app).getFormattedTopTags();
-      const prompt = await this.promptService.loadAndApply(
+      const prompt = await this.promptService.mergeSystemAndUser(
         '_templates/llm/system/tag_generate_system.md',
         '_templates/llm/tag_generate.md',
         { TOP_TAGS: topTags }

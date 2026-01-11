@@ -1,15 +1,14 @@
+// File: src/features/daily_review/ui/LLMTagGeneratorModal.ts
 import { App, Modal, Setting, TFile } from 'obsidian';
-import { IProgressReporter } from 'src/core/services/llm/workflow/IProgressReporter';
-import { LLMTagGenerationRunner } from 'src/core/services/llm/workflow/LLMTagGenerationRunner';
+import { IProgressReporter } from 'src/core/services/llm/note_analysis/IProgressReporter';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
 
 export class LLMTagGeneratorModal extends Modal implements IProgressReporter {
   private isRunning = false;
-  private messageEl: HTMLDivElement;
-  private countTextEl: HTMLParagraphElement;
-  private progressBarEl: HTMLProgressElement;
+  private messageEl!: HTMLDivElement;
+  private countTextEl!: HTMLParagraphElement;
+  private progressBarEl!: HTMLProgressElement;
   private files: TFile[] = [];
-  private runner: LLMTagGenerationRunner;
   private selectedDate: Date;
   private forceRegenerate = false;
 
@@ -19,6 +18,7 @@ export class LLMTagGeneratorModal extends Modal implements IProgressReporter {
       mode: 'folder' | 'date';
       initialFiles?: TFile[];
       initialDate?: Date;
+      onDateChange?: (date: Date) => Promise<TFile[]>;
       onConfirm: (
         modal: LLMTagGeneratorModal,
         files: TFile[],
@@ -28,10 +28,7 @@ export class LLMTagGeneratorModal extends Modal implements IProgressReporter {
     }
   ) {
     super(app);
-    this.runner = new LLMTagGenerationRunner(app);
     this.files = options.initialFiles ?? [];
-
-    // 初期値は今日
     this.selectedDate = options.initialDate ?? new Date();
   }
 
@@ -52,33 +49,29 @@ export class LLMTagGeneratorModal extends Modal implements IProgressReporter {
         .setName('対象日（タグ抽出＆保存）')
         .setDesc('過去7日間から選択してください')
         .addDropdown((drop) => {
-          // const today = DateUtil.mNow().startOf('day');
-          const options: Record<string, string> = {};
-
+          const opts: Record<string, string> = {};
           for (let i = 0; i < 7; i++) {
-            const date = DateUtil.mNow().subtract(i, 'days'); // clone は不要
-            const dateStr = date.format('YYYY-MM-DD');
-            options[dateStr] = dateStr;
+            const d = DateUtil.mNow().subtract(i, 'days');
+            const s = d.format('YYYY-MM-DD');
+            opts[s] = s;
           }
-
           const selected = DateUtil.m(this.selectedDate).format('YYYY-MM-DD');
-
-          drop.addOptions(options);
+          drop.addOptions(opts);
           drop.setValue(selected);
 
           drop.onChange(async (value) => {
             this.selectedDate = new Date(value);
-            this.files = await this.runner.findFilesByDate(this.selectedDate);
-            this.updateCountText();
+            if (this.options.onDateChange) {
+              this.files = await this.options.onDateChange(this.selectedDate);
+              this.updateCountText();
+              this.progressBarEl.max = this.files.length;
+            }
           });
         });
 
-      // 件数表示
       this.countTextEl = contentEl.createEl('p');
-      this.files = await this.runner.findFilesByDate(this.selectedDate);
       this.updateCountText();
     } else {
-      // フォルダ一括モード（そのまま実行）
       contentEl.createEl('p', {
         text: `${this.files.length} 件の記録ノートに要約とタグを追加します。実行しますか？`,
       });
@@ -91,7 +84,7 @@ export class LLMTagGeneratorModal extends Modal implements IProgressReporter {
 
     this.messageEl = contentEl.createEl('div', { text: '' });
 
-    // 解析済みも再実行
+    // 再解析トグル
     new Setting(contentEl)
       .setName('解析済みノートも再実行する')
       .setDesc('summary/tags があるノートも LLM で再解析します')
@@ -100,7 +93,7 @@ export class LLMTagGeneratorModal extends Modal implements IProgressReporter {
         toggle.onChange((value) => (this.forceRegenerate = value));
       });
 
-    // 実行ボタン
+    // 実行・キャンセル
     new Setting(contentEl)
       .addButton((btn) =>
         btn
@@ -134,11 +127,6 @@ export class LLMTagGeneratorModal extends Modal implements IProgressReporter {
     this.messageEl.setText(`✅ ${text}`);
   }
 
-  reportProgress(index: number, file: TFile) {
-    this.progressBarEl.value = index + 1;
-    this.messageEl.setText(`⏳ 処理中: ${file.path}`);
-  }
-
   onStart(total: number): void {
     this.progressBarEl.max = total;
     this.progressBarEl.value = 0;
@@ -146,7 +134,8 @@ export class LLMTagGeneratorModal extends Modal implements IProgressReporter {
   }
 
   onProgress(index: number, file: TFile): void {
-    this.reportProgress(index, file);
+    this.progressBarEl.value = index + 1;
+    this.messageEl.setText(`⏳ 処理中: ${file.path}`);
   }
 
   onFinish(success: number, errors: number): void {

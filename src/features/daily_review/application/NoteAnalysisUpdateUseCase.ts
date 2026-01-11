@@ -1,22 +1,20 @@
-// File: src/features/llm_tags/services/llm/LLMTagGenerateExecutor.ts
+// File: src/features/daily_review/application/NoteAnalysisUpdateUseCase.ts
 import { App, Notice, TFile, TFolder } from 'obsidian';
 import { DailyNoteUpdater } from 'src/features/daily_review/services/DailyNoteUpdater';
-import { LLMTagGeneratorModal } from '../../../../features/daily_review/ui/LLMTagGeneratorModal';
-import { LLMTagGenerationRunner } from './LLMTagGenerationRunner';
-import { NoteAnalysisService } from '../../../../features/note_analysis/analysis/NoteAnalysisService';
+import { LLMTagGeneratorModal } from '../ui/LLMTagGeneratorModal';
+import { NoteAnalysisRunner } from '../../../core/services/llm/note_analysis/NoteAnalysisRunner';
+import { NoteAnalysisService } from '../../note_analysis/analysis/NoteAnalysisService';
 import { ReviewSettings } from 'src/config/settings/ReviewSettings';
-import { DailyNoteReader } from 'src/core/services/daily_notes/file_io/DailyNoteReader';
 import { DailyNoteLoaderOld } from 'src/core/services/daily_notes/file_io/DailyNoteLoaderOld';
-import { DailyNoteOld } from 'src/core/models/daily_notes/DailyNoteOld';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
 
-export class LLMTagGenerateExecutor {
+export class NoteAnalysisUpdateUseCase {
   private readonly analysis: NoteAnalysisService;
 
   constructor(
     private readonly app: App,
     private readonly client: LLMClient,
-    private readonly runner: LLMTagGenerationRunner,
+    private readonly runner: NoteAnalysisRunner,
     private readonly reviewSettings: ReviewSettings
   ) {
     this.analysis = new NoteAnalysisService(app, client);
@@ -46,9 +44,7 @@ export class LLMTagGenerateExecutor {
       mode: 'folder',
       initialFiles: files,
       onConfirm: async (modal, files) => {
-        void this.runner.runOnFiles(files, modal).then(() => {
-          modal.close();
-        });
+        void this.runner.runOnFiles(files, modal).then(() => modal.close());
       },
     });
 
@@ -61,12 +57,16 @@ export class LLMTagGenerateExecutor {
       new Notice('⚠️ APIキー未設定');
       return;
     }
+
     const enableChecklist = this.client.settings.enableChecklist ?? true;
-    const enableCommonTag = this.reviewSettings.enableCommonTag ?? true;
+    const initialDate = new Date();
+    const initialFiles = await this.runner.findFilesByDate(initialDate);
 
     const modal = new LLMTagGeneratorModal(this.app, {
       mode: 'date',
-      initialDate: new Date(),
+      initialDate,
+      initialFiles,
+      onDateChange: (date) => this.runner.findFilesByDate(date),
       onConfirm: (modal, files, selectedDate, forceRegenerate) => {
         void this.runner
           .runOnFiles(files, modal, forceRegenerate)
@@ -81,13 +81,13 @@ export class LLMTagGenerateExecutor {
               forceCommonTags: forceRegenerate,
             });
           })
-          .then((analyzed) => {
-            return new DailyNoteUpdater(this.app).update(
+          .then((analyzed) =>
+            new DailyNoteUpdater(this.app).update(
               analyzed,
               selectedDate,
               { enableChecklist }
-            );
-          })
+            )
+          )
           .then(() => {
             modal.showCompletionMessage('今日の振り返りが完了しました');
             setTimeout(() => modal.close(), 1500);

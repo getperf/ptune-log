@@ -3,22 +3,22 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 
 import { TagAliases } from 'src/core/models/tags/TagAliases';
 import { TagRankService } from 'src/features/tags/services/TagRankService';
-import { LLMPromptService } from 'src/core/services/llm/client/LLMPromptService';
+import { PromptTemplateService } from 'src/core/services/llm/client/PromptTemplateService';
 
 /**
  * LLMタグ生成用プロンプトをプレビュー表示する
  */
 export class LLMPromptPreviewer {
-  constructor(private readonly app: App) {}
+  constructor(private readonly app: App) { }
 
   async showPromptPreview(): Promise<void> {
     try {
-      const promptService = new LLMPromptService(this.app.vault);
+      const promptService = new PromptTemplateService(this.app.vault);
       const aliases = new TagAliases();
       await aliases.load(this.app.vault);
       const topTags = await new TagRankService(this.app).getFormattedTopTags();
 
-      const prompt = await promptService.loadAndApply(
+      const prompt = await promptService.mergeSystemAndUser(
         '_templates/llm/system/tag_generate_system.md',
         '_templates/llm/tag_generate.md',
         { TOP_TAGS: topTags }
