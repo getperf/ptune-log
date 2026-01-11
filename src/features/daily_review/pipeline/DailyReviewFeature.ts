@@ -10,6 +10,7 @@ import { DailyReviewCommandRegistrar } from '../commands/DailyReviewCommandRegis
 import { VectorCommandRegistrar } from '../../vectors/commands/VectorCommandRegistrar';
 import { NoteReviewCommandRegistrar } from '../../note_review/commands/NoteReviewCommandRegistrar';
 import { TagCommandRegistrar } from '../../tags/commands/TagCommandRegistrar';
+import { LLMSettingsCommandRegistrar } from 'src/features/llm_settings/commands/LLMSettingsCommandRegistrar';
 
 // --- core services ---
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
@@ -37,6 +38,7 @@ export class DailyReviewFeature {
   private readonly tagRegistrar: TagCommandRegistrar;
   private readonly vectorRegistrar: VectorCommandRegistrar;
   private readonly reviewRegistrar: NoteReviewCommandRegistrar;
+  private readonly llmSettingCommandRegistrar: LLMSettingsCommandRegistrar;
 
   constructor(
     private readonly app: App,
@@ -70,6 +72,7 @@ export class DailyReviewFeature {
     this.tagRegistrar = new TagCommandRegistrar(app, this.llmClient);
     this.vectorRegistrar = new VectorCommandRegistrar(app, this.llmClient);
     this.reviewRegistrar = new NoteReviewCommandRegistrar(app, this.llmClient);
+    this.llmSettingCommandRegistrar = new LLMSettingsCommandRegistrar(app);
 
     logger.debug('[DailyReviewFeature] initialized successfully');
   }
@@ -85,6 +88,7 @@ export class DailyReviewFeature {
     this.tagRegistrar.register(plugin);
     this.vectorRegistrar.register(plugin);
     this.reviewRegistrar.register(plugin);
+    this.llmSettingCommandRegistrar.register(plugin);
 
     logger.debug('[DailyReviewFeature.register] complete');
   }

@@ -1,77 +1,54 @@
+// File: src/features/daily_review/commands/DailyReviewCommandRegistrar.ts
 import { App, Plugin, TFolder } from 'obsidian';
-import { DailyReviewUseCase } from 'src/features/daily_review/application/DailyReviewUseCase';
+import { DailyReviewUseCase } from '../application/DailyReviewUseCase';
 import { logger } from 'src/core/services/logger/loggerInstance';
-import { PromptTemplateManager } from 'src/core/services/prompts/PromptTemplateManager';
-import { LLMPromptPreviewer } from 'src/features/llm_settings/ui/LLMPromptPreviewer';
 
 /**
- * LLMタグ生成関連のコマンド登録クラス
- * （ファイルメニュー・日付指定・テンプレート選択・プロンプトプレビュー含む）
+ * DailyReviewCommandRegistrar
+ *
+ * 責務:
+ * - 日次振り返りの実行トリガーのみを登録する
+ *
+ * 非責務:
+ * - LLM プロンプト設定
+ * - テンプレート管理
+ * - プロンプトプレビュー
  */
 export class DailyReviewCommandRegistrar {
-  private promptManager: PromptTemplateManager;
-
   constructor(
     private readonly app: App,
-    private readonly executor: DailyReviewUseCase
-  ) {
-    this.promptManager = new PromptTemplateManager(app);
-  }
+    private readonly useCase: DailyReviewUseCase
+  ) { }
 
-  register(plugin: Plugin) {
+  register(plugin: Plugin): void {
     logger.debug('[DailyReviewCommandRegistrar.register] start');
 
-    // --- ファイルメニュー登録 ---
+    // --- フォルダ右クリック：振り返り実行 ---
     plugin.registerEvent(
       this.app.workspace.on('file-menu', (menu, file) => {
         if (file instanceof TFolder) {
           menu.addItem((item) =>
             item
-              .setTitle('LLMでこのフォルダ配下を一括タグ生成')
+              .setTitle('日次振り返り: このフォルダを実行')
               .setIcon('bot')
               .onClick(() => {
                 logger.debug(
                   `[DailyReviewCommandRegistrar] runOnFolder: ${file.path}`
                 );
-                void this.executor.runOnFolder(file);
+                void this.useCase.runOnFolder(file);
               })
           );
         }
       })
     );
 
-    // --- コマンド登録 ---
-
-    // ① 日付指定で今日の振り返り
+    // --- コマンド：今日の振り返り ---
     plugin.addCommand({
-      id: 'llm-tag-generate-by-date',
-      name: 'タグ更新: 今日の振り返り（日付指定）',
+      id: 'daily-review-run-today',
+      name: '日次振り返り: 今日を実行',
       callback: () => {
         logger.debug('[DailyReviewCommandRegistrar] command: runOnDate');
-        void this.executor.runOnDate();
-      },
-    });
-
-    // ② テンプレート選択
-    plugin.addCommand({
-      id: 'llm-select-template',
-      name: 'タグ更新: LLMタグ生成テンプレートを選択',
-      callback: () => {
-        logger.debug('[DailyReviewCommandRegistrar] command: select-template');
-        this.promptManager.updateTemplate();
-      },
-    });
-
-    // ③ LLMプロンプトプレビュー
-    plugin.addCommand({
-      id: 'preview-llm-tag-prompt',
-      name: 'LLM Tags: 生成プロンプトをプレビュー表示',
-      callback: async () => {
-        logger.debug(
-          '[DailyReviewCommandRegistrar] command: preview-llm-tag-prompt'
-        );
-        const previewer = new LLMPromptPreviewer(this.app);
-        await previewer.showPromptPreview();
+        void this.useCase.runOnDate();
       },
     });
 
