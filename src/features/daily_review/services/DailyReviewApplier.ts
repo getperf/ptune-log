@@ -9,11 +9,16 @@ import { DailyReviewSummaryBuilder } from './DailyReviewSummaryBuilder';
 import { DailyReviewTagListBuilder } from './DailyReviewTagListBuilder';
 import { ReviewSettings } from 'src/config/settings/ReviewSettings';
 import { logger } from 'src/core/services/logger/loggerInstance';
+import { KptActionBlockBuilder } from './KptActionBlockBuilder';
+import { DailyReviewSummaryCommentBuilder } from './DailyReviewSummaryCommentBuilder';
 
 export class DailyReviewApplier {
   private readonly writer: DailyNoteWriter;
 
-  constructor(private readonly app: App, private readonly settings: ReviewSettings) {
+  constructor(
+    private readonly app: App,
+    private readonly settings: ReviewSettings
+  ) {
     this.writer = new DailyNoteWriter(app);
   }
 
@@ -21,23 +26,34 @@ export class DailyReviewApplier {
     const dailyNote = await DailyNoteLoader.load(this.app, date);
 
     const tagListMd = DailyReviewTagListBuilder.build(summaries);
-    const updated = this.applyReviewedNoteIfNeeded(dailyNote, summaries)
-      .updateReviewMemo(tagListMd);
+    const updated = this.applyReviewedNoteIfNeeded(
+      dailyNote,
+      summaries
+    ).updateReviewMemo(tagListMd);
 
     await this.writer.write(updated, date);
   }
 
   /** reviewedNote は初回のみ更新する */
-  private applyReviewedNoteIfNeeded(dailyNote: DailyNote, summaries: NoteSummaries): DailyNote {
+  private applyReviewedNoteIfNeeded(
+    dailyNote: DailyNote,
+    summaries: NoteSummaries
+  ): DailyNote {
     if (!this.shouldUpdateReviewedNote(dailyNote)) {
-      logger.debug(
-        '[DailyReviewApplier] reviewedNote already exists. skip updating.',
-      );
       return dailyNote;
     }
 
     const summaryMd = DailyReviewSummaryBuilder.build(summaries, this.settings);
-    return dailyNote.updateReviewedNote(summaryMd);
+
+    const reviewedNoteMdParts: string[] = [summaryMd.trimEnd()];
+
+    // --- KPT 実行コメント
+    if (this.settings.enableDailyNoteUserReview) {
+      reviewedNoteMdParts.unshift(DailyReviewSummaryCommentBuilder.build());
+      reviewedNoteMdParts.push('', KptActionBlockBuilder.build());
+    }
+
+    return dailyNote.updateReviewedNote(reviewedNoteMdParts.join('\n'));
   }
 
   /** reviewedNote 更新可否判定 */

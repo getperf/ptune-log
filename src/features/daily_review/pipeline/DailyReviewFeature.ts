@@ -11,6 +11,7 @@ import { VectorCommandRegistrar } from '../../vectors/commands/VectorCommandRegi
 import { NoteReviewCommandRegistrar } from '../../note_review/commands/NoteReviewCommandRegistrar';
 import { TagCommandRegistrar } from '../../tags/commands/TagCommandRegistrar';
 import { LLMSettingsCommandRegistrar } from 'src/features/llm_settings/commands/LLMSettingsCommandRegistrar';
+import { KptActionBlockProcessor } from '../ui/KptActionBlockProcessor';
 
 // --- core services ---
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
@@ -24,6 +25,8 @@ import { TagNormalizationService } from 'src/core/services/tags/TagNormalization
 
 // --- feature usecase ---
 import { DailyReviewUseCase } from '../application/DailyReviewUseCase';
+import { KptAnalysisUseCase } from 'src/features/note_analysis/application/KptAnalysisUseCase';
+import { KptAnalysisCommandRegistrar } from 'src/features/note_analysis/commands/KptAnalysisCommandRegistrar';
 
 /**
  * --- LLM タグ／分析機能のエントリーポイント
@@ -32,13 +35,15 @@ import { DailyReviewUseCase } from '../application/DailyReviewUseCase';
 export class DailyReviewFeature {
   private readonly llmClient: LLMClient;
   private readonly runner: NoteAnalysisRunner;
-  private readonly executor: DailyReviewUseCase;
+  private readonly dailyReviewUseCase: DailyReviewUseCase;
+  private readonly kptAnalysisUseCase: KptAnalysisUseCase;
 
   private readonly llmRegistrar: DailyReviewCommandRegistrar;
   private readonly tagRegistrar: TagCommandRegistrar;
   private readonly vectorRegistrar: VectorCommandRegistrar;
   private readonly reviewRegistrar: NoteReviewCommandRegistrar;
   private readonly llmSettingCommandRegistrar: LLMSettingsCommandRegistrar;
+  private readonly kptAnalysisRegistrar: KptAnalysisCommandRegistrar;
 
   constructor(
     private readonly app: App,
@@ -60,20 +65,29 @@ export class DailyReviewFeature {
     this.runner = new NoteAnalysisRunner(app, processor);
 
     // --- UseCase（prompt を保持）
-    this.executor = new DailyReviewUseCase(
+    this.dailyReviewUseCase = new DailyReviewUseCase(
       app,
       this.llmClient,
       this.runner,
       reviewSettings
     );
 
+    // --- KPT Analysis UseCase
+    this.kptAnalysisUseCase = new KptAnalysisUseCase(app, this.llmClient);
+
     // --- コマンド登録
-    this.llmRegistrar = new DailyReviewCommandRegistrar(app, this.executor);
+    this.llmRegistrar = new DailyReviewCommandRegistrar(
+      app,
+      this.dailyReviewUseCase
+    );
     this.tagRegistrar = new TagCommandRegistrar(app, this.llmClient);
     this.vectorRegistrar = new VectorCommandRegistrar(app, this.llmClient);
     this.reviewRegistrar = new NoteReviewCommandRegistrar(app, this.llmClient);
     this.llmSettingCommandRegistrar = new LLMSettingsCommandRegistrar(app);
-
+    this.kptAnalysisRegistrar = new KptAnalysisCommandRegistrar(
+      app,
+      this.kptAnalysisUseCase
+    );
     logger.debug('[DailyReviewFeature] initialized successfully');
   }
 
@@ -89,6 +103,9 @@ export class DailyReviewFeature {
     this.vectorRegistrar.register(plugin);
     this.reviewRegistrar.register(plugin);
     this.llmSettingCommandRegistrar.register(plugin);
+    this.kptAnalysisRegistrar.register(plugin);
+
+    new KptActionBlockProcessor(this.app, plugin).register();
 
     logger.debug('[DailyReviewFeature.register] complete');
   }

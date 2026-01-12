@@ -20,9 +20,7 @@ export class NoteSummaryMarkdownBuilder {
 
     const lines: string[] = [];
 
-    lines.push(
-      this.renderNoteHeading(note, baseHeadingLevel, withLink)
-    );
+    lines.push(this.renderNoteHeading(note, baseHeadingLevel, withLink));
 
     lines.push(
       ...this.renderSummary(note, {
@@ -32,15 +30,11 @@ export class NoteSummaryMarkdownBuilder {
     );
 
     if (note.goal) {
-      lines.push(
-        ...this.renderGoal(note.goal, checklist)
-      );
+      lines.push(...this.renderGoal(note.goal, checklist));
     }
 
     if (withUserReview) {
-      lines.push(
-        ...this.renderUserReview(baseHeadingLevel)
-      );
+      lines.push(...this.renderUserReview(baseHeadingLevel));
     }
 
     return lines.join('\n');
@@ -70,9 +64,9 @@ export class NoteSummaryMarkdownBuilder {
 
     const sentences = sentenceSplit
       ? note.summary
-        .split(/(?<=[。．.!?])\s*/)
-        .map((s) => s.trim())
-        .filter(Boolean)
+          .split(/(?<=[。．.!?])\s*/)
+          .map((s) => s.trim())
+          .filter(Boolean)
       : [note.summary];
 
     return sentences.map((s) => `${bullet}${s}`);
@@ -87,10 +81,6 @@ export class NoteSummaryMarkdownBuilder {
   // --- ユーザレビュー欄（記入用プレースホルダ） ---
   private static renderUserReview(baseHeadingLevel: number): string[] {
     const heading = '#'.repeat(baseHeadingLevel + 1);
-    return [
-      '',
-      `${heading} ユーザレビュー`,
-      '- ',
-    ];
+    return ['', `${heading} レビューコメント`, '- '];
   }
 }
