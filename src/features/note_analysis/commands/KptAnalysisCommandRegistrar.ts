@@ -1,13 +1,13 @@
 // File: src/features/note_analysis/commands/KptAnalysisCommandRegistrar.ts
 
-import { App, Plugin, Notice } from 'obsidian';
+import { App, Plugin } from 'obsidian';
 import { KptAnalysisUseCase } from '../application/KptAnalysisUseCase';
 
 export class KptAnalysisCommandRegistrar {
   constructor(
     private readonly app: App,
     private readonly useCase: KptAnalysisUseCase
-  ) {}
+  ) { }
 
   register(plugin: Plugin): void {
     plugin.addCommand({

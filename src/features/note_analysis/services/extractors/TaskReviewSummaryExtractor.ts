@@ -1,6 +1,6 @@
 // src/features/note_analysis/services/extractors/TaskReviewSummaryExtractor.ts
 
-import { KindCommentBlock } from 'src/core/utils/markdown/KindCommentBlock';
+import { MarkdownCommentBlock } from 'src/core/utils/markdown/MarkdownCommentBlock';
 
 /**
  * TaskReviewSummaryExtractor
@@ -19,7 +19,7 @@ export class TaskReviewSummaryExtractor {
 
     // 1. kind コメント除去
     const raw = lines.join('\n');
-    const cleaned = KindCommentBlock.removeAll(raw);
+    const cleaned = MarkdownCommentBlock.removeAll(raw);
     const cleanedLines = cleaned.split(/\r?\n/);
 
     // 2. 最後の見出し位置を探索

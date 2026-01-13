@@ -64,9 +64,9 @@ export class NoteSummaryMarkdownBuilder {
 
     const sentences = sentenceSplit
       ? note.summary
-          .split(/(?<=[。．.!?])\s*/)
-          .map((s) => s.trim())
-          .filter(Boolean)
+        .split(/(?<=[。．.!?])\s*/)
+        .map((s) => s.trim())
+        .filter(Boolean)
       : [note.summary];
 
     return sentences.map((s) => `${bullet}${s}`);

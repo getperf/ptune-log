@@ -5,7 +5,7 @@ import { KptSource } from '../models/KptSource';
 import { TaskReviewSummaryExtractor } from './extractors/TaskReviewSummaryExtractor';
 import { DailyReportReviewExtractor } from './extractors/DailyReportReviewExtractor';
 import { KptReviewMarkdownBuilder } from './builders/KptReviewMarkdownBuilder';
-import { KindCommentBlock } from 'src/core/utils/markdown/KindCommentBlock';
+import { MarkdownCommentBlock } from 'src/core/utils/markdown/MarkdownCommentBlock';
 
 /**
  * KptSourceExtractor
@@ -50,7 +50,7 @@ export class KptSourceExtractor {
 
     const rawMarkdown = dailyNote.reviewedNote.getRawLines().join('\n');
 
-    const cleaned = KindCommentBlock.removeAll(rawMarkdown);
+    const cleaned = MarkdownCommentBlock.removeAll(rawMarkdown);
     const reviewedNotes = this.noteReviewExtractor.extract(cleaned);
     if (reviewedNotes.length === 0) {
       return '（ノートレビューに有効な項目がありません）';

@@ -1,5 +1,6 @@
 // src/features/daily_review/services/KptActionBlockBuilder.ts
 
+import { MarkdownCommentBlock } from 'src/core/utils/markdown/MarkdownCommentBlock';
 import { getText } from '../i18n';
 
 export class KptActionBlockBuilder {
@@ -8,19 +9,7 @@ export class KptActionBlockBuilder {
 
   static build(): string {
     const commentLines = getText(this.COMMENT_KIND);
-    const label = getText(this.LABEL_KIND);
 
-    const actionBlock = `
-\`\`\`kpt-action
-label: ${label}
-\`\`\`
-`.trim();
-
-    return [
-      `<!-- kind:${this.COMMENT_KIND} -->`,
-      ...commentLines,
-      actionBlock,
-      `<!-- /kind -->`,
-    ].join('\n');
+    return MarkdownCommentBlock.build(commentLines);
   }
 }

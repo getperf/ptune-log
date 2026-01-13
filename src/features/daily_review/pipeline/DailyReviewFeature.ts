@@ -11,7 +11,6 @@ import { VectorCommandRegistrar } from '../../vectors/commands/VectorCommandRegi
 import { NoteReviewCommandRegistrar } from '../../note_review/commands/NoteReviewCommandRegistrar';
 import { TagCommandRegistrar } from '../../tags/commands/TagCommandRegistrar';
 import { LLMSettingsCommandRegistrar } from 'src/features/llm_settings/commands/LLMSettingsCommandRegistrar';
-import { KptActionBlockProcessor } from '../ui/KptActionBlockProcessor';
 
 // --- core services ---
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
@@ -104,8 +103,6 @@ export class DailyReviewFeature {
     this.reviewRegistrar.register(plugin);
     this.llmSettingCommandRegistrar.register(plugin);
     this.kptAnalysisRegistrar.register(plugin);
-
-    new KptActionBlockProcessor(this.app, plugin).register();
 
     logger.debug('[DailyReviewFeature.register] complete');
   }

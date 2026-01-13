@@ -13,6 +13,9 @@ export const jaTexts = {
     '　修正・追記後に KPT分析を実行してください。',
   ],
 
-  // --- ラベル（単文） ---
-  'kpt-action-execute': 'KPT分析実行',
+  'daily-review-unregistered-guide': [
+    '※ 未登録タグがあります。',
+    '→ コマンド「エイリアス辞書にタグを登録・マージ」で名寄せを行ってください。',
+  ],
+
 } as const;
