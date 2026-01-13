@@ -24,8 +24,8 @@ describe('DailyReportReviewExtractor (ordered lines)', () => {
     expect(note.title).toBe('ノートA');
 
     expect(note.lines).toEqual([
-      { type: 'CHECKED', text: '実装完了' },
-      { type: 'UNCHECKED', text: 'テスト未実施' },
+      { type: 'REJECTED', text: '実装完了' },
+      { type: 'ACCEPTED', text: 'テスト未実施' },
       { type: 'USERCOMMENT', text: '仕様は問題なし' },
       { type: 'USERCOMMENT', text: 'テスト追加が必要' },
     ]);
@@ -46,11 +46,11 @@ describe('DailyReportReviewExtractor (ordered lines)', () => {
     expect(result).toHaveLength(2);
 
     expect(result[0].title).toBe('noteA');
-    expect(result[0].lines[0]).toEqual({ type: 'CHECKED', text: 'A1' });
+    expect(result[0].lines[0]).toEqual({ type: 'REJECTED', text: 'A1' });
 
     expect(result[1].path).toBe('noteB');
     expect(result[1].title).toBe('Bノート');
-    expect(result[1].lines[0]).toEqual({ type: 'UNCHECKED', text: 'B1' });
+    expect(result[1].lines[0]).toEqual({ type: 'ACCEPTED', text: 'B1' });
   });
 
   it('lines が空のノートは結果に含まれない', () => {
