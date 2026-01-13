@@ -4,7 +4,7 @@ import { DailyNoteHelper } from 'src/core/utils/daily_note/DailyNoteHelper';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { NoteSummaries } from 'src/core/models/notes/NoteSummaries';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
-import { KPTMarkdownBuilder } from '../../note_analysis/analysis/KPTMarkdownBuilder';
+import { KPTMarkdownBuilder } from '../../note_analysis/old_analysis/KPTMarkdownBuilder';
 
 /* ===== 既存 API を維持 ===== */
 

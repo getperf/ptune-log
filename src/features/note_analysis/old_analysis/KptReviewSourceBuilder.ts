@@ -35,22 +35,23 @@ export class KptReviewSourceBuilder {
   }
 
   private formatReviewNotes(notes: ReviewedNote[]): string {
-    return notes
-      .map((note) => {
-        const lines: string[] = [];
+    return 'test';
+    // return notes
+    //   .map((note) => {
+    //     const lines: string[] = [];
 
-        lines.push(`#### ${note.notePath}`);
+    //     lines.push(`#### ${note.notePath}`);
 
-        for (const c of note.checkedSummaries) {
-          lines.push(`- [x] ${c}`);
-        }
+    //     for (const c of note.checkedSummaries) {
+    //       lines.push(`- [x] ${c}`);
+    //     }
 
-        for (const r of note.userReviews) {
-          lines.push(`- ${r}`);
-        }
+    //     for (const r of note.userReviews) {
+    //       lines.push(`- ${r}`);
+    //     }
 
-        return lines.join('\n');
-      })
-      .join('\n\n');
+    //     return lines.join('\n');
+    //   })
+    //   .join('\n\n');
   }
 }

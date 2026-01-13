@@ -2,7 +2,7 @@
 import { App, Notice, TFolder } from 'obsidian';
 import { DailyReviewModal } from '../ui/DailyReviewModal';
 import { NoteAnalysisRunner } from '../../../core/services/llm/note_analysis/NoteAnalysisRunner';
-import { NoteAnalysisService } from '../../note_analysis/analysis/NoteAnalysisService';
+import { NoteAnalysisService } from '../../note_analysis/old_analysis/NoteAnalysisService';
 import { ReviewSettings } from 'src/config/settings/ReviewSettings';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
 import { NoteAnalysisPromptService } from 'src/core/services/llm/note_analysis/NoteAnalysisPromptService';
@@ -60,7 +60,6 @@ export class DailyReviewUseCase {
     const prompt = await NoteAnalysisPromptService.build(this.app);
 
     const applier = new DailyReviewApplier(this.app, this.reviewSettings);
-    logger.debug(`[DEBUG] 設定確認 : ${JSON.stringify(this.reviewSettings)}`);
     const modal = new DailyReviewModal(this.app, {
       mode: 'date',
       initialDate,

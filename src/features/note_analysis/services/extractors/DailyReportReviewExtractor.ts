@@ -1,56 +1,72 @@
-import { ReviewedNote } from 'src/core/models/daily_notes/ReviewedNote';
+// src/features/note_analysis/services/extractors/DailyReportReviewExtractor.ts
+
+import {
+  ReviewedNote,
+  ReviewLine,
+} from 'src/core/models/daily_notes/ReviewedNote';
 
 export class DailyReportReviewExtractor {
   extract(markdown: string): ReviewedNote[] {
     const lines = markdown.split(/\r?\n/);
-
     const results: ReviewedNote[] = [];
 
+    let currentPath: string | null = null;
     let currentTitle: string | null = null;
-    let checked: string[] = [];
-    let reviews: string[] = [];
+    let currentLines: ReviewLine[] = [];
     let inUserReview = false;
 
     const flush = () => {
-      if (!currentTitle) return;
-      const note = new ReviewedNote(currentTitle, checked, reviews);
-      if (!note.isEmpty()) results.push(note);
-      checked = [];
-      reviews = [];
+      if (!currentPath || !currentTitle) return;
+      if (currentLines.length === 0) return;
+
+      results.push(new ReviewedNote(currentPath, currentTitle, currentLines));
+      currentLines = [];
       inUserReview = false;
     };
 
     for (const raw of lines) {
       const line = raw.trim();
 
-      // ----- ノート見出し（#####）
+      // ----- ノート見出し
       if (/^#####\s+/.test(line)) {
         flush();
-        currentTitle = this.normalizeTitle(line);
+        const { path, title } = this.parseTitle(line);
+        currentPath = path;
+        currentTitle = title;
         continue;
       }
 
-      if (!currentTitle) continue;
+      if (!currentPath) continue;
 
-      // ----- ユーザレビュー開始（######）
+      // ----- レビュー開始
       if (/^######\s+/.test(line)) {
         inUserReview = true;
         continue;
       }
 
-      // ----- チェック済み項目
+      // ----- チェック項目
       if (!inUserReview) {
-        const m = line.match(/^-+\s*\[[xX]\]\s*(.+)$/);
-        if (m) {
-          checked.push(m[1].trim());
+        const checked = line.match(/^-+\s*\[[xX]\]\s*(.+)$/);
+        if (checked) {
+          currentLines.push({ type: 'REJECTED', text: checked[1].trim() });
+          continue;
+        }
+
+        const unchecked = line.match(/^-+\s*\[\s*\]\s*(.+)$/);
+        if (unchecked) {
+          currentLines.push({ type: 'ACCEPTED', text: unchecked[1].trim() });
+          continue;
         }
         continue;
       }
 
-      // ----- ユーザレビュー本文
+      // ----- ユーザコメント
       if (inUserReview) {
         if (line === '-' || line === '') continue;
-        reviews.push(line.replace(/^-+\s*/, ''));
+        currentLines.push({
+          type: 'USERCOMMENT',
+          text: line.replace(/^-+\s*/, ''),
+        });
       }
     }
 
@@ -58,10 +74,17 @@ export class DailyReportReviewExtractor {
     return results;
   }
 
-  /** [[path|label]] → path */
-  private normalizeTitle(line: string): string {
+  private parseTitle(line: string): { path: string; title: string } {
     const text = line.replace(/^#####\s+/, '');
-    const m = text.match(/\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/);
-    return m ? m[1].replace(/\.md$/, '') : text;
+    const m = text.match(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/);
+
+    if (!m) {
+      return { path: text, title: text };
+    }
+
+    return {
+      path: m[1].replace(/\.md$/, ''),
+      title: m[2] ?? m[1],
+    };
   }
 }
