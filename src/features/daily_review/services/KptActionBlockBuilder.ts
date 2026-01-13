@@ -1,18 +1,26 @@
 // src/features/daily_review/services/KptActionBlockBuilder.ts
 
+import { getText } from '../i18n';
+
 export class KptActionBlockBuilder {
+  private static readonly COMMENT_KIND = 'kpt-action-comment';
+  private static readonly LABEL_KIND = 'kpt-action-execute';
+
   static build(): string {
-    const comment = `
-※ レビュー欄の内容が KPT分析に反映されます。
-　修正・追記後に KPT分析を実行してください。
-`.trim();
+    const commentLines = getText(this.COMMENT_KIND);
+    const label = getText(this.LABEL_KIND);
 
     const actionBlock = `
 \`\`\`kpt-action
-label: KPT分析実行
+label: ${label}
 \`\`\`
 `.trim();
 
-    return [comment, '', actionBlock].join('\n');
+    return [
+      `<!-- kind:${this.COMMENT_KIND} -->`,
+      ...commentLines,
+      actionBlock,
+      `<!-- /kind -->`,
+    ].join('\n');
   }
 }
