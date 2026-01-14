@@ -1,8 +1,8 @@
 // src/i18n/ui/daily_review/index.ts
 
-import type { Lang } from '../../types';
 import { noteAnalysisJa } from './ja';
 import { noteAnalysisEn } from './en';
+import { Lang } from 'src/i18n/types';
 
 export function getNoteAnalysisI18n(lang: Lang) {
   switch (lang) {

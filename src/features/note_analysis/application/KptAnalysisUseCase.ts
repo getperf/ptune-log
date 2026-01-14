@@ -14,7 +14,7 @@ export class KptAnalysisUseCase {
   constructor(
     private readonly app: App,
     private readonly llmClient: LLMClient
-  ) {}
+  ) { }
 
   async run(): Promise<void> {
     const ui = i18n.ui.noteAnalysis;
