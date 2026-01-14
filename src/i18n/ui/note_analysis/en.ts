@@ -43,4 +43,13 @@ export const noteAnalysisEn = {
       updated: 'KPT analysis has been updated',
     },
   },
+
+  kpt: {
+    outliner: {
+      comment: {
+        title: 'Shortcut keys (Outliner)',
+        body: 'Move lines (Ctrl + Shift + ↑ / ↓), Indent (Tab / Shift + Tab), Delete (Select range → Delete)',
+      },
+    },
+  },
 };

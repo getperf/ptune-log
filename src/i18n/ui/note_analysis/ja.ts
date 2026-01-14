@@ -43,4 +43,13 @@ export const noteAnalysisJa = {
       updated: 'KPT分析を更新しました',
     },
   },
+
+  kpt: {
+    outliner: {
+      comment: {
+        title: 'ショートカットキー（Outliner）',
+        body: '行移動(Ctrl + Shift + ↑ / ↓), 階層変更(Tab / Shift + Tab), 削除(範囲選択 → Delete)',
+      },
+    },
+  },
 };

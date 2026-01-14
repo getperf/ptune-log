@@ -34,6 +34,12 @@ export class InitialSetupManager {
       mustBeDisabled: true,
     },
     {
+      id: 'obsidian-outliner',
+      isCore: false,
+      name: 'Outliner',
+      version: '1.0.0',
+    },
+    {
       id: 'calendar',
       isCore: false,
       name: 'Calendar',
@@ -41,7 +47,7 @@ export class InitialSetupManager {
     },
   ];
 
-  constructor(private app: App, private noteHelper: NoteSetupHelper) { }
+  constructor(private app: App, private noteHelper: NoteSetupHelper) {}
 
   getInvalidCorePlugins(): RequiredPluginInfo[] {
     return this.getInvalidPlugins().filter((p) => p.isCore);
