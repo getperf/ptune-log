@@ -1,7 +1,6 @@
 // src/features/llm_tags/services/converters/KptMarkdownConverter.ts
 
 import { KPTResult } from 'src/core/models/daily_notes/KPTResult';
-import { MarkdownCommentBlock } from 'src/core/utils/markdown/MarkdownCommentBlock';
 
 export class KptMarkdownConverter {
   private static readonly KIND = 'kpt-result';
@@ -13,7 +12,7 @@ export class KptMarkdownConverter {
     this.appendSection(out, 'Problem', result.Problem);
     this.appendSection(out, 'Try', result.Try);
 
-    return MarkdownCommentBlock.build(out);
+    return out.join('\n');
   }
 
   private static appendSection(

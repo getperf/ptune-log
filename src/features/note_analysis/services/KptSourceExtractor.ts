@@ -2,6 +2,7 @@
 
 import { DailyNote } from 'src/core/models/daily_notes/DailyNote';
 import { i18n } from 'src/i18n';
+import { logger } from 'src/core/services/logger/loggerInstance';
 import { KptSource } from '../models/KptSource';
 import { TaskReviewSummaryExtractor } from './extractors/TaskReviewSummaryExtractor';
 import { DailyReportReviewExtractor } from './extractors/DailyReportReviewExtractor';
@@ -18,9 +19,19 @@ export class KptSourceExtractor {
   private readonly noteReviewExtractor = new DailyReportReviewExtractor();
 
   extract(dailyNote: DailyNote): KptSource {
+    logger.debug('[KptSourceExtractor] extract start');
+
+    const task = this.extractTaskReviewSummary(dailyNote);
+    const note = this.extractNoteReviewSummary(dailyNote);
+
+    logger.debug('[KptSourceExtractor] extract done', {
+      taskLen: task.length,
+      noteLen: note.length,
+    });
+
     return {
-      taskReviewSummary: this.extractTaskReviewSummary(dailyNote),
-      noteReviewSummary: this.extractNoteReviewSummary(dailyNote),
+      taskReviewSummary: task,
+      noteReviewSummary: note,
     };
   }
 
@@ -32,11 +43,17 @@ export class KptSourceExtractor {
 
     const latest = dailyNote.taskReviews.sections[0];
     if (!latest) {
+      logger.warn('[KptSourceExtractor] task review: not found');
       // i18n置換：「（タスク振り返りが存在しません）」
       return ui.summary.taskReview.empty;
     }
 
-    return this.taskExtractor.extract(latest.getRawLines());
+    const lines = latest.getRawLines();
+    logger.debug('[KptSourceExtractor] task review lines', {
+      lines: lines.length,
+    });
+
+    return this.taskExtractor.extract(lines);
   }
 
   /**
@@ -51,15 +68,21 @@ export class KptSourceExtractor {
     const ui = i18n.ui.noteAnalysis;
 
     if (!dailyNote.reviewedNote?.hasContent()) {
+      logger.warn('[KptSourceExtractor] note review: empty');
       // i18n置換：「（ノートレビューが存在しません）」
       return ui.summary.noteReview.empty;
     }
 
     const rawMarkdown = dailyNote.reviewedNote.getRawLines().join('\n');
-
     const cleaned = MarkdownCommentBlock.removeAll(rawMarkdown);
     const reviewedNotes = this.noteReviewExtractor.extract(cleaned);
+
+    logger.debug('[KptSourceExtractor] note review extracted', {
+      items: reviewedNotes.length,
+    });
+
     if (reviewedNotes.length === 0) {
+      logger.warn('[KptSourceExtractor] note review: no valid items');
       // i18n置換：「（ノートレビューに有効な項目がありません）」
       return ui.summary.noteReview.noValidItems;
     }

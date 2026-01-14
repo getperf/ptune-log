@@ -1,6 +1,7 @@
 // src/features/note_analysis/services/extractors/TaskReviewSummaryExtractor.ts
 
 import { MarkdownCommentBlock } from 'src/core/utils/markdown/MarkdownCommentBlock';
+import { logger } from 'src/core/services/logger/loggerInstance';
 import { i18n } from 'src/i18n';
 
 /**
@@ -17,16 +18,15 @@ export class TaskReviewSummaryExtractor {
     const ui = i18n.ui.noteAnalysis;
 
     if (lines.length === 0) {
+      logger.warn('[TaskReviewSummaryExtractor] lines empty');
       // i18n置換：「（タスク振り返りが存在しません）」
       return ui.summary.taskReview.empty;
     }
 
-    // 1. kind コメント除去
     const raw = lines.join('\n');
     const cleaned = MarkdownCommentBlock.removeAll(raw);
     const cleanedLines = cleaned.split(/\r?\n/);
 
-    // 2. 最後の見出し位置を探索
     let lastHeadingIndex = -1;
     for (let i = 0; i < cleanedLines.length; i++) {
       if (cleanedLines[i].trim().startsWith('#####')) {
@@ -34,12 +34,15 @@ export class TaskReviewSummaryExtractor {
       }
     }
 
+    logger.debug('[TaskReviewSummaryExtractor] last heading index', {
+      index: lastHeadingIndex,
+    });
+
     if (lastHeadingIndex === -1) {
       // i18n置換：「（日次要約が見つかりませんでした）」
       return ui.summary.taskReview.notFound;
     }
 
-    // 3. 見出し直下〜末尾を抽出
     return cleanedLines
       .slice(lastHeadingIndex + 1)
       .join('\n')
