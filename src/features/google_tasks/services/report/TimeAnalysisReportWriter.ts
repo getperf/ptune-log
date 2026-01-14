@@ -24,7 +24,7 @@ export class TimeAnalysisReportWriter {
     if (llmResult) {
       sections.push('');
       // ⏱ 時間分析（LLM）
-      sections.push(`#### ${i18n.domain.timeReview.heading.llmAnalysis}`);
+      sections.push(`#### ${i18n.ui.timeReview.heading.llmAnalysis}`);
       sections.push('');
       sections.push(llmResult);
     }

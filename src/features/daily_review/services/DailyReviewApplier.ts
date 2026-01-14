@@ -9,7 +9,7 @@ import { DailyReviewSummaryBuilder } from './DailyReviewSummaryBuilder';
 import { DailyReviewTagListBuilder } from './DailyReviewTagListBuilder';
 import { ReviewSettings } from 'src/config/settings/ReviewSettings';
 import { MarkdownCommentBlock } from 'src/core/utils/markdown/MarkdownCommentBlock';
-import { getText } from '../i18n';
+import { getText } from './comment';
 
 export class DailyReviewApplier {
   private readonly writer: DailyNoteWriter;
@@ -48,8 +48,10 @@ export class DailyReviewApplier {
 
     // --- KPT 実行コメント
     if (this.settings.enableDailyNoteUserReview) {
-      const header = MarkdownCommentBlock.build(getText('daily-review-comment'))
-      const footer = MarkdownCommentBlock.build(getText('kpt-action-comment'))
+      const header = MarkdownCommentBlock.build(
+        getText('daily-review-comment')
+      );
+      const footer = MarkdownCommentBlock.build(getText('kpt-action-comment'));
       reviewedNoteMdParts.unshift(header);
       reviewedNoteMdParts.push('', footer);
     }

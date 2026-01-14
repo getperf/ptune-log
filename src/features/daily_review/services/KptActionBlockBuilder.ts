@@ -1,7 +1,7 @@
 // src/features/daily_review/services/KptActionBlockBuilder.ts
 
 import { MarkdownCommentBlock } from 'src/core/utils/markdown/MarkdownCommentBlock';
-import { getText } from '../i18n';
+import { getText } from './comment';
 
 export class KptActionBlockBuilder {
   private static readonly COMMENT_KIND = 'kpt-action-comment';

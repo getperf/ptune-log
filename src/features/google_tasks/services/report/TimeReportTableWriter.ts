@@ -7,7 +7,7 @@ export class TimeReportTableWriter {
   writeMarkdown(report: TimeReport): string {
     const lines: string[] = [];
 
-    const t = i18n.domain.timeReview;
+    const t = i18n.ui.timeReview;
     // タイムテーブル
     lines.push(`#### ${t.heading.timeTable}`);
     // | 状態 | タイトル | 計画🍅 | 実績✅ | 開始 | 完了 |

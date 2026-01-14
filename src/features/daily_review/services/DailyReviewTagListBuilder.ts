@@ -2,7 +2,7 @@
 
 import { NoteSummaries } from 'src/core/models/notes/NoteSummaries';
 import { MarkdownCommentBlock } from 'src/core/utils/markdown/MarkdownCommentBlock';
-import { getText } from '../i18n';
+import { getText } from './comment';
 import { i18n } from 'src/i18n';
 
 const HEADER_PREFIX = '### ';
