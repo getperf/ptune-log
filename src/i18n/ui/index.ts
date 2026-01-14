@@ -10,6 +10,8 @@ import { getUiSettingsNoteI18n } from './settings_note';
 import { getUiSettingsSnippetI18n } from './settings_snippet';
 import { getUiSettingsReviewI18n } from './settings_review';
 import { getTimeReviewI18n } from './time_review';
+import { getUiSharedI18n } from './shared';
+import { getDailyReviewI18n } from './daily_review';
 
 export function getUiI18n(lang: Lang) {
   return {
@@ -23,7 +25,9 @@ export function getUiI18n(lang: Lang) {
     settingsReview: getUiSettingsReviewI18n(lang),
 
     // ドメイン固有の設定
+    shared: getUiSharedI18n(lang),
     timeReview: getTimeReviewI18n(lang),
+    dailyReview: getDailyReviewI18n(lang),
   };
 }
 

@@ -1,7 +1,9 @@
 // File: src/features/daily_review/ui/DailyReviewModal.ts
+
 import { App, Modal, Setting, TFile } from 'obsidian';
 import { IProgressReporter } from 'src/core/services/llm/note_analysis/IProgressReporter';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
+import { i18n } from 'src/i18n';
 
 export class DailyReviewModal extends Modal implements IProgressReporter {
   private isRunning = false;
@@ -37,17 +39,20 @@ export class DailyReviewModal extends Modal implements IProgressReporter {
     contentEl.empty();
     contentEl.addClass('llm-tag-generate-modal');
 
+    // i18n置換：「今日の振り返り（日付指定）」/「記録ノートの要約生成」
     const title =
       this.options.mode === 'date'
-        ? '今日の振り返り（日付指定）'
-        : '記録ノートの要約生成';
+        ? i18n.ui.dailyReview.modal.title.date
+        : i18n.ui.dailyReview.modal.title.folder;
     contentEl.createEl('h2', { text: title });
 
     if (this.options.mode === 'date') {
       // 📅 日付選択（過去7日分）
       new Setting(contentEl)
-        .setName('対象日（タグ抽出＆保存）')
-        .setDesc('過去7日間から選択してください')
+        // i18n置換：「対象日（タグ抽出＆保存）」
+        .setName(i18n.ui.dailyReview.modal.dateSelect.label)
+        // i18n置換：「過去7日間から選択してください」
+        .setDesc(i18n.ui.dailyReview.modal.dateSelect.description)
         .addDropdown((drop) => {
           const opts: Record<string, string> = {};
           for (let i = 0; i < 7; i++) {
@@ -73,7 +78,11 @@ export class DailyReviewModal extends Modal implements IProgressReporter {
       this.updateCountText();
     } else {
       contentEl.createEl('p', {
-        text: `${this.files.length} 件の記録ノートに要約とタグを追加します。実行しますか？`,
+        // i18n置換：「{count} 件の記録ノートに要約とタグを追加します。実行しますか？」
+        text: i18n.ui.dailyReview.modal.confirm.withCount.replace(
+          '{count}',
+          String(this.files.length)
+        ),
       });
     }
 
@@ -86,8 +95,10 @@ export class DailyReviewModal extends Modal implements IProgressReporter {
 
     // 再解析トグル
     new Setting(contentEl)
-      .setName('解析済みノートも再実行する')
-      .setDesc('summary/tags があるノートも LLM で再解析します')
+      // i18n置換：「解析済みノートも再実行する」
+      .setName(i18n.ui.dailyReview.modal.option.forceRegenerate.label)
+      // i18n置換：「summary/tags があるノートも LLM で再解析します」
+      .setDesc(i18n.ui.dailyReview.modal.option.forceRegenerate.description)
       .addToggle((toggle) => {
         toggle.setValue(false);
         toggle.onChange((value) => (this.forceRegenerate = value));
@@ -97,7 +108,8 @@ export class DailyReviewModal extends Modal implements IProgressReporter {
     new Setting(contentEl)
       .addButton((btn) =>
         btn
-          .setButtonText('✅ 実行する')
+          // i18n置換：「実行する」
+          .setButtonText(`✅ ${i18n.ui.shared.action.confirm}`)
           .setCta()
           .onClick(() => {
             if (this.isRunning) return;
@@ -113,13 +125,20 @@ export class DailyReviewModal extends Modal implements IProgressReporter {
           })
       )
       .addButton((btn) =>
-        btn.setButtonText('キャンセル').onClick(() => this.close())
+        // i18n置換：「キャンセル」
+        btn
+          .setButtonText(i18n.ui.shared.action.cancel)
+          .onClick(() => this.close())
       );
   }
 
   private updateCountText(): void {
+    // i18n置換：「{count} 件の記録ノートに要約とタグを追加します。実行しますか？」
     this.countTextEl.setText(
-      `${this.files.length} 件の 記録ノートに要約とタグを追加します。実行しますか？`
+      i18n.ui.dailyReview.modal.confirm.withCount.replace(
+        '{count}',
+        String(this.files.length)
+      )
     );
   }
 
@@ -130,16 +149,33 @@ export class DailyReviewModal extends Modal implements IProgressReporter {
   onStart(total: number): void {
     this.progressBarEl.max = total;
     this.progressBarEl.value = 0;
-    this.messageEl.setText(`⏳ 処理開始 (${total} 件)`);
+    // i18n置換：「処理開始 ({total} 件)」
+    this.messageEl.setText(
+      `⏳ ${i18n.ui.dailyReview.modal.progress.start.replace(
+        '{total}',
+        String(total)
+      )}`
+    );
   }
 
   onProgress(index: number, file: TFile): void {
     this.progressBarEl.value = index + 1;
-    this.messageEl.setText(`⏳ 処理中: ${file.path}`);
+    // i18n置換：「処理中: {path}」
+    this.messageEl.setText(
+      `⏳ ${i18n.ui.dailyReview.modal.progress.processing.replace(
+        '{path}',
+        file.path
+      )}`
+    );
   }
 
   onFinish(success: number, errors: number): void {
-    this.messageEl.setText(`完了: 成功 ${success} 件 / エラー ${errors} 件`);
+    // i18n置換：「完了: 成功 {success} 件 / エラー {errors} 件」
+    this.messageEl.setText(
+      i18n.ui.dailyReview.modal.progress.finished
+        .replace('{success}', String(success))
+        .replace('{errors}', String(errors))
+    );
   }
 
   onPhaseDone(name: string): void {

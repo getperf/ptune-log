@@ -1,7 +1,9 @@
 // File: src/features/daily_review/commands/DailyReviewCommandRegistrar.ts
+
 import { App, Plugin, TFolder } from 'obsidian';
 import { DailyReviewUseCase } from '../application/DailyReviewUseCase';
 import { logger } from 'src/core/services/logger/loggerInstance';
+import { i18n } from 'src/i18n';
 
 /**
  * DailyReviewCommandRegistrar
@@ -18,7 +20,7 @@ export class DailyReviewCommandRegistrar {
   constructor(
     private readonly app: App,
     private readonly useCase: DailyReviewUseCase
-  ) { }
+  ) {}
 
   register(plugin: Plugin): void {
     logger.debug('[DailyReviewCommandRegistrar.register] start');
@@ -29,7 +31,7 @@ export class DailyReviewCommandRegistrar {
         if (file instanceof TFolder) {
           menu.addItem((item) =>
             item
-              .setTitle('振り返り: フォルダを指定して実行')
+              .setTitle(i18n.ui.dailyReview.command.runOnFolder)
               .setIcon('bot')
               .onClick(() => {
                 logger.debug(
@@ -45,7 +47,7 @@ export class DailyReviewCommandRegistrar {
     // --- コマンド：今日の振り返り ---
     plugin.addCommand({
       id: 'daily-review-run-today',
-      name: '振り返り: 日付を指定して実行',
+      name: i18n.ui.dailyReview.command.runOnDate,
       callback: () => {
         logger.debug('[DailyReviewCommandRegistrar] command: runOnDate');
         void this.useCase.runOnDate();
