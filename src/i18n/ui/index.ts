@@ -12,6 +12,7 @@ import { getUiSettingsReviewI18n } from './settings_review';
 import { getTimeReviewI18n } from './time_review';
 import { getUiSharedI18n } from './shared';
 import { getDailyReviewI18n } from './daily_review';
+import { getNoteAnalysisI18n } from './note_analysis';
 
 export function getUiI18n(lang: Lang) {
   return {
@@ -28,6 +29,7 @@ export function getUiI18n(lang: Lang) {
     shared: getUiSharedI18n(lang),
     timeReview: getTimeReviewI18n(lang),
     dailyReview: getDailyReviewI18n(lang),
+    noteAnalysis: getNoteAnalysisI18n(lang),
   };
 }
 
