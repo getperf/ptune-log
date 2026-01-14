@@ -1,6 +1,7 @@
 // src/features/note_analysis/services/KptSourceExtractor.ts
 
 import { DailyNote } from 'src/core/models/daily_notes/DailyNote';
+import { i18n } from 'src/i18n';
 import { KptSource } from '../models/KptSource';
 import { TaskReviewSummaryExtractor } from './extractors/TaskReviewSummaryExtractor';
 import { DailyReportReviewExtractor } from './extractors/DailyReportReviewExtractor';
@@ -27,9 +28,12 @@ export class KptSourceExtractor {
    * タスク振り返り要約の抽出
    */
   private extractTaskReviewSummary(dailyNote: DailyNote): string {
+    const ui = i18n.ui.noteAnalysis;
+
     const latest = dailyNote.taskReviews.sections[0];
     if (!latest) {
-      return '（タスク振り返りが存在しません）';
+      // i18n置換：「（タスク振り返りが存在しません）」
+      return ui.summary.taskReview.empty;
     }
 
     return this.taskExtractor.extract(latest.getRawLines());
@@ -44,8 +48,11 @@ export class KptSourceExtractor {
    * 3. KPT用 Markdown 生成
    */
   private extractNoteReviewSummary(dailyNote: DailyNote): string {
+    const ui = i18n.ui.noteAnalysis;
+
     if (!dailyNote.reviewedNote?.hasContent()) {
-      return '（ノートレビューが存在しません）';
+      // i18n置換：「（ノートレビューが存在しません）」
+      return ui.summary.noteReview.empty;
     }
 
     const rawMarkdown = dailyNote.reviewedNote.getRawLines().join('\n');
@@ -53,7 +60,8 @@ export class KptSourceExtractor {
     const cleaned = MarkdownCommentBlock.removeAll(rawMarkdown);
     const reviewedNotes = this.noteReviewExtractor.extract(cleaned);
     if (reviewedNotes.length === 0) {
-      return '（ノートレビューに有効な項目がありません）';
+      // i18n置換：「（ノートレビューに有効な項目がありません）」
+      return ui.summary.noteReview.noValidItems;
     }
 
     return KptReviewMarkdownBuilder.build(reviewedNotes);

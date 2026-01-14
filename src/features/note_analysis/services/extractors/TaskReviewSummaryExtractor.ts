@@ -1,6 +1,7 @@
 // src/features/note_analysis/services/extractors/TaskReviewSummaryExtractor.ts
 
 import { MarkdownCommentBlock } from 'src/core/utils/markdown/MarkdownCommentBlock';
+import { i18n } from 'src/i18n';
 
 /**
  * TaskReviewSummaryExtractor
@@ -13,8 +14,11 @@ import { MarkdownCommentBlock } from 'src/core/utils/markdown/MarkdownCommentBlo
  */
 export class TaskReviewSummaryExtractor {
   extract(lines: string[]): string {
+    const ui = i18n.ui.noteAnalysis;
+
     if (lines.length === 0) {
-      return '（タスク振り返りが存在しません）';
+      // i18n置換：「（タスク振り返りが存在しません）」
+      return ui.summary.taskReview.empty;
     }
 
     // 1. kind コメント除去
@@ -31,7 +35,8 @@ export class TaskReviewSummaryExtractor {
     }
 
     if (lastHeadingIndex === -1) {
-      return '（日次要約が見つかりませんでした）';
+      // i18n置換：「（日次要約が見つかりませんでした）」
+      return ui.summary.taskReview.notFound;
     }
 
     // 3. 見出し直下〜末尾を抽出

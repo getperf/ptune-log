@@ -4,6 +4,7 @@ import { App, Notice } from 'obsidian';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
 import { DailyNoteLoader } from 'src/core/services/daily_notes/file_io/DailyNoteLoader';
+import { i18n } from 'src/i18n';
 
 import { KptSourceExtractor } from '../services/KptSourceExtractor';
 import { KptPromptBuilder } from '../services/KptPromptBuilder';
@@ -16,10 +17,12 @@ export class KptAnalysisUseCase {
   ) {}
 
   async run(): Promise<void> {
-    const dailyNote = await DailyNoteLoader.loadFromActive(this.app);
+    const ui = i18n.ui.noteAnalysis;
 
+    const dailyNote = await DailyNoteLoader.loadFromActive(this.app);
     if (!dailyNote) {
-      new Notice('デイリーノートを開いてから実行してください');
+      // i18n置換：「デイリーノートを開いてから実行してください」
+      new Notice(ui.modal.message.noDailyNote);
       return;
     }
 
@@ -32,21 +35,24 @@ export class KptAnalysisUseCase {
     logger.debug(user);
 
     // 3. LLM 実行
-    let result: string | null = null;
+    let result: string;
     try {
-      result = await this.llmClient.complete(system, user);
-      if (!result) {
-        throw new Error('KPT分析結果が空でした');
+      const output = await this.llmClient.complete(system, user);
+      if (!output) {
+        throw new Error('KPT result is empty');
       }
+      result = output;
     } catch (e) {
       logger.error('[KPT] LLM execution failed', e);
-      new Notice('KPT分析の実行に失敗しました');
+      // i18n置換：「KPT分析の実行に失敗しました」
+      new Notice(ui.modal.message.llmFailed);
       return;
     }
 
-    // 4. 結果反映（dailyNote.kpts に追加 & 保存）
+    // 4. 結果反映
     await new KptResultApplier(this.app).apply(dailyNote, result);
 
-    new Notice('KPT分析を更新しました');
+    // i18n置換：「KPT分析を更新しました」
+    new Notice(ui.modal.message.updated);
   }
 }
