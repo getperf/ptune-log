@@ -1,4 +1,4 @@
-export interface ParsedTask {
+export interface MarkdownTaskEntry {
   index: number;
   title: string;
   pomodoro: number;

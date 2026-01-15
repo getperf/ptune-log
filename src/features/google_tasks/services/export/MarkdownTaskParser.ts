@@ -1,4 +1,4 @@
-import { ParsedTask } from 'src/core/models/tasks/ParsedTask';
+import { MarkdownTaskEntry } from 'src/core/models/tasks/MarkdownTaskEntry';
 import { logger } from 'src/core/services/logger/loggerInstance';
 
 /**
@@ -8,9 +8,9 @@ export class MarkdownTaskParser {
   /**
    * タスク行を解析して ParsedTask[] を返す（親子関係をインデントで判定）
    */
-  static parse(lines: string[]): ParsedTask[] {
+  static parse(lines: string[]): MarkdownTaskEntry[] {
     const taskRe = /^\s*-\s\[\s\]\s+(.*?)(?:\s*🍅x?(\d+))?$/;
-    const result: ParsedTask[] = [];
+    const result: MarkdownTaskEntry[] = [];
     let currentParentIndex: number | null = null;
 
     for (const [i, line] of lines.entries()) {
@@ -23,7 +23,12 @@ export class MarkdownTaskParser {
       const pomodoro = match[2] ? parseInt(match[2]) : 0;
       const indent = line.search(/\S|$/);
 
-      const task: ParsedTask = { index: i, title, pomodoro, rawLine: line };
+      const task: MarkdownTaskEntry = {
+        index: i,
+        title,
+        pomodoro,
+        rawLine: line,
+      };
 
       if (indent > 0 && currentParentIndex !== null) {
         task.parent_index = currentParentIndex;

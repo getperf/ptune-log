@@ -4,7 +4,7 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 import { MyTask } from 'src/core/models/tasks/MyTask';
 import { PomodoroInfo } from 'src/core/models/tasks/MyTask/PomodoroInfo';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
-import { ParsedTask } from 'src/core/models/tasks/ParsedTask';
+import { MarkdownTaskEntry } from 'src/core/models/tasks/MarkdownTaskEntry';
 import { createAndLogError } from 'src/core/utils/errors/errorFactory';
 
 /**
@@ -14,20 +14,22 @@ export class TasksExporter {
   constructor(
     private api: GoogleTasksAPI,
     private tasklistTitle: string = 'Today'
-  ) { }
+  ) {}
 
   /**
    * 親→子順で登録し、MyTask[] を返す
    */
   async export(
-    parsed: ParsedTask[],
+    parsed: MarkdownTaskEntry[],
     modal?: TasksExportModal
   ): Promise<MyTask[]> {
     logger.info(`[TasksExporter.export] start list=${this.tasklistTitle}`);
 
     const tasklistId = await this.api.findTaskListId(this.tasklistTitle);
     if (!tasklistId)
-      throw createAndLogError(`${this.tasklistTitle} タスクリストが見つかりません`);
+      throw createAndLogError(
+        `${this.tasklistTitle} タスクリストが見つかりません`
+      );
 
     const existing = await this.api.listTasks(tasklistId);
     if (existing.length > 0)
@@ -47,7 +49,9 @@ export class TasksExporter {
       const created = await this.api.addTask(myTask, tasklistId);
 
       if (!created.id) {
-        throw createAndLogError(`タスクIDが取得できませんでした: ${task.title}`);
+        throw createAndLogError(
+          `タスクIDが取得できませんでした: ${task.title}`
+        );
       }
 
       myTask.id = created.id;
@@ -60,7 +64,9 @@ export class TasksExporter {
       const created = await this.api.addTask(myTask, tasklistId);
 
       if (!created.id) {
-        throw createAndLogError(`子タスクIDが取得できませんでした: ${task.title}`);
+        throw createAndLogError(
+          `子タスクIDが取得できませんでした: ${task.title}`
+        );
       }
 
       const parentIndex = task.parent_index;
@@ -80,7 +86,7 @@ export class TasksExporter {
     return exportedTasks;
   }
 
-  private toMyTask(parsed: ParsedTask): MyTask {
+  private toMyTask(parsed: MarkdownTaskEntry): MyTask {
     return new MyTask(
       '',
       parsed.title,

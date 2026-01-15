@@ -9,7 +9,7 @@ import { TasksExporter } from './TasksExporter';
 import { MarkdownTaskParser } from './MarkdownTaskParser';
 import { TasksExportModal } from './TasksExportModal';
 import { DailyNoteLoader } from 'src/core/services/daily_notes/file_io/DailyNoteLoader';
-import { ParsedTask } from 'src/core/models/tasks/ParsedTask';
+import { MarkdownTaskEntry } from 'src/core/models/tasks/MarkdownTaskEntry';
 
 export class TasksExport {
   constructor(
@@ -32,7 +32,7 @@ export class TasksExport {
     this.showExportModal(tasks, shouldReset);
   }
 
-  private async extractTasks(): Promise<ParsedTask[]> {
+  private async extractTasks(): Promise<MarkdownTaskEntry[]> {
     const dailyNote = await DailyNoteLoader.load(this.app, new Date());
 
     const lines = dailyNote.plannedTask.getRawLines();
@@ -46,7 +46,10 @@ export class TasksExport {
     return tasks;
   }
 
-  private showExportModal(tasks: ParsedTask[], willReset: boolean): void {
+  private showExportModal(
+    tasks: MarkdownTaskEntry[],
+    willReset: boolean
+  ): void {
     const modal = new TasksExportModal(
       this.app,
       tasks,
@@ -57,7 +60,7 @@ export class TasksExport {
   }
 
   private async runExport(
-    tasks: ParsedTask[],
+    tasks: MarkdownTaskEntry[],
     modal: TasksExportModal,
     willReset: boolean
   ): Promise<void> {

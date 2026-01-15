@@ -3,7 +3,7 @@ import { MyTask } from './MyTask';
 import { PomodoroInfo } from './MyTask/PomodoroInfo';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
 import { GoogleTaskRaw } from './google/GoogleTaskRaw';
-import { ParsedTask } from './ParsedTask';
+import { MarkdownTaskEntry } from './MarkdownTaskEntry';
 
 export class MyTaskFactory {
   static fromGoogleTask(task: GoogleTaskRaw, tasklistId?: string): MyTask {
@@ -124,10 +124,13 @@ export class MyTaskFactory {
   }
 
   /**
-   * ParsedTask → MyTask 変換
+   * DailyNoteTaskEntry → MyTask 変換
    * Google Tasksエクスポート処理で使用
    */
-  static fromParsedTask(parsed: ParsedTask, taskListName = 'Today'): MyTask {
+  static fromDailyNoteTaskEntry(
+    parsed: MarkdownTaskEntry,
+    taskListName = 'Today'
+  ): MyTask {
     const pomodoro =
       parsed.pomodoro && parsed.pomodoro > 0
         ? new PomodoroInfo(parsed.pomodoro)

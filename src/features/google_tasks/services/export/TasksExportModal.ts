@@ -1,12 +1,12 @@
 import { App, Modal, Setting } from 'obsidian';
-import { ParsedTask } from 'src/core/models/tasks/ParsedTask';
+import { MarkdownTaskEntry } from 'src/core/models/tasks/MarkdownTaskEntry';
 
 export class TasksExportModal extends Modal {
   private statusEl!: HTMLElement;
 
   constructor(
     app: App,
-    private tasks: ParsedTask[],
+    private tasks: MarkdownTaskEntry[],
     private willReset: boolean,
     private onExecute: (modal: TasksExportModal) => Promise<void>
   ) {
