@@ -1,8 +1,9 @@
 import { TFile, Vault } from 'obsidian';
 import { createAndLogError } from 'src/core/utils/errors/errorFactory';
+import { logger } from 'src/core/services/logger/loggerInstance';
 
 export class PromptTemplateService {
-  constructor(private vault: Vault) { }
+  constructor(private vault: Vault) {}
 
   /**
    * system テンプレートと user テンプレートを読み込み、マージして変数展開する
@@ -15,9 +16,21 @@ export class PromptTemplateService {
     userPath: string,
     variables: Record<string, string>
   ): Promise<string> {
-    const system = await this.apply(systemPath, variables);
     const user = await this.apply(userPath, variables);
-    return system.replace('{{USER_PROMPT}}', user);
+
+    // USER_PROMPT を variables に注入してから system を apply
+    const system = await this.apply(systemPath, {
+      // ...variables,
+      USER_PROMPT: user,
+    });
+    return system;
+    // const hasPlaceholder = system.includes('{{USER_PROMPT}}');
+
+    // logger.debug(
+    //   `[PromptTemplate.merge] system=${system.length} user=${user.length} placeholder=${hasPlaceholder}`
+    // );
+
+    // return system.replace('{{USER_PROMPT}}', user);
   }
 
   async apply(

@@ -132,29 +132,52 @@ export class TagAliases {
     const normalized: string[] = [];
     const newTags: string[] = [];
 
+    const hits: string[] = [];
+    const unchecked: string[] = [];
+    const news: string[] = [];
+
     for (const tag of tags) {
       const row = this.map.get(tag);
 
       if (!row) {
         this.registerIfMissing(tag);
+        news.push(tag);
         normalized.push(tag);
         newTags.push(tag);
         continue;
       }
 
-      if (!row.checked && !row.isDeleted) {
-        newTags.push(tag);
-      }
-
       normalized.push(row.tagName || tag);
+
+      if (!row.checked && !row.isDeleted) {
+        unchecked.push(tag);
+        newTags.push(tag);
+      } else {
+        hits.push(tag);
+      }
     }
 
-    const normalizedSet = [...new Set(normalized)];
-    logger.debug(
-      `[TagAliases.normalizeAndRegister] output normalized=${normalizedSet.length}, new=${newTags.length}`
-    );
+    this.logResolveResult(hits, unchecked, news);
 
-    return { normalized: normalizedSet, newTags };
+    return { normalized: [...new Set(normalized)], newTags };
+  }
+
+  /** --- エイリアス解決結果を1行でログ出力 */
+  private logResolveResult(
+    hits: string[],
+    unchecked: string[],
+    news: string[]
+  ): void {
+    const parts = [
+      hits.length && `HIT=${hits.length} [${hits.join(',')}]`,
+      unchecked.length &&
+        `UNCHECKED=${unchecked.length} [${unchecked.join(',')}]`,
+      news.length && `NEW=${news.length} [${news.join(',')}]`,
+    ].filter(Boolean);
+
+    if (parts.length) {
+      logger.debug(`[TagAliases.resolve] ${parts.join(' | ')}`);
+    }
   }
 
   /** --- 保存前にチェック済みに更新 */
