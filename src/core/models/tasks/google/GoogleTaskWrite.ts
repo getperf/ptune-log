@@ -1,4 +1,4 @@
-export interface MyTaskApiData {
+export interface GoogleTaskWrite {
   id?: string;
   title: string;
   notes?: string;

@@ -5,7 +5,7 @@ import { MyTask } from 'src/core/models/tasks/MyTask';
 import { MyTaskFactory } from 'src/core/models/tasks/MyTaskFactory';
 import { TokenManager } from '../google_auth/TokenManager';
 import { ErrorUtils } from 'src/core/utils/common/ErrorUtils';
-import { GoogleTaskDto } from 'src/core/models/tasks/GoogleTaskDto';
+import { GoogleTaskRaw } from 'src/core/models/tasks/google/GoogleTaskRaw';
 
 /**
  * Google Tasks API クラス
@@ -109,21 +109,21 @@ export class GoogleTasksAPI {
       showHidden: 'true',
     });
 
-    const res = await this.request<{ items: GoogleTaskDto[] }>(
+    const res = await this.request<{ items: GoogleTaskRaw[] }>(
       `https://tasks.googleapis.com/tasks/v1/lists/${taskListId}/tasks?${params.toString()}`
     );
 
     return (res?.items ?? []).map((item) =>
-      MyTaskFactory.fromApiData(item, taskListId)
+      MyTaskFactory.fromGoogleTask(item, taskListId)
     );
   }
 
   /** タスク追加 */
   async addTask(task: MyTask, taskListId: string): Promise<MyTask> {
-    const data = await this.request<GoogleTaskDto>(
+    const data = await this.request<GoogleTaskRaw>(
       `https://tasks.googleapis.com/tasks/v1/lists/${taskListId}/tasks`,
       'POST',
-      task.toApiData()
+      task.toGoogleTaskWrite()
     );
     if (!data?.id) {
       throw new Error('タスク作成に失敗しました（ID未取得）');
@@ -137,7 +137,7 @@ export class GoogleTasksAPI {
     await this.request(
       `https://tasks.googleapis.com/tasks/v1/lists/${taskListId}/tasks/${task.id}`,
       'PUT',
-      task.toApiData()
+      task.toGoogleTaskWrite()
     );
   }
 

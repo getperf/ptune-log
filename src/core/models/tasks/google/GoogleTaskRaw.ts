@@ -1,4 +1,4 @@
-export interface GoogleTaskDto {
+export interface GoogleTaskRaw {
   id?: string;
   title?: string;
   note?: string;

@@ -2,11 +2,11 @@
 import { MyTask } from './MyTask';
 import { PomodoroInfo } from './MyTask/PomodoroInfo';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
-import { GoogleTaskDto } from './GoogleTaskDto';
+import { GoogleTaskRaw } from './google/GoogleTaskRaw';
 import { ParsedTask } from './ParsedTask';
 
 export class MyTaskFactory {
-  static fromApiData(task: GoogleTaskDto, tasklistId?: string): MyTask {
+  static fromGoogleTask(task: GoogleTaskRaw, tasklistId?: string): MyTask {
     // note から抽出
     const pomodoroFromNote = this.parsePomodoroInfo(task.note);
     const startedFromNote = this.extractTimestamp('started', task.note);

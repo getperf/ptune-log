@@ -6,13 +6,13 @@ import { TaskImportSource } from './TaskImportSource';
 import { MyTask } from 'src/core/models/tasks/MyTask';
 
 export class ApiTaskImportSource implements TaskImportSource {
-  constructor(private readonly api: GoogleTasksAPI) { }
+  constructor(private readonly api: GoogleTasksAPI) {}
 
   async loadTasks(): Promise<MyTask[]> {
     const listId = await this.api.findTaskListId('Today');
     if (!listId) return [];
 
     const raw = await this.api.listTasks(listId);
-    return raw.map((t) => MyTaskFactory.fromApiData(t, listId));
+    return raw.map((t) => MyTaskFactory.fromGoogleTask(t, listId));
   }
 }

@@ -1,6 +1,6 @@
 import { MyTaskFactory } from './MyTaskFactory';
 import { PomodoroInfo } from './MyTask/PomodoroInfo';
-import { MyTaskApiData } from './MyTaskApiData';
+import { GoogleTaskWrite } from './google/GoogleTaskWrite';
 
 export class MyTask {
   constructor(
@@ -48,7 +48,7 @@ export class MyTask {
     }
   }
 
-  toApiData(): MyTaskApiData {
+  toGoogleTaskWrite(): GoogleTaskWrite {
     const notes: string[] = [];
 
     if (this.note) {
@@ -63,7 +63,7 @@ export class MyTask {
       notes.push(tomato);
     }
 
-    const body: MyTaskApiData = {
+    const body: GoogleTaskWrite = {
       title: this.title,
       notes: notes.filter(Boolean).join(' ').trim(),
       status: this.status ?? 'needsAction',

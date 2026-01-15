@@ -4,7 +4,7 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 import { MyTask } from 'src/core/models/tasks/MyTask';
 import { MyTaskFactory } from 'src/core/models/tasks/MyTaskFactory';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
-import { GoogleTaskDto } from 'src/core/models/tasks/GoogleTaskDto';
+import { GoogleTaskRaw } from 'src/core/models/tasks/google/GoogleTaskRaw';
 
 /**
  * JSONファイル内のタスク構造を型で保証
@@ -31,7 +31,7 @@ export interface TaskJsonRecord {
 export class TaskJsonUtils {
   static readonly BASE_DIR = '_journal/meta';
 
-  constructor(private app: App) { }
+  constructor(private app: App) {}
 
   /** --- JSONファイルへ保存 */
   async save(tasks: MyTask[], date: Date): Promise<string> {
@@ -80,16 +80,16 @@ export class TaskJsonUtils {
     const raw = JSON.parse(jsonText) as TaskJsonRecord[];
 
     const tasks = raw.map((t) => {
-      const normalized: GoogleTaskDto = {
+      const normalized: GoogleTaskRaw = {
         id: t.id,
         title: t.title,
         parent: t.parent ?? undefined,
 
         pomodoro: t.pomodoro
           ? {
-            planned: t.pomodoro.planned ?? undefined,
-            actual: t.pomodoro.actual ?? undefined,
-          }
+              planned: t.pomodoro.planned ?? undefined,
+              actual: t.pomodoro.actual ?? undefined,
+            }
           : undefined,
 
         status: t.status,
@@ -103,7 +103,7 @@ export class TaskJsonUtils {
         deleted: false,
       };
 
-      return MyTaskFactory.fromApiData(normalized, t.tasklist_id ?? 'Today');
+      return MyTaskFactory.fromGoogleTask(normalized, t.tasklist_id ?? 'Today');
     });
 
     logger.info(`[TaskJsonUtils] loaded ${tasks.length} tasks from ${path}`);
