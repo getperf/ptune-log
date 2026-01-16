@@ -92,6 +92,18 @@ export class NoteReviewModal extends Modal {
       this.editable = this.reviewService.createEditable(previewSummary);
       this.exportTasks = await DailyNoteTaskKeyReader.read(this.app);
     } catch (e) {
+      logger.error('[NoteReviewModal] LLM解析エラー raw', e);
+      logger.error('[NoteReviewModal] LLM解析エラー typeof', typeof e);
+
+      if (e instanceof Error) {
+        logger.error('[NoteReviewModal] message', e.message);
+        logger.error('[NoteReviewModal] stack', e.stack);
+      } else {
+        logger.error(
+          '[NoteReviewModal] non-Error exception',
+          JSON.stringify(e, null, 2)
+        );
+      }
       logger.error('[NoteReviewModal] LLM解析エラー', e);
       new Notice('LLM解析に失敗しました');
     } finally {
