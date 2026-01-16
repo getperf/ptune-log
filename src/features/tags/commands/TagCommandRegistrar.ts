@@ -4,12 +4,14 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 import { TagDBMaintainer } from '../services/TagDBMaintainer';
 import { TagAliasMerger } from '../services/TagAliasMerger';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
+import { TagVectors } from 'src/core/models/vectors/TagVectors';
+import { TagClusteringDebugService } from '../services/TagClusteringDebugService';
 
 export class TagCommandRegistrar {
   constructor(
     private readonly app: App,
     private readonly llmClient: LLMClient
-  ) { }
+  ) {}
 
   register(plugin: Plugin) {
     logger.debug('[TagCommandRegistrar.register] start');
@@ -42,6 +44,19 @@ export class TagCommandRegistrar {
         const merger = new TagAliasMerger(this.app, this.llmClient);
         await merger.run();
         new Notice('✅ タグエイリアス辞書更新');
+      },
+    });
+
+    plugin.addCommand({
+      id: 'debug-tag-kmeans-clustering',
+      name: 'Debug: Tag KMeans Clustering',
+      callback: async () => {
+        const vectors = new TagVectors(this.llmClient);
+
+        await vectors.loadFromVault(plugin.app.vault);
+
+        const service = new TagClusteringDebugService(plugin.app);
+        await service.run(vectors);
       },
     });
   }
