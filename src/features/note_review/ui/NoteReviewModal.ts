@@ -1,22 +1,18 @@
 // File: src/features/llm_tags/services/note_review/NoteReviewModal.ts
 
-import { App, Modal, Setting, TFile, Notice } from 'obsidian';
+import { App, Modal, Setting, TFile } from 'obsidian';
 import {
   EditableNoteSummary,
   EditableTagItem,
 } from '../models/EditableNoteSummary';
-import { TagAliases } from 'src/core/models/tags/TagAliases';
 import { ExportTask } from 'src/core/models/tasks/ExportTasks';
-import { logger } from 'src/core/services/logger/loggerInstance';
 import { TagListSection } from '../components/TagListSection';
 import { DailyNoteTaskKeyReader } from 'src/core/services/daily_notes/task_keys/DailyNoteTaskKeyReader';
 import { NoteReviewService } from '../services/NoteReviewService';
-import { TagEditDialog } from 'src/features/tags/ui/TagEditDialog';
 import { PromptTemplateService } from 'src/core/services/llm/client/PromptTemplateService';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
 import { NoteAnalysisPromptService } from 'src/core/services/llm/note_analysis/NoteAnalysisPromptService';
 import { TargetTagEditorDialog } from 'src/core/ui/tags/TargetTagEditorDialog';
-import { TargetTagSearchPort } from 'src/core/ui/tags/TargetTagSearchPort';
 import { TagSuggestionService } from 'src/features/tags/services/TagSuggestionService';
 
 export class NoteReviewModal extends Modal {
@@ -102,7 +98,7 @@ export class NoteReviewModal extends Modal {
   private openTagEditDialog(tag: EditableTagItem) {
     const dialog = new TargetTagEditorDialog(this.app, {
       state: {
-        initialText: tag.name,
+        initialInput: tag.name,
       },
       search: this.tagSuggestionService, // TagSuggestionService
       result: {

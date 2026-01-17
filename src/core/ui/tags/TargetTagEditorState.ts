@@ -2,5 +2,5 @@
 
 export interface TargetTagEditorState {
   /** 初期入力文字列 */
-  initialText?: string;
+  initialInput?: string;
 }

@@ -13,7 +13,7 @@ export class TagCommandRegistrar {
   constructor(
     private readonly app: App,
     private readonly llmClient: LLMClient
-  ) {}
+  ) { }
 
   register(plugin: Plugin) {
     logger.debug('[TagCommandRegistrar.register] start');
@@ -73,7 +73,7 @@ export class TagCommandRegistrar {
 
         const dialog = new TargetTagEditorDialog(this.app, {
           state: {
-            initialText: '技術/言語/python',
+            initialInput: '技術/言語/python',
           },
           search: tagSuggestionService,
           result: {

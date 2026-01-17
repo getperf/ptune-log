@@ -36,7 +36,7 @@ export class TargetTagEditorDialog extends Modal {
     this.inputEl = contentEl.createEl('input', {
       type: 'text',
       cls: 'tag-edit-input tag-edit-input-wide',
-      value: this.opts.state.initialText ?? '',
+      value: this.opts.state.initialInput ?? '',
       attr: { placeholder: 'タグを入力または候補から選択' },
     });
 
@@ -98,7 +98,7 @@ export class TargetTagEditorDialog extends Modal {
     });
 
     // --- initial normal search ---
-    const initKey = this.opts.state.initialText ?? '';
+    const initKey = this.opts.state.initialInput ?? '';
     const initial = await this.opts.search.searchNormal(initKey);
     this.normalRenderer.render(initial);
   }
