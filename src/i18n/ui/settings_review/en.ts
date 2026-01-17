@@ -13,5 +13,14 @@ export const UI_SETTINGS_REVIEW_EN: UiSettingsReviewI18n = {
   enableDailyNoteUserReview: {
     name: 'Enable User Review',
     desc: 'Enables user review customization for daily notes.',
-  }
+  },
+
+  kptOutputMode: {
+    name: 'KPT Output Format',
+    desc: 'Select the output format for KPT analysis results.',
+    options: {
+      markdown: 'Markdown (Outliner)',
+      text: 'Text (XMind / Mind Map)',
+    },
+  },
 };

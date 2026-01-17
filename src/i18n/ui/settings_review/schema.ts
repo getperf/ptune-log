@@ -11,5 +11,14 @@ export interface UiSettingsReviewI18n {
   enableDailyNoteUserReview: {
     name: string;
     desc: string;
-  }
+  };
+
+  kptOutputMode: {
+    name: string;
+    desc: string;
+    options: {
+      markdown: string;
+      text: string;
+    };
+  };
 }

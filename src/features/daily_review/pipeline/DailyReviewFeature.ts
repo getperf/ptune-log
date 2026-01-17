@@ -72,7 +72,11 @@ export class DailyReviewFeature {
     );
 
     // --- KPT Analysis UseCase
-    this.kptAnalysisUseCase = new KptAnalysisUseCase(app, this.llmClient);
+    this.kptAnalysisUseCase = new KptAnalysisUseCase(
+      app,
+      this.llmClient,
+      reviewSettings
+    );
 
     // --- コマンド登録
     this.llmRegistrar = new DailyReviewCommandRegistrar(

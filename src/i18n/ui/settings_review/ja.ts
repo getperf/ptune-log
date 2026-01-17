@@ -13,5 +13,14 @@ export const UI_SETTINGS_REVIEW_JA: UiSettingsReviewI18n = {
   enableDailyNoteUserReview: {
     name: 'ユーザーレビュー有効化',
     desc: 'デイリーノートのユーザレビューカスタマイズを有効にします。',
-  }
+  },
+
+  kptOutputMode: {
+    name: 'KPT 出力形式',
+    desc: 'KPT分析結果の出力形式を選択します。',
+    options: {
+      markdown: 'Markdown（アウトライナー向け）',
+      text: 'テキスト（XMind／マインドマップ）',
+    },
+  },
 };

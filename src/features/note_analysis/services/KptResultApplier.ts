@@ -1,49 +1,86 @@
-// src/features/daily_review/services/kpt/KptResultApplier.ts
+// File: src/features/daily_review/services/kpt/KptResultApplier.ts
 
 import { App, parseYaml } from 'obsidian';
 import { DailyNoteWriter } from 'src/core/services/daily_notes/file_io/DailyNoteWriter';
 import { KPTResult } from 'src/core/models/daily_notes/KPTResult';
 import { YamlCodeBlockExtractor } from 'src/core/utils/markdown/YamlCodeBlockExtractor';
-import { KptMarkdownConverter } from './builders/KptMarkdownConverter';
 import { DailyNote } from 'src/core/models/daily_notes/DailyNote';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
+import { logger } from 'src/core/services/logger/loggerInstance';
+import { ReviewSettings } from 'src/config/settings/ReviewSettings';
+import { KptOutputFormatterFactory } from './formatters/KptOutputFormatterFactory';
 
+/**
+ * unknown → string[] 正規化
+ */
+function normalizeStringList(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((v): v is string => typeof v === 'string');
+}
+
+/**
+ * KPTResult 正規化
+ */
 export function normalizeKptResult(raw: Partial<KPTResult>): KPTResult {
   return {
-    Keep: raw.Keep ?? [],
-    Problem: raw.Problem ?? [],
-    Try: raw.Try ?? [],
+    Keep: normalizeStringList(raw.Keep),
+    Problem: normalizeStringList(raw.Problem),
+    Try: normalizeStringList(raw.Try),
   };
 }
 
 export class KptResultApplier {
   private readonly writer: DailyNoteWriter;
-  constructor(private readonly app: App) {
+
+  constructor(
+    private readonly app: App,
+    private readonly reviewSettings: ReviewSettings
+  ) {
     this.writer = new DailyNoteWriter(app);
   }
+
+  /**
+   * LLM 出力を KPT として DailyNote に反映
+   */
   async apply(dailyNote: DailyNote, llmMarkdown: string): Promise<void> {
-    // 2. YAML 抽出
-    const yamlText = YamlCodeBlockExtractor.extract(llmMarkdown);
-    if (!yamlText) {
-      throw new Error('KPT YAML block not found in LLM output.');
-    }
-    // 3. YAML → Model
-    let parsed: Partial<KPTResult>;
+    logger.debug('[KptResultApplier] apply start');
+
     try {
-      parsed = parseYaml(yamlText) as Partial<KPTResult>;
+      // 1. YAML 抽出
+      const yamlText = YamlCodeBlockExtractor.extract(llmMarkdown);
+      if (!yamlText) {
+        throw new Error('KPT YAML block not found in LLM output.');
+      }
+
+      // 2. YAML → Object
+      let parsed: Partial<KPTResult>;
+      try {
+        parsed = parseYaml(yamlText) as Partial<KPTResult>;
+      } catch (e) {
+        logger.error('[KptResultApplier] YAML parse failed', e);
+        throw new Error('Failed to parse KPT YAML.');
+      }
+
+      // 3. 正規化
+      const result = normalizeKptResult(parsed);
+
+      // 4. 出力フォーマット選択（唯一の分岐点）
+      const formatter = KptOutputFormatterFactory.create(
+        this.reviewSettings.kptOutputMode
+      );
+      const content = formatter.format(result);
+
+      // 5. DailyNote へ append
+      const suffix = `(${DateUtil.localTime()})`;
+      const updated = dailyNote.appendKpt(content, suffix, 'first');
+
+      // 6. 保存
+      await this.writer.writeToActive(updated);
+
+      logger.info('[KptResultApplier] apply completed');
     } catch (e) {
-      throw new Error('Failed to parse KPT YAML.');
+      logger.error('[KptResultApplier] apply failed', e);
+      throw e;
     }
-    const result = normalizeKptResult(parsed);
-
-    // 4. Markdown 変換
-    const markdown = KptMarkdownConverter.convert(result);
-
-    // 5. モデルに append（サフィックス含む）
-    const suffix = `(${DateUtil.localTime()})`;
-    const updated = dailyNote.appendKpt(markdown, suffix, 'first');
-
-    // 6. 保存
-    await this.writer.writeToActive(updated);
   }
 }

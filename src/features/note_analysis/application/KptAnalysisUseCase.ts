@@ -9,12 +9,14 @@ import { i18n } from 'src/i18n';
 import { KptSourceExtractor } from '../services/KptSourceExtractor';
 import { KptPromptBuilder } from '../services/KptPromptBuilder';
 import { KptResultApplier } from '../services/KptResultApplier';
+import { ReviewSettings } from 'src/config/settings/ReviewSettings';
 
 export class KptAnalysisUseCase {
   constructor(
     private readonly app: App,
-    private readonly llmClient: LLMClient
-  ) { }
+    private readonly llmClient: LLMClient,
+    private readonly reviewSettings: ReviewSettings
+  ) {}
 
   async run(): Promise<void> {
     const ui = i18n.ui.noteAnalysis;
@@ -63,7 +65,13 @@ export class KptAnalysisUseCase {
     }
 
     // 4. 結果反映
-    await new KptResultApplier(this.app).apply(dailyNote, result);
+    try {
+      const applier = new KptResultApplier(this.app, this.reviewSettings);
+      await applier.apply(dailyNote, result);
+    } catch (e) {
+      logger.error('[KptAnalysisUseCase] post-llm failed', e);
+      throw e;
+    }
     logger.info('[KptAnalysisUseCase] apply: completed');
 
     // i18n置換：「KPT分析を更新しました」
