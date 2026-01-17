@@ -16,7 +16,7 @@ describe('MyTask', () => {
     expect(task.toString()).toBe('[x] Test Task 🍅x2 ✅x1');
   });
 
-  it('toApiData converts to expected format', () => {
+  it('toGoogleTaskWrite converts to expected format', () => {
     const task = new MyTask(
       '1',
       'Title',
@@ -27,7 +27,7 @@ describe('MyTask', () => {
       new PomodoroInfo(2),
       'needsAction'
     );
-    const data = task.toApiData();
+    const data = task.toGoogleTaskWrite();
     expect(data.title).toBe('Title');
     expect(data.notes).toContain('🍅x2');
     expect(data.status).toBe('needsAction');

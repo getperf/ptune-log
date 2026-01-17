@@ -66,23 +66,22 @@ export class TagCommandRegistrar {
       id: 'tags-open-target-tag-editor-test',
       name: 'Tags: Open TargetTagEditor (test)',
       callback: async () => {
-        const svc = new TagSuggestionService(this.app, this.llmClient);
+        const tagSuggestionService = new TagSuggestionService(
+          this.app,
+          this.llmClient
+        );
 
         const dialog = new TargetTagEditorDialog(this.app, {
-          initialText: '技術/言語/python',
-          vectorAvailable: svc.isVectorSearchAvailable(),
-
-          searchNormal: async (q) =>
-            svc.searchCandidates(q, { mode: 'normal', limit: 20 }),
-
-          searchVector: async (q) =>
-            svc.searchCandidates(q, { mode: 'vector', limit: 20 }),
-
-          onConfirm: async (tag) => {
-            new Notice(`Selected tag: ${tag}`);
+          state: {
+            initialText: '技術/言語/python',
+          },
+          search: tagSuggestionService,
+          result: {
+            confirm: async (tag) => {
+              new Notice(`Selected tag: ${tag}`);
+            },
           },
         });
-
         dialog.open();
       },
     });

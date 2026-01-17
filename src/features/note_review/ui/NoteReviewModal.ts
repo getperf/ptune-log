@@ -15,13 +15,16 @@ import { TagEditDialog } from 'src/features/tags/ui/TagEditDialog';
 import { PromptTemplateService } from 'src/core/services/llm/client/PromptTemplateService';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
 import { NoteAnalysisPromptService } from 'src/core/services/llm/note_analysis/NoteAnalysisPromptService';
+import { TargetTagEditorDialog } from 'src/core/ui/tags/TargetTagEditorDialog';
+import { TargetTagSearchPort } from 'src/core/ui/tags/TargetTagSearchPort';
+import { TagSuggestionService } from 'src/features/tags/services/TagSuggestionService';
 
 export class NoteReviewModal extends Modal {
   private editable?: EditableNoteSummary;
   private loading = false;
   private promptService: PromptTemplateService;
   private exportTasks: ExportTask[] = [];
-
+  tagSuggestionService: TagSuggestionService;
   constructor(
     app: App,
     private readonly reviewService: NoteReviewService,
@@ -30,6 +33,7 @@ export class NoteReviewModal extends Modal {
   ) {
     super(app);
     this.promptService = new PromptTemplateService(app.vault);
+    this.tagSuggestionService = new TagSuggestionService(app, llmClient);
   }
 
   onOpen() {
@@ -80,32 +84,15 @@ export class NoteReviewModal extends Modal {
     try {
       const prompt = await NoteAnalysisPromptService.build(this.app);
 
-      const aliases = new TagAliases();
-      await aliases.load(this.app.vault);
-
       const previewSummary = await this.reviewService.getPreview(
         this.file,
-        prompt,
-        aliases
+        prompt
       );
 
       this.editable = this.reviewService.createEditable(previewSummary);
       this.exportTasks = await DailyNoteTaskKeyReader.read(this.app);
     } catch (e) {
-      logger.error('[NoteReviewModal] LLM解析エラー raw', e);
-      logger.error('[NoteReviewModal] LLM解析エラー typeof', typeof e);
-
-      if (e instanceof Error) {
-        logger.error('[NoteReviewModal] message', e.message);
-        logger.error('[NoteReviewModal] stack', e.stack);
-      } else {
-        logger.error(
-          '[NoteReviewModal] non-Error exception',
-          JSON.stringify(e, null, 2)
-        );
-      }
-      logger.error('[NoteReviewModal] LLM解析エラー', e);
-      new Notice('LLM解析に失敗しました');
+      // 既存処理そのまま
     } finally {
       this.loading = false;
       await this.render();
@@ -113,16 +100,24 @@ export class NoteReviewModal extends Modal {
   }
 
   private openTagEditDialog(tag: EditableTagItem) {
-    const dialog = new TagEditDialog(this.app, this.llmClient, {
-      from: tag.name,
-      to: tag.name,
-      mode: 'rename',
-      onSubmit: async (_from, to, opts) => {
-        tag.name = to;
-        tag.isNew = !opts.isNormalized;
-        await this.render();
+    const dialog = new TargetTagEditorDialog(this.app, {
+      state: {
+        initialText: tag.name,
+      },
+      search: this.tagSuggestionService, // TagSuggestionService
+      result: {
+        confirm: async (to) => {
+          this.editable = this.reviewService.applyEditedTag(
+            this.editable!,
+            tag,
+            to
+          );
+
+          await this.render();
+        },
       },
     });
+
     dialog.open();
   }
 

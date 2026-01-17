@@ -1,3 +1,5 @@
+// File: src/features/tags/services/TagSuggestionService.ts
+
 import { App } from 'obsidian';
 import { TagYamlIO } from 'src/core/services/yaml/TagYamlIO';
 import { Tags } from 'src/core/models/tags/Tags';
@@ -5,27 +7,76 @@ import { TagCandidate } from 'src/core/models/tags/TagCandidate';
 import { TagVectorSearcher } from 'src/core/services/vector/TagVectorSearcher';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
+import type { TargetTagSearchPort } from 'src/core/ui/tags/TargetTagSearchPort';
+
+export type TagSearchMode = 'normal' | 'vector';
+
+export interface TagSearchOptions {
+  mode?: TagSearchMode;
+  limit?: number;
+}
 
 /**
  * TagSuggestionService
  * -----------------------------------------
- * タグ候補検索サービス。
- * - mode = normal → Tagsモデルによるテキスト検索
- * - mode = vector → LLM + embeddings によるベクトル検索
- * - TagVectorSearcher と連携して検索方式を切り替える
+ * タグ候補検索サービス（UIから使いやすい形に整理）
+ * - TargetTagEditorDialog の SearchPort として直接利用可能
+ * - normal/vector の呼び出しを明確に分離し、有償 vector の誤実行を防ぐ
  */
-export class TagSuggestionService {
+export class TagSuggestionService implements TargetTagSearchPort {
   private tags = new Tags();
   private loaded = false;
   private vectorSearcher: TagVectorSearcher;
 
-  constructor(private app: App, private llmClient: LLMClient) {
+  constructor(
+    private readonly app: App,
+    private readonly llmClient: LLMClient
+  ) {
     this.vectorSearcher = new TagVectorSearcher(app, llmClient);
   }
 
-  /**
-   * Tags（通常辞書）の初回読み込みを保証する
-   */
+  // ===== SearchPort (UI向け) =====
+
+  isVectorAvailable(): boolean {
+    const available = !!this.llmClient?.isVectorSearchAvailable();
+    logger.debug(`[TagSuggestionService] vectorAvailable=${available}`);
+    return available;
+  }
+
+  async searchNormal(query: string): Promise<TagCandidate[]> {
+    return this.searchCandidates(query, { mode: 'normal' });
+  }
+
+  async searchVector(query: string): Promise<TagCandidate[]> {
+    return this.searchCandidates(query, { mode: 'vector' });
+  }
+
+  // ===== 既存API（互換維持） =====
+
+  async searchCandidates(
+    keyword: string,
+    options?: TagSearchOptions
+  ): Promise<TagCandidate[]> {
+    await this.ensureLoaded();
+
+    const mode: TagSearchMode = options?.mode ?? 'normal';
+    const limit = options?.limit ?? 50;
+
+    const q = (keyword ?? '').trim();
+    logger.debug(
+      `[TagSuggestionService.searchCandidates] mode=${mode} keyword="${q}" limit=${limit}`
+    );
+
+    if (mode === 'vector') {
+      if (!this.isVectorAvailable()) return [];
+      return this.vectorSearcher.search(q, { limit });
+    }
+
+    return this.searchTextCandidates(q, limit);
+  }
+
+  // ===== internal =====
+
   private async ensureLoaded(): Promise<void> {
     if (this.loaded) return;
 
@@ -41,45 +92,8 @@ export class TagSuggestionService {
     );
   }
 
-  /**
-   * LLMClient がベクトル検索可能かどうか
-   */
-  isVectorSearchAvailable(): boolean {
-    const available = !!this.llmClient?.isVectorSearchAvailable();
-    logger.debug(`[TagSuggestionService] vectorSearchAvailable=${available}`);
-    return available;
-  }
-
-  /**
-   * タグ候補検索（通常／ベクトル の両モード対応）
-   * @param keyword キーワード
-   * @param options.mode "normal" | "vector"
-   * @param options.limit 最大件数
-   */
-  async searchCandidates(
-    keyword: string,
-    options?: { mode?: 'normal' | 'vector'; limit?: number }
-  ): Promise<TagCandidate[]> {
-    await this.ensureLoaded();
-
-    const mode = options?.mode ?? 'normal';
-    const limit = options?.limit ?? 50;
-
-    logger.debug(
-      `[TagSuggestionService.searchCandidates] mode=${mode} keyword="${keyword}" limit=${limit}`
-    );
-
-    if (mode === 'vector') {
-      return await this.vectorSearcher.search(keyword, { limit });
-    } else {
-      return this.searchTextCandidates(keyword, limit);
-    }
-  }
-
-  /**
-   * 通常検索：Tagsモデルの検索
-   */
   private searchTextCandidates(keyword: string, limit: number): TagCandidate[] {
+    // 表示名は階層全体を維持、検索キーのみ末尾を使う（既存踏襲）
     const key = keyword.split('/').pop()?.toLowerCase() ?? '';
     const matched = this.tags.searchByKeyword(keyword, limit);
 

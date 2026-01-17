@@ -1,23 +1,11 @@
 // File: src/core/ui/tags/TargetTagEditorDialog.ts
 
 import { App, Modal, ButtonComponent } from 'obsidian';
-import { TagCandidate } from 'src/core/models/tags/TagCandidate';
 import { TagCandidateRenderer } from './TagCandidateRenderer';
-import {
-  TargetTagSearchController,
-  SearchMode,
-} from './TargetTagSearchController';
+import { TargetTagEditorOptions } from './TargetTagEditorOptions';
 import { logger } from 'src/core/services/logger/loggerInstance';
 
-export interface TargetTagEditorOptions {
-  initialText?: string;
-
-  searchNormal: (q: string) => Promise<TagCandidate[]>;
-  searchVector?: (q: string) => Promise<TagCandidate[]>;
-  vectorAvailable: boolean;
-
-  onConfirm: (tag: string) => Promise<void>;
-}
+type SearchMode = 'normal' | 'vector';
 
 export class TargetTagEditorDialog extends Modal {
   private inputEl!: HTMLInputElement;
@@ -34,15 +22,8 @@ export class TargetTagEditorDialog extends Modal {
   private normalRenderer!: TagCandidateRenderer;
   private vectorRenderer!: TagCandidateRenderer;
 
-  private controller: TargetTagSearchController;
-
   constructor(app: App, private readonly opts: TargetTagEditorOptions) {
     super(app);
-    this.controller = new TargetTagSearchController({
-      searchNormal: opts.searchNormal,
-      searchVector: opts.searchVector,
-      vectorAvailable: opts.vectorAvailable,
-    });
   }
 
   async onOpen(): Promise<void> {
@@ -55,7 +36,7 @@ export class TargetTagEditorDialog extends Modal {
     this.inputEl = contentEl.createEl('input', {
       type: 'text',
       cls: 'tag-edit-input tag-edit-input-wide',
-      value: this.opts.initialText ?? '',
+      value: this.opts.state.initialText ?? '',
       attr: { placeholder: 'タグを入力または候補から選択' },
     });
 
@@ -64,11 +45,11 @@ export class TargetTagEditorDialog extends Modal {
       this.selectedTag = null;
 
       if (this.activeTab === 'normal') {
-        const normal = await this.controller.search('normal', key);
-        this.normalRenderer.render(normal);
-      } else {
-        const vector = await this.controller.search('vector', key);
-        this.vectorRenderer.render(vector);
+        const list = await this.opts.search.searchNormal(key);
+        this.normalRenderer.render(list);
+      } else if (this.opts.search.searchVector) {
+        const list = await this.opts.search.searchVector(key);
+        this.vectorRenderer.render(list);
       }
     });
 
@@ -80,13 +61,8 @@ export class TargetTagEditorDialog extends Modal {
 
     this.tabNormalEl.classList.add('active');
 
-    this.tabNormalEl.addEventListener('click', async () => {
-      await this.switchTab('normal');
-    });
-
-    this.tabVectorEl.addEventListener('click', async () => {
-      await this.switchTab('vector');
-    });
+    this.tabNormalEl.addEventListener('click', () => this.switchTab('normal'));
+    this.tabVectorEl.addEventListener('click', () => this.switchTab('vector'));
 
     // --- candidate lists ---
     this.listNormalEl = contentEl.createEl('div', {
@@ -112,26 +88,31 @@ export class TargetTagEditorDialog extends Modal {
       .onClick(async () => {
         const value = this.selectedTag || this.inputEl.value.trim();
         if (!value) return;
-        await this.opts.onConfirm(value);
+        await this.opts.result.confirm(value);
         this.close();
       });
 
-    new ButtonComponent(btnRow)
-      .setButtonText('Cancel')
-      .onClick(() => this.close());
+    new ButtonComponent(btnRow).setButtonText('Cancel').onClick(() => {
+      this.opts.result.cancel?.();
+      this.close();
+    });
 
     // --- initial normal search ---
-    const initKey = this.opts.initialText ?? '';
-    const initial = await this.controller.search('normal', initKey);
+    const initKey = this.opts.state.initialText ?? '';
+    const initial = await this.opts.search.searchNormal(initKey);
     this.normalRenderer.render(initial);
   }
 
   private async switchTab(tab: SearchMode): Promise<void> {
     if (this.activeTab === tab) return;
 
+    // vector 不可なら切替不可
+    if (tab === 'vector' && !this.opts.search.isVectorAvailable()) {
+      return;
+    }
+
     this.activeTab = tab;
 
-    // ★ active クラスを必ず同期
     this.tabNormalEl.classList.toggle('active', tab === 'normal');
     this.tabVectorEl.classList.toggle('active', tab === 'vector');
 
@@ -141,11 +122,11 @@ export class TargetTagEditorDialog extends Modal {
     const key = this.inputEl.value.trim();
 
     if (tab === 'normal') {
-      const normal = await this.controller.search('normal', key);
-      this.normalRenderer.render(normal);
-    } else if (this.controller.canUseVector()) {
-      const vector = await this.controller.search('vector', key);
-      this.vectorRenderer.render(vector);
+      const list = await this.opts.search.searchNormal(key);
+      this.normalRenderer.render(list);
+    } else if (this.opts.search.searchVector) {
+      const list = await this.opts.search.searchVector(key);
+      this.vectorRenderer.render(list);
     }
 
     logger.debug(`[TargetTagEditorDialog] switchTab=${tab}`);

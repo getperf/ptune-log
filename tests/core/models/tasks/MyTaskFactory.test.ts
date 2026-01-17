@@ -1,11 +1,11 @@
 import { MyTask } from 'src/core/models/tasks/MyTask';
 import { PomodoroInfo } from 'src/core/models/tasks/MyTask/PomodoroInfo';
 import { MyTaskFactory } from 'src/core/models/tasks/MyTaskFactory';
-import { GoogleTaskDto } from 'src/core/models/tasks/GoogleTaskDto';
+import { GoogleTaskRaw } from 'src/core/models/tasks/google/GoogleTaskRaw';
 
 describe('TaskFactory', () => {
   it('should parse API data into MyTask', () => {
-    const apiTask: GoogleTaskDto = {
+    const apiTask: GoogleTaskRaw = {
       id: '123',
       title: 'Test Task',
       note: 'Note 🍅x2 ✅x1',
@@ -13,7 +13,7 @@ describe('TaskFactory', () => {
       due: '2024-06-13T10:00:00.000Z',
     };
 
-    const task = MyTaskFactory.fromApiData(apiTask, 'todayList');
+    const task = MyTaskFactory.fromGoogleTask(apiTask, 'todayList');
 
     expect(task.id).toBe('123');
     expect(task.title).toBe('Test Task');
@@ -25,27 +25,27 @@ describe('TaskFactory', () => {
   });
 
   it('returns undefined pomodoro if 🍅 is missing', () => {
-    const apiData: GoogleTaskDto = {
+    const apiData: GoogleTaskRaw = {
       id: '1',
       title: 'No Tomato',
       note: 'just a note',
       status: 'needsAction',
     };
 
-    const task = MyTaskFactory.fromApiData(apiData, 'today');
+    const task = MyTaskFactory.fromGoogleTask(apiData, 'today');
     expect(task.pomodoro?.planned).toBe(0);
     expect(task.pomodoro?.actual).toBeUndefined();
   });
 
   it('returns valid PomodoroInfo if 🍅x3 is present', () => {
-    const apiData: GoogleTaskDto = {
+    const apiData: GoogleTaskRaw = {
       id: '3',
       title: 'Valid Pomodoro',
       note: 'task 🍅x3 ✅x2',
       status: 'needsAction',
     };
 
-    const task = MyTaskFactory.fromApiData(apiData, 'today');
+    const task = MyTaskFactory.fromGoogleTask(apiData, 'today');
     expect(task.pomodoro).toBeDefined();
     expect(task.pomodoro?.planned).toBe(3);
     expect(task.pomodoro?.actual).toBe(2);
@@ -69,7 +69,7 @@ describe('TaskFactory', () => {
     const note =
       '🍅x1 ✅x1 started=2025-07-27T09:47:49.902210 completed=2025-07-27T09:48:16.564339';
 
-    const taskData: GoogleTaskDto = {
+    const taskData: GoogleTaskRaw = {
       id: '123',
       title: 'Test Task',
       note,
@@ -77,7 +77,7 @@ describe('TaskFactory', () => {
       status: 'completed',
     };
 
-    const task: MyTask = MyTaskFactory.fromApiData(taskData, 'list-1');
+    const task: MyTask = MyTaskFactory.fromGoogleTask(taskData, 'list-1');
 
     expect(task.started).toBe('2025-07-27T09:47:49.902210');
     expect(task.completed).toBe('2025-07-27T09:48:16.564339');
@@ -89,20 +89,20 @@ describe('TaskFactory', () => {
   it('parses only started when completed is missing', () => {
     const note = '🍅x2 started=2025-07-27T09:00:00.000Z';
 
-    const taskData: GoogleTaskDto = {
+    const taskData: GoogleTaskRaw = {
       id: '456',
       title: 'Started Only',
       note,
       status: 'needsAction',
     };
 
-    const task = MyTaskFactory.fromApiData(taskData);
+    const task = MyTaskFactory.fromGoogleTask(taskData);
     expect(task.started).toBe('2025-07-27T09:00:00.000Z');
     expect(task.completed).toBeUndefined();
   });
 
   it('parses completed from task.completed if not in note', () => {
-    const taskData: GoogleTaskDto = {
+    const taskData: GoogleTaskRaw = {
       id: '789',
       title: 'API Completed',
       note: '🍅x1',
@@ -110,19 +110,19 @@ describe('TaskFactory', () => {
       completed: '2025-07-27T10:00:00.000Z',
     };
 
-    const task = MyTaskFactory.fromApiData(taskData);
+    const task = MyTaskFactory.fromGoogleTask(taskData);
     expect(task.completed).toBe('2025-07-27T10:00:00.000Z');
   });
 
   it('removes started/completed from note body', () => {
-    const taskData: GoogleTaskDto = {
+    const taskData: GoogleTaskRaw = {
       id: '999',
       title: 'Cleanup Note',
       note: 'memo 🍅x1 started=2025-07-27T00:47:49.902210 completed=2025-07-27T00:48:16.564339',
       status: 'completed',
     };
 
-    const task = MyTaskFactory.fromApiData(taskData);
+    const task = MyTaskFactory.fromGoogleTask(taskData);
     expect(task.note).toBe('memo');
   });
 });
