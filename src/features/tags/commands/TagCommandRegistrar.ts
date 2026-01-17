@@ -6,6 +6,8 @@ import { TagAliasMerger } from '../services/TagAliasMerger';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
 import { TagVectors } from 'src/core/models/vectors/TagVectors';
 import { TagClusteringDebugService } from '../services/TagClusteringDebugService';
+import { TagSuggestionService } from '../services/TagSuggestionService';
+import { TargetTagEditorDialog } from 'src/core/ui/tags/TargetTagEditorDialog';
 
 export class TagCommandRegistrar {
   constructor(
@@ -57,6 +59,31 @@ export class TagCommandRegistrar {
 
         const service = new TagClusteringDebugService(plugin.app);
         await service.run(vectors);
+      },
+    });
+
+    plugin.addCommand({
+      id: 'tags-open-target-tag-editor-test',
+      name: 'Tags: Open TargetTagEditor (test)',
+      callback: async () => {
+        const svc = new TagSuggestionService(this.app, this.llmClient);
+
+        const dialog = new TargetTagEditorDialog(this.app, {
+          initialText: '技術/言語/python',
+          vectorAvailable: svc.isVectorSearchAvailable(),
+
+          searchNormal: async (q) =>
+            svc.searchCandidates(q, { mode: 'normal', limit: 20 }),
+
+          searchVector: async (q) =>
+            svc.searchCandidates(q, { mode: 'vector', limit: 20 }),
+
+          onConfirm: async (tag) => {
+            new Notice(`Selected tag: ${tag}`);
+          },
+        });
+
+        dialog.open();
       },
     });
   }
