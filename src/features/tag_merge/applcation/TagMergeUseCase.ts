@@ -38,12 +38,13 @@ export class TagMergeUseCase {
       `[TagMergeUseCase] clustering done: clusters=${result.clusters.length}, total=${result.meta.total}`
     );
 
+    // KMeans → TagMergeCluster（優先度確定）
     const clusterBuilder = new TagMergeClusterBuilder();
     const mergeClusters = clusterBuilder.build(result.clusters);
 
-    // ViewModel 変換（優先度別）
-    const builder = new TagMergeViewModelBuilder();
-    const priorityGroups = builder.build(mergeClusters);
+    // TagMergeCluster → ViewModel（UI用）
+    const vmBuilder = new TagMergeViewModelBuilder();
+    const priorityGroups = vmBuilder.build(mergeClusters);
 
     // タグ候補検索（Dialog 用）
     const tagSuggestionService = new TagSuggestionService(

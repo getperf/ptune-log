@@ -1,4 +1,5 @@
 // src/features/tag_merge/services/TagMergeViewModelBuilder.ts
+
 import { TagMergeCluster } from '../models/TagMergeCluster';
 import {
   TagMergePriorityKey,
@@ -6,6 +7,11 @@ import {
 } from '../models/TagMergePriority';
 import { TagMergePriorityGroupVM } from '../models/TagMergePriorityGroupVM';
 
+/**
+ * TagMergeViewModelBuilder
+ * - TagMergeCluster を UI 描画用 ViewModel に変換する
+ * - 優先度の判定ロジックは持たない
+ */
 export class TagMergeViewModelBuilder {
   build(clusters: TagMergeCluster[]): TagMergePriorityGroupVM[] {
     const bucket: Record<TagMergePriorityKey, TagMergePriorityGroupVM> = {
@@ -16,9 +22,7 @@ export class TagMergeViewModelBuilder {
     };
 
     for (const cluster of clusters) {
-      const priority = this.detectPriority(cluster);
-
-      bucket[priority].groups.push({
+      bucket[cluster.priority].groups.push({
         to: cluster.to,
         checked: true,
         items: cluster.members.map((m) => ({
@@ -30,32 +34,11 @@ export class TagMergeViewModelBuilder {
       });
     }
 
-    // Record の場合は Object.values を使う（型が TagMergePriorityGroupVM[] に確定）
+    // 表示順は priority 定義に従う（UI都合）
     return Object.values(bucket).sort(
-      (a, b) => this.getOrder(a.priority) - this.getOrder(b.priority)
+      (a, b) =>
+        (TAG_MERGE_PRIORITIES.get(a.priority)?.order ?? 999) -
+        (TAG_MERGE_PRIORITIES.get(b.priority)?.order ?? 999)
     );
-  }
-
-  private getOrder(priority: TagMergePriorityKey): number {
-    return TAG_MERGE_PRIORITIES.get(priority)?.order ?? 999;
-  }
-
-  private detectPriority(cluster: TagMergeCluster): TagMergePriorityKey {
-    const froms = cluster.members.map((m) => m.from);
-
-    if (froms.some((f) => f.startsWith(cluster.to + '/'))) {
-      return 'hierarchy';
-    }
-
-    if (froms.some((f) => this.isVariant(f, cluster.to))) {
-      return 'variant';
-    }
-
-    return 'similar';
-  }
-
-  private isVariant(a: string, b: string): boolean {
-    const normalize = (s: string) => s.replace(/[-_/]/g, '').toLowerCase();
-    return normalize(a) === normalize(b);
   }
 }

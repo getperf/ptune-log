@@ -8,8 +8,9 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 
 /**
  * TagMergeResultDialog
- * - ViewModel を描画するダイアログ
- * - to は編集ダイアログを開けるが、状態更新は行わない
+ * - ViewModel を描画する
+ * - チェックボックスと to 編集リンクを表示する
+ * - 状態更新・永続化は行わない
  */
 export class TagMergeResultDialog extends Modal {
   constructor(
@@ -65,8 +66,9 @@ export class TagMergeResultDialog extends Modal {
   }
 
   /**
-   * グループ（to 単位）の描画
-   * - to は編集ダイアログへのリンク
+   * グループ行（to 単位）
+   * - 左：チェックボックス
+   * - to：編集ダイアログへのリンク
    */
   private renderGroup(
     container: HTMLElement,
@@ -74,13 +76,18 @@ export class TagMergeResultDialog extends Modal {
   ): void {
     const groupEl = container.createDiv({ cls: 'tag-merge-group' });
 
-    const title = groupEl.createEl('a', {
+    const header = groupEl.createDiv({ cls: 'tag-merge-group-header' });
+
+    const groupCheckbox = header.createEl('input', { type: 'checkbox' });
+    groupCheckbox.checked = group.checked;
+
+    const toLink = header.createEl('a', {
       text: `To: ${group.to}`,
       href: '#',
-      cls: 'tag-merge-group-title link',
+      cls: 'tag-merge-to-link',
     });
 
-    title.addEventListener('click', (e) => {
+    toLink.addEventListener('click', (e) => {
       e.preventDefault();
       this.openTagEditDialog(group.to);
     });
@@ -90,32 +97,61 @@ export class TagMergeResultDialog extends Modal {
     });
 
     for (const item of group.items) {
-      list.createEl('div', {
-        text: `${item.from} → ${item.to}`,
-        cls: 'tag-merge-row',
-      });
+      this.renderRow(list, item);
     }
   }
 
   /**
-   * to 編集ダイアログを開く（更新はしない）
+   * 各行（from → to）
+   * - 左：チェックボックス
+   * - to：編集ダイアログへのリンク
+   */
+  private renderRow(
+    container: HTMLElement,
+    item: TagMergePriorityGroupVM['groups'][number]['items'][number]
+  ): void {
+    const row = container.createDiv({ cls: 'tag-merge-row' });
+
+    const cb = row.createEl('input', { type: 'checkbox' });
+    cb.checked = item.checked;
+
+    row.createSpan({
+      text: item.from,
+      cls: 'tag-merge-from',
+    });
+
+    row.createSpan({
+      text: ' → ',
+      cls: 'tag-merge-arrow',
+    });
+
+    const toLink = row.createEl('a', {
+      text: item.to,
+      href: '#',
+      cls: 'tag-merge-to-link',
+    });
+
+    toLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      this.openTagEditDialog(item.to);
+    });
+  }
+
+  /**
+   * to 編集ダイアログを開く（状態更新はしない）
    */
   private openTagEditDialog(to: string): void {
     logger.debug(`[TagMergeResultDialog] open edit dialog to=${to}`);
 
-    const dialog = new TargetTagEditorDialog(this.app, {
-      state: {
-        initialText: to,
-      },
+    new TargetTagEditorDialog(this.app, {
+      state: { initialText: to },
       search: this.tagSuggestionService,
       result: {
         confirm: async () => {
-          // 表示専用のため更新は行わない
+          // 表示専用のため更新なし
         },
       },
-    });
-
-    dialog.open();
+    }).open();
   }
 
   onClose(): void {
