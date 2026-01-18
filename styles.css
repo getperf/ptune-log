@@ -300,23 +300,34 @@
 
 /* TagMergeResultDialog */
 
-.tag-merge-pair-container {
-  margin-top: 0.5em;
+.tag-merge-group-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  margin-top: 0.8em;
+  margin-bottom: 0.3em;
+}
+
+.tag-merge-group-list {
+  margin-left: 1.2em;
 }
 
 .tag-merge-row {
   display: flex;
-  gap: 0.3em;
+  align-items: center;
+  gap: 0.4em;
   line-height: 1.4;
   margin: 2px 0;
-}
-
-.tag-merge-from {
-  white-space: nowrap;
 }
 
 .tag-merge-to-link {
   color: var(--text-accent);
   cursor: pointer;
+  text-decoration: underline;
+}
+
+.tag-merge-group-title.link {
+  cursor: pointer;
+  color: var(--text-accent);
   text-decoration: underline;
 }
