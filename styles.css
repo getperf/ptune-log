@@ -297,3 +297,26 @@
 .ptune-tag-add-btn:hover {
   background-color: var(--background-modifier-hover);
 }
+
+/* TagMergeResultDialog */
+
+.tag-merge-pair-container {
+  margin-top: 0.5em;
+}
+
+.tag-merge-row {
+  display: flex;
+  gap: 0.3em;
+  line-height: 1.4;
+  margin: 2px 0;
+}
+
+.tag-merge-from {
+  white-space: nowrap;
+}
+
+.tag-merge-to-link {
+  color: var(--text-accent);
+  cursor: pointer;
+  text-decoration: underline;
+}
