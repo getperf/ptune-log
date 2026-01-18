@@ -26,6 +26,7 @@ import { TagNormalizationService } from 'src/core/services/tags/TagNormalization
 import { DailyReviewUseCase } from '../application/DailyReviewUseCase';
 import { KptAnalysisUseCase } from 'src/features/note_analysis/application/KptAnalysisUseCase';
 import { KptAnalysisCommandRegistrar } from 'src/features/note_analysis/commands/KptAnalysisCommandRegistrar';
+import { TagMergeCommandRegistrar } from 'src/features/tag_merge/commands/TagMergeCommandRegistrar';
 
 /**
  * --- LLM タグ／分析機能のエントリーポイント
@@ -33,6 +34,7 @@ import { KptAnalysisCommandRegistrar } from 'src/features/note_analysis/commands
  */
 export class DailyReviewFeature {
   private readonly llmClient: LLMClient;
+
   private readonly runner: NoteAnalysisRunner;
   private readonly dailyReviewUseCase: DailyReviewUseCase;
   private readonly kptAnalysisUseCase: KptAnalysisUseCase;
@@ -43,6 +45,7 @@ export class DailyReviewFeature {
   private readonly reviewRegistrar: NoteReviewCommandRegistrar;
   private readonly llmSettingCommandRegistrar: LLMSettingsCommandRegistrar;
   private readonly kptAnalysisRegistrar: KptAnalysisCommandRegistrar;
+  private readonly tagMergeCommandRegistrar: TagMergeCommandRegistrar;
 
   constructor(
     private readonly app: App,
@@ -91,6 +94,10 @@ export class DailyReviewFeature {
       app,
       this.kptAnalysisUseCase
     );
+    this.tagMergeCommandRegistrar = new TagMergeCommandRegistrar(
+      app,
+      this.llmClient
+    );
     logger.debug('[DailyReviewFeature] initialized successfully');
   }
 
@@ -107,6 +114,7 @@ export class DailyReviewFeature {
     this.reviewRegistrar.register(plugin);
     this.llmSettingCommandRegistrar.register(plugin);
     this.kptAnalysisRegistrar.register(plugin);
+    this.tagMergeCommandRegistrar.register(plugin);
 
     logger.debug('[DailyReviewFeature.register] complete');
   }
