@@ -8,6 +8,7 @@ import { TagMergeResultDialog } from '../ui/TagMergeResultDialog';
 import { TagSuggestionService } from 'src/features/tags/services/TagSuggestionService';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { TagMergeClusterBuilder } from '../services/TagMergeClusterBuilder';
+import { TagMergeFlowDialog } from '../ui/TagMergeFlowDialog';
 
 /**
  * TagMergeUseCase
@@ -15,13 +16,33 @@ import { TagMergeClusterBuilder } from '../services/TagMergeClusterBuilder';
  * - UI 操作・データ更新は行わない
  */
 export class TagMergeUseCase {
+  private readonly dialog: TagMergeFlowDialog;
+
   constructor(
     private readonly app: App,
-    private readonly llmClient: LLMClient
-  ) {}
+    private readonly llmClient: LLMClient,
+  ) {
+    const tagSuggestionService = new TagSuggestionService(app, llmClient);
+
+    this.dialog = new TagMergeFlowDialog(
+      app,
+      () => this.runClustering(),
+      () => this.runTagMerge(), // 今は未実装
+      tagSuggestionService,
+    );
+  }
 
   async execute(): Promise<void> {
-    logger.debug('[TagMergeUseCase] start');
+    this.dialog.open();
+    logger.debug('[TagMergeUseCase] complete');
+  }
+
+  /**
+   * フェーズ: clustering → reviewMerge
+   */
+  private async runClustering(): Promise<void> {
+    logger.debug('[TagMergeUseCase] phase=clustering');
+    this.dialog.setPhase('clustering');
 
     // ベクトルロード
     const vectors = new TagVectors(this.llmClient);
@@ -35,30 +56,32 @@ export class TagMergeUseCase {
     });
 
     logger.debug(
-      `[TagMergeUseCase] clustering done: clusters=${result.clusters.length}, total=${result.meta.total}`
+      `[TagMergeUseCase] clustering done: clusters=${result.clusters.length}, total=${result.meta.total}`,
     );
 
-    // KMeans → TagMergeCluster（優先度確定）
+    // クラスタ → マージ候補
     const clusterBuilder = new TagMergeClusterBuilder();
     const mergeClusters = clusterBuilder.build(result.clusters);
 
-    // TagMergeCluster → ViewModel（UI用）
+    // ViewModel 変換
     const vmBuilder = new TagMergeViewModelBuilder();
     const priorityGroups = vmBuilder.build(mergeClusters);
 
-    // タグ候補検索（Dialog 用）
-    const tagSuggestionService = new TagSuggestionService(
-      this.app,
-      this.llmClient
-    );
+    // レビュー段階へ
+    this.dialog.setReviewResult(priorityGroups);
+  }
 
-    // 描画（表示専用）
-    new TagMergeResultDialog(
-      this.app,
-      priorityGroups,
-      tagSuggestionService
-    ).open();
+  /**
+   * フェーズ: updateMerge → complete
+   * ※ 今回は未実装（フェーズ遷移のみ）
+   */
+  private async runTagMerge(): Promise<void> {
+    logger.debug('[TagMergeUseCase] phase=updateMerge');
+    this.dialog.setPhase('updateMerge');
 
-    logger.debug('[TagMergeUseCase] complete');
+    // TODO: タグマージ実処理は将来実装
+    // await this.mergeService.apply(...);
+
+    this.dialog.setComplete();
   }
 }
