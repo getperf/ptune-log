@@ -1,22 +1,12 @@
 // src/features/tag_merge/ui/TagMergeFlowDialog.ts
 
 import { App, Modal } from 'obsidian';
-import { TagMergePhase } from '../models/TagMergePhase';
-import { TagMergePriorityGroupVM } from '../models/TagMergePriorityGroupVM';
-import { TagMergeResultDialog } from './TagMergeResultDialog';
-import { TagSuggestionService } from 'src/features/tags/services/TagSuggestionService';
-import { i18n } from 'src/i18n';
+import { TagMergePhaseView } from './phases/TagMergePhaseView';
 
 export class TagMergeFlowDialog extends Modal {
-  private phase: TagMergePhase = 'prepare';
-  private priorityGroups: TagMergePriorityGroupVM[] = [];
+  private currentView!: TagMergePhaseView;
 
-  constructor(
-    app: App,
-    private readonly onRunClustering: () => Promise<void>,
-    private readonly onRunTagMerge: () => Promise<void>, // 将来用（今は未実装）
-    private readonly tagSuggestionService: TagSuggestionService,
-  ) {
+  constructor(app: App) {
     super(app);
   }
 
@@ -24,18 +14,9 @@ export class TagMergeFlowDialog extends Modal {
     this.render();
   }
 
-  setPhase(phase: TagMergePhase): void {
-    this.phase = phase;
+  setPhaseView(view: TagMergePhaseView): void {
+    this.currentView = view;
     this.render();
-  }
-
-  setReviewResult(priorityGroups: TagMergePriorityGroupVM[]): void {
-    this.priorityGroups = priorityGroups;
-    this.setPhase('reviewMerge');
-  }
-
-  setComplete(): void {
-    this.setPhase('complete');
   }
 
   private render(): void {
@@ -43,77 +24,29 @@ export class TagMergeFlowDialog extends Modal {
     contentEl.empty();
     contentEl.addClass('tag-merge-flow-modal');
 
-    // Phase heading
+    // 1. タイトル
     contentEl.createEl('h2', {
-      text: i18n.ui.tagMerge.phase[this.phase],
+      text: this.currentView.getTitle(),
     });
 
-    switch (this.phase) {
-      case 'prepare':
-        this.renderPrepare(contentEl);
-        break;
+    // 2. ボディ
+    const body = contentEl.createDiv({ cls: 'tag-merge-body' });
+    this.currentView.renderBody(body);
 
-      case 'clustering':
-        this.renderClustering(contentEl);
-        break;
-
-      case 'reviewMerge':
-        this.renderReview(contentEl);
-        break;
-
-      case 'updateMerge':
-        this.renderUpdateMerge(contentEl);
-        break;
-
-      case 'complete':
-        this.renderComplete(contentEl);
-        break;
+    // 3. ステータスバー
+    const statusMessage = this.currentView.getStatusMessage();
+    if (statusMessage) {
+      contentEl.createDiv({
+        cls: 'tag-merge-status',
+        text: statusMessage,
+      });
     }
-  }
 
-  private renderPrepare(container: HTMLElement): void {
-    const btn = container.createEl('button', {
-      text: i18n.ui.tagMerge.action.runClustering,
+    // 4. ボタン
+    const actions = contentEl.createDiv({
+      cls: 'tag-merge-actions',
     });
-
-    btn.addEventListener('click', () => {
-      void this.onRunClustering();
-    });
-  }
-
-  private renderClustering(container: HTMLElement): void {
-    container.createEl('p', {
-      text: i18n.ui.tagMerge.status.clustering,
-    });
-  }
-
-  private renderReview(container: HTMLElement): void {
-    // 結果表示（既存 Dialog を流用）
-    new TagMergeResultDialog(
-      this.app,
-      this.priorityGroups,
-      this.tagSuggestionService,
-    ).open();
-
-    const btn = container.createEl('button', {
-      text: i18n.ui.tagMerge.action.runTagMerge,
-    });
-
-    btn.addEventListener('click', () => {
-      void this.onRunTagMerge();
-    });
-  }
-
-  private renderUpdateMerge(container: HTMLElement): void {
-    container.createEl('p', {
-      text: i18n.ui.tagMerge.status.mergePending,
-    });
-  }
-
-  private renderComplete(container: HTMLElement): void {
-    container.createEl('p', {
-      text: i18n.ui.tagMerge.phase.complete,
-    });
+    this.currentView.renderActions(actions);
   }
 
   onClose(): void {

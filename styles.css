@@ -331,3 +331,16 @@
   color: var(--text-accent);
   text-decoration: underline;
 }
+
+/* tag-merge-flow.css */
+
+.tag-merge-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.tag-merge-actions .setting-item-control {
+  display: flex;
+  gap: 8px;
+}
