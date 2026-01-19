@@ -29,12 +29,20 @@ export function normalizeKptResult(raw: Partial<KPTResult>): KPTResult {
   };
 }
 
+/**
+ * YAML パース前の防御的正規化
+ * - インラインコード（`text`）を通常文字列に変換
+ */
+function sanitizeYamlText(yamlText: string): string {
+  return yamlText.replace(/`([^`]+)`/g, '$1');
+}
+
 export class KptResultApplier {
   private readonly writer: DailyNoteWriter;
 
   constructor(
     private readonly app: App,
-    private readonly reviewSettings: ReviewSettings
+    private readonly reviewSettings: ReviewSettings,
   ) {
     this.writer = new DailyNoteWriter(app);
   }
@@ -52,29 +60,32 @@ export class KptResultApplier {
         throw new Error('KPT YAML block not found in LLM output.');
       }
 
-      // 2. YAML → Object
+      // 2. YAML 正規化（parse 前）
+      const sanitizedYaml = sanitizeYamlText(yamlText);
+
+      // 3. YAML → Object
       let parsed: Partial<KPTResult>;
       try {
-        parsed = parseYaml(yamlText) as Partial<KPTResult>;
+        parsed = parseYaml(sanitizedYaml) as Partial<KPTResult>;
       } catch (e) {
         logger.error('[KptResultApplier] YAML parse failed', e);
         throw new Error('Failed to parse KPT YAML.');
       }
 
-      // 3. 正規化
+      // 4. 正規化
       const result = normalizeKptResult(parsed);
 
-      // 4. 出力フォーマット選択（唯一の分岐点）
+      // 5. 出力フォーマット選択（唯一の分岐点）
       const formatter = KptOutputFormatterFactory.create(
-        this.reviewSettings.kptOutputMode
+        this.reviewSettings.kptOutputMode,
       );
       const content = formatter.format(result);
 
-      // 5. DailyNote へ append
+      // 6. DailyNote へ append
       const suffix = `(${DateUtil.localTime()})`;
       const updated = dailyNote.appendKpt(content, suffix, 'first');
 
-      // 6. 保存
+      // 7. 保存
       await this.writer.writeToActive(updated);
 
       logger.info('[KptResultApplier] apply completed');

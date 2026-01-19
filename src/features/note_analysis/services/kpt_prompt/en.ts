@@ -60,6 +60,11 @@ These rules apply only to the note summary.
 - No assumptions or embellishment.
 - Use only the provided input.
 
+## Important Restrictions for YAML Output (Required)
+- Do not use backticks (\`) within YAML.
+- Write class names, model names, and identifiers as normal strings.
+- Do not use Markdown syntax (inline code, emphasis marks, etc.).
+
 ## Output Format (YAML)
 \`\`\`yaml
 Keep:
