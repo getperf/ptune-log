@@ -19,6 +19,13 @@ export class ReviewMergeView implements TagMergePhaseView {
     return '名寄せ候補の確認と修正';
   }
 
+  getDescription() {
+    return {
+      summary:
+        '自動検出されたタグマージ候補を確認し、必要に応じて修正してください。',
+    };
+  }
+
   renderBody(container: HTMLElement): void {
     const bodyWrapper = container.createDiv({ cls: 'tag-merge-body' });
     const scrollContainer = bodyWrapper.createDiv({

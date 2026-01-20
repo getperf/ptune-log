@@ -12,6 +12,12 @@ export class ApplyMergeView implements TagMergePhaseView {
     return 'タグマージ';
   }
 
+  getDescription() {
+    return {
+      summary: 'タグマージ。',
+    };
+  }
+
   renderBody(_container: HTMLElement): void {
     // 表示なし
   }

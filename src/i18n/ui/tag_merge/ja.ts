@@ -1,5 +1,7 @@
 // src/i18n/ui/tag_merge/ja.ts
 
+import { TagMergePriorityKey } from 'src/features/tag_merge/models/TagMergePriority';
+
 export const tagMergeJa = {
   phase: {
     prepare: 'タグマージ（実行準備）',
@@ -13,6 +15,13 @@ export const tagMergeJa = {
     runClustering: 'クラスタ分析を実行',
     runTagMerge: 'タグマージ実行',
   },
+
+  priority: {
+    hierarchy: '高',
+    variant: '中',
+    similar: '低',
+    other: '除外',
+  } satisfies Record<TagMergePriorityKey, string>,
 
   /**
    * status は今回 UI で未使用でもよいが、

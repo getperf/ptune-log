@@ -353,7 +353,7 @@
 
 /* 結果一覧のスクロール領域 */
 .tag-merge-body-scroll {
-  max-height: 60vh;        /* 表示制限の主制御 */
+  max-height: 55vh;        /* 表示制限の主制御 */
   overflow-y: auto;
   padding-right: 4px;     /* スクロールバー分の余白 */
 }

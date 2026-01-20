@@ -15,6 +15,13 @@ export class PrepareClusteringView implements TagMergePhaseView {
     return 'タグの名寄せ候補抽出（タグクラスタリング）';
   }
 
+  getDescription() {
+    return {
+      summary: 'タグの名寄せ候補自動検出',
+      steps: [],
+    };
+  }
+
   renderBody(container: HTMLElement): void {
     container.createEl('p', {
       text: 'クラスタ分析を実行してください。',

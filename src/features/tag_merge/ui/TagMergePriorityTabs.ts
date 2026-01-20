@@ -2,6 +2,7 @@
 
 import { TagMergePriorityGroupVM } from '../models/TagMergePriorityGroupVM';
 import { TAG_MERGE_PRIORITIES } from '../models/TagMergePriority';
+import { i18n } from 'src/i18n';
 
 export class TagMergePriorityTabs {
   private activePriority: TagMergePriorityGroupVM;
@@ -17,12 +18,13 @@ export class TagMergePriorityTabs {
     container.empty();
     container.addClass('tag-merge-priority-tabs');
 
+    const ui = i18n.ui.tagMerge;
     for (const pg of this.priorityGroups) {
-      const meta = TAG_MERGE_PRIORITIES.get(pg.priority);
+      const label = ui.priority?.[pg.priority] ?? pg.priority;
 
       const tab = container.createDiv({
         cls: 'tag-merge-priority-tab',
-        text: meta?.labelKey ?? pg.priority,
+        text: label,
       });
 
       if (pg === this.activePriority) {

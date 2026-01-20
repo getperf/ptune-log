@@ -1,5 +1,7 @@
 // src/i18n/ui/tag_merge/en.ts
 
+import { TagMergePriorityKey } from 'src/features/tag_merge/models/TagMergePriority';
+
 export const tagMergeEn = {
   phase: {
     prepare: 'Tag Merge (Ready)',
@@ -13,6 +15,13 @@ export const tagMergeEn = {
     runClustering: 'Run clustering',
     runTagMerge: 'Run tag merge',
   },
+
+  priority: {
+    hierarchy: 'Hierarch',
+    variant: 'Viriant',
+    similar: 'Similar',
+    other: 'Other',
+  } satisfies Record<TagMergePriorityKey, string>,
 
   status: {
     clustering: 'Clustering is running…',
