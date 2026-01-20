@@ -6,6 +6,7 @@ import { TargetTagEditorDialog } from 'src/core/ui/tags/TargetTagEditorDialog';
 import { TagSuggestionService } from 'src/features/tags/services/TagSuggestionService';
 import { App } from 'obsidian';
 import { logger } from 'src/core/services/logger/loggerInstance';
+import { TagMergePriorityTabs } from './TagMergePriorityTabs';
 
 /**
  * TagMergeResultView
@@ -13,37 +14,48 @@ import { logger } from 'src/core/services/logger/loggerInstance';
  * - DOM に直接描画する
  */
 export class TagMergeResultView {
+  private activePriorityGroup: TagMergePriorityGroupVM;
+
   constructor(
     private readonly app: App,
     private readonly priorityGroups: TagMergePriorityGroupVM[],
     private readonly tagSuggestionService: TagSuggestionService,
-  ) {}
+  ) {
+    this.activePriorityGroup = priorityGroups[0];
+  }
 
   render(container: HTMLElement): void {
     container.empty();
     container.addClass('tag-merge-result-view');
 
-    container.createEl('h3', { text: 'タグマージ候補（優先度別）' });
+    // --- Tabs ---
+    const tabsEl = container.createDiv();
+    new TagMergePriorityTabs(this.priorityGroups, (pg) => {
+      this.activePriorityGroup = pg;
+      this.renderBody(bodyEl);
+    }).render(tabsEl);
 
-    for (const pg of this.priorityGroups) {
-      this.renderPriorityGroup(container, pg);
-    }
+    // --- Body ---
+    const bodyEl = container.createDiv({ cls: 'tag-merge-result-body' });
+    this.renderBody(bodyEl);
 
     logger.debug(
       `[TagMergeResultView] priorityGroups=${this.priorityGroups.length}`,
     );
   }
 
+  private renderBody(container: HTMLElement): void {
+    container.empty();
+    this.renderPriorityGroup(container, this.activePriorityGroup);
+  }
+
+  // --- 以下は既存コードを一切変更せず流用 ---
+
   private renderPriorityGroup(
     container: HTMLElement,
     pg: TagMergePriorityGroupVM,
   ): void {
     const meta = TAG_MERGE_PRIORITIES.get(pg.priority);
-
-    container.createEl('h4', {
-      text: meta?.labelKey ?? pg.priority,
-      cls: 'tag-merge-priority-header',
-    });
 
     if (pg.groups.length === 0) {
       container.createEl('p', {

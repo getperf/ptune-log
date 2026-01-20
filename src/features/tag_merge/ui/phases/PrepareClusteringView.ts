@@ -31,11 +31,6 @@ export class PrepareClusteringView implements TagMergePhaseView {
 
     setting
       .addButton((btn) =>
-        btn.setButtonText('キャンセル').onClick(() => {
-          this.onCancel();
-        }),
-      )
-      .addButton((btn) =>
         btn
           .setButtonText('クラスタ分析を実行')
           .setCta()
@@ -43,6 +38,11 @@ export class PrepareClusteringView implements TagMergePhaseView {
             this.status = 'クラスタリング実行中…';
             await this.onRunClustering();
           }),
+      )
+      .addButton((btn) =>
+        btn.setButtonText('キャンセル').onClick(() => {
+          this.onCancel();
+        }),
       );
   }
 }
