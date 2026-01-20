@@ -5,7 +5,10 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 import { TagMergeUseCase } from '../applcation/TagMergeUseCase';
 
 export class TagMergeCommandRegistrar {
-  constructor(private readonly app: App, private readonly client: LLMClient) {}
+  constructor(
+    private readonly app: App,
+    private readonly client: LLMClient,
+  ) {}
 
   register(plugin: Plugin): void {
     plugin.addCommand({
@@ -16,7 +19,7 @@ export class TagMergeCommandRegistrar {
 
         const useCase = new TagMergeUseCase(this.app, this.client);
 
-        await useCase.execute();
+        await useCase.open();
       },
     });
   }

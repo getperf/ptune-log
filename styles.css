@@ -331,3 +331,75 @@
   color: var(--text-accent);
   text-decoration: underline;
 }
+
+/* tag-merge-flow.css */
+
+.tag-merge-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.tag-merge-actions .setting-item-control {
+  display: flex;
+  gap: 8px;
+}
+
+/* body 全体ラッパー */
+.tag-merge-body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 結果一覧のスクロール領域 */
+.tag-merge-body-scroll {
+  max-height: 55vh;        /* 表示制限の主制御 */
+  overflow-y: auto;
+  padding-right: 4px;     /* スクロールバー分の余白 */
+}
+
+/* 操作ボタン領域（既存クラス） */
+.tag-merge-actions {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+/* ============================
+ * Tag Merge Priority Tabs
+ * ============================ */
+
+.tag-merge-priority-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 8px 0 12px;
+  flex-wrap: wrap; /* 画面が狭い場合に折り返し */
+}
+
+/* button 風タブ */
+.tag-merge-priority-tab {
+  padding: 4px 12px;
+  font-size: 0.9em;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+
+  background-color: var(--background-secondary);
+  color: var(--text-normal);
+  border: 1px solid var(--background-modifier-border);
+
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* hover */
+.tag-merge-priority-tab:hover {
+  background-color: var(--background-secondary-alt);
+}
+
+/* active タブ */
+.tag-merge-priority-tab.is-active {
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+  font-weight: 600;
+}

@@ -13,6 +13,7 @@ import { getTimeReviewI18n } from './time_review';
 import { getUiSharedI18n } from './shared';
 import { getDailyReviewI18n } from './daily_review';
 import { getNoteAnalysisI18n } from './note_analysis';
+import { getTagMergeI18n } from './tag_merge';
 
 export function getUiI18n(lang: Lang) {
   return {
@@ -30,6 +31,7 @@ export function getUiI18n(lang: Lang) {
     timeReview: getTimeReviewI18n(lang),
     dailyReview: getDailyReviewI18n(lang),
     noteAnalysis: getNoteAnalysisI18n(lang),
+    tagMerge: getTagMergeI18n(lang),
   };
 }
 

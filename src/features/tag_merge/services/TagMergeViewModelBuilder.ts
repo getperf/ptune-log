@@ -23,12 +23,14 @@ export class TagMergeViewModelBuilder {
 
     for (const cluster of clusters) {
       bucket[cluster.priority].groups.push({
-        to: cluster.to,
+        to: cluster.to.key,
+        toStat: cluster.to, // UI で件数・未登録表示に使用
         checked: true,
         items: cluster.members.map((m) => ({
-          from: m.from,
-          to: cluster.to,
-          count: m.count,
+          from: m.tag.key,
+          fromStat: m.tag, // UI 側で count / isUnregistered を参照可能
+          to: cluster.to.key,
+          count: m.tag.count,
           checked: true,
         })),
       });
@@ -38,7 +40,7 @@ export class TagMergeViewModelBuilder {
     return Object.values(bucket).sort(
       (a, b) =>
         (TAG_MERGE_PRIORITIES.get(a.priority)?.order ?? 999) -
-        (TAG_MERGE_PRIORITIES.get(b.priority)?.order ?? 999)
+        (TAG_MERGE_PRIORITIES.get(b.priority)?.order ?? 999),
     );
   }
 }

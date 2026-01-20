@@ -17,6 +17,7 @@ import { NoteAnalysisPreviewService } from 'src/core/services/llm/note_analysis/
 import { LLMYamlExtractor } from 'src/core/services/llm/note_analysis/LLMYamlExtractor';
 import { NoteLLMAnalyzer } from 'src/core/services/llm/note_analysis/NoteLLMAnalyzer';
 import { TagNormalizationService } from 'src/core/services/tags/TagNormalizationService';
+import { TagAliasCommitService } from 'src/core/services/tags/TagAliasCommitService';
 
 /**
  * NoteReviewService
@@ -38,7 +39,10 @@ export class NoteReviewService {
   private readonly tagNormalizer: TagNormalizationService;
   private readonly aliases: TagAliases;
 
-  constructor(private readonly app: App, client: LLMClient) {
+  constructor(
+    private readonly app: App,
+    client: LLMClient,
+  ) {
     const extractor = new LLMYamlExtractor();
     const analyzer = new NoteLLMAnalyzer(client, extractor);
 
@@ -48,7 +52,7 @@ export class NoteReviewService {
     this.previewService = new NoteAnalysisPreviewService(
       app,
       analyzer,
-      this.tagNormalizer
+      this.tagNormalizer,
     );
 
     this.fmWriter = new FrontmatterWriter(app.vault);
@@ -87,7 +91,7 @@ export class NoteReviewService {
     const result = await this.previewService.preview(
       file,
       prompt,
-      this.aliases
+      this.aliases,
     );
 
     logger.info('[NoteReviewService.getPreview] done', {
@@ -127,7 +131,7 @@ export class NoteReviewService {
   applyEditedTag(
     editable: EditableNoteSummary,
     target: EditableTagItem,
-    editedTagName: string
+    editedTagName: string,
   ): EditableNoteSummary {
     const trimmed = editedTagName.trim();
     if (!trimmed) {
@@ -137,7 +141,7 @@ export class NoteReviewService {
 
     const { normalized, isNew } = this.tagNormalizer.normalizeSingle(
       trimmed,
-      this.aliases
+      this.aliases,
     );
 
     logger.debug('[NoteReviewService.applyEditedTag]', {
@@ -147,7 +151,7 @@ export class NoteReviewService {
     });
 
     const newTags = editable.tags.map((t) =>
-      t === target ? { ...t, name: normalized, isNew } : t
+      t === target ? { ...t, name: normalized, isNew } : t,
     );
 
     return {
@@ -180,7 +184,7 @@ export class NoteReviewService {
     // --- dailynote 更新 ---
     if (editable.updateDailyNote) {
       const settings = await DailyNoteConfig.getDailyNoteSettingsFromJson(
-        this.app.vault
+        this.app.vault,
       );
       const today = DateUtil.formatDate(new Date(), settings.format);
       const folder = settings.folder || '_journal';
@@ -199,7 +203,13 @@ export class NoteReviewService {
       });
     }
 
+    // --- frontmatter 確定 ---
     await this.fmWriter.update(file, newData);
+
+    // --- Alias commit（確定点・最小追加）---
+    await this.ensureAliasesLoaded();
+    const commitService = new TagAliasCommitService(this.aliases);
+    await commitService.commit(enabledTags, this.app.vault);
 
     logger.info('[NoteReviewService.saveResult] completed', {
       file: file.path,
