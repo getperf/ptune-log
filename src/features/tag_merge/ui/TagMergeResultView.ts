@@ -1,7 +1,6 @@
 // src/features/tag_merge/ui/TagMergeResultView.ts
 
 import { TagMergePriorityGroupVM } from '../models/TagMergePriorityGroupVM';
-import { TAG_MERGE_PRIORITIES } from '../models/TagMergePriority';
 import { TargetTagEditorDialog } from 'src/core/ui/tags/TargetTagEditorDialog';
 import { TagSuggestionService } from 'src/features/tags/services/TagSuggestionService';
 import { App } from 'obsidian';
@@ -55,8 +54,6 @@ export class TagMergeResultView {
     container: HTMLElement,
     pg: TagMergePriorityGroupVM,
   ): void {
-    const meta = TAG_MERGE_PRIORITIES.get(pg.priority);
-
     if (pg.groups.length === 0) {
       container.createEl('p', {
         text: '対象なし',
@@ -127,10 +124,10 @@ export class TagMergeResultView {
     logger.debug(`[TagMergeResultView] open edit dialog to=${to}`);
 
     new TargetTagEditorDialog(this.app, {
-      state: { initialText: to },
+      state: { initialInput: to },
       search: this.tagSuggestionService,
       result: {
-        confirm: async () => {},
+        confirm: async () => { },
       },
     }).open();
   }

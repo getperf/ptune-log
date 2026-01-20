@@ -73,7 +73,7 @@ export class TagMergeUseCase {
       /* --- クラスタリング --- */
       const clustering = new KMeansClusteringService();
       const result = clustering.cluster(vectors.getAll(), {
-        k: 300,
+        k: 600,
         iterations: 5,
       });
 

@@ -6,39 +6,57 @@ import { TagStatResolver } from 'src/core/services/tags/TagStatResolver';
 import { TagMergePriorityResolver } from './TagMergePriorityResolver';
 import { HierarchyPriorityDetector } from './detectors/HierarchyPriorityDetector';
 import { VariantPriorityDetector } from './detectors/VariantPriorityDetector';
+import { TagMergePriorityKey } from '../models/TagMergePriority';
 
 export class TagMergeClusterBuilder {
-  private readonly priorityResolver = new TagMergePriorityResolver([
-    new HierarchyPriorityDetector(),
-    new VariantPriorityDetector(),
-  ]);
+  private readonly priorityResolver = new TagMergePriorityResolver(
+    [
+      new HierarchyPriorityDetector(),
+      new VariantPriorityDetector(),
+    ]
+  );
 
-  constructor(private readonly statResolver: TagStatResolver) {}
+  constructor(private readonly statResolver: TagStatResolver) { }
 
   build(clusters: TagCluster[]): TagMergeCluster[] {
-    const results: TagMergeCluster[] = [];
+    // toKey -> priority -> TagMergeCluster
+    const grouped = new Map<string, Map<TagMergePriorityKey, TagMergeCluster>>();
 
     for (const cluster of clusters) {
       const toKey = cluster.representative.key;
+      const toStat = this.statResolver.resolve(toKey);
 
       for (const member of cluster.members) {
         const fromKey = member.key;
-
-        // 同一行は除外
         if (fromKey === toKey) continue;
 
-        results.push({
-          to: this.statResolver.resolve(toKey),
-          priority: this.priorityResolver.resolve(toKey, fromKey),
-          members: [
-            {
-              tag: this.statResolver.resolve(fromKey),
-            },
-          ],
+        const priority = this.priorityResolver.resolve(toKey, fromKey);
+
+        let byPriority = grouped.get(toKey);
+        if (!byPriority) {
+          byPriority = new Map();
+          grouped.set(toKey, byPriority);
+        }
+
+        let mergeCluster = byPriority.get(priority);
+        if (!mergeCluster) {
+          mergeCluster = {
+            to: toStat,
+            priority,
+            members: [],
+          };
+          byPriority.set(priority, mergeCluster);
+        }
+
+        mergeCluster.members.push({
+          tag: this.statResolver.resolve(fromKey),
         });
       }
     }
 
-    return results;
+    // Map → 配列へ変換
+    return Array.from(grouped.values()).flatMap((m) =>
+      Array.from(m.values())
+    );
   }
 }
