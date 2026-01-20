@@ -20,12 +20,16 @@ export class ReviewMergeView implements TagMergePhaseView {
   }
 
   renderBody(container: HTMLElement): void {
-    // 結果一覧は DOM View
+    const bodyWrapper = container.createDiv({ cls: 'tag-merge-body' });
+    const scrollContainer = bodyWrapper.createDiv({
+      cls: 'tag-merge-body-scroll',
+    });
+
     new TagMergeResultView(
       this.app,
       this.priorityGroups,
       this.tagSuggestionService,
-    ).render(container);
+    ).render(scrollContainer);
   }
 
   getStatusMessage(): string | undefined {

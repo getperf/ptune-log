@@ -344,3 +344,23 @@
   display: flex;
   gap: 8px;
 }
+
+/* body 全体ラッパー */
+.tag-merge-body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 結果一覧のスクロール領域 */
+.tag-merge-body-scroll {
+  max-height: 60vh;        /* 表示制限の主制御 */
+  overflow-y: auto;
+  padding-right: 4px;     /* スクロールバー分の余白 */
+}
+
+/* 操作ボタン領域（既存クラス） */
+.tag-merge-actions {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--background-modifier-border);
+}
