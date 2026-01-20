@@ -144,7 +144,7 @@ export class TagMergeResultDialog extends Modal {
     logger.debug(`[TagMergeResultDialog] open edit dialog to=${to}`);
 
     new TargetTagEditorDialog(this.app, {
-      state: { initialText: to },
+      state: { initialInput: to },
       search: this.tagSuggestionService,
       result: {
         confirm: async () => {
