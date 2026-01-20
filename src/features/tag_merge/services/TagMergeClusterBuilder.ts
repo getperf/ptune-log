@@ -2,48 +2,43 @@
 
 import { TagCluster } from 'src/core/services/tag_clustering/models/TagCluster';
 import { TagMergeCluster } from '../models/TagMergeCluster';
-import { TagMergePriorityKey } from '../models/TagMergePriority';
+import { TagStatResolver } from 'src/core/services/tags/TagStatResolver';
+import { TagMergePriorityResolver } from './TagMergePriorityResolver';
+import { HierarchyPriorityDetector } from './detectors/HierarchyPriorityDetector';
+import { VariantPriorityDetector } from './detectors/VariantPriorityDetector';
 
-/**
- * TagMergeClusterBuilder
- * - KMeans の TagCluster を TagMergeCluster に変換
- * - 優先度（priority）の判定責務を持つ
- */
 export class TagMergeClusterBuilder {
+  private readonly priorityResolver = new TagMergePriorityResolver([
+    new HierarchyPriorityDetector(),
+    new VariantPriorityDetector(),
+  ]);
+
+  constructor(private readonly statResolver: TagStatResolver) {}
+
   build(clusters: TagCluster[]): TagMergeCluster[] {
-    return clusters.map((cluster) => ({
-      to: cluster.representative.key,
-      priority: this.detectPriority(cluster),
-      members: cluster.members.map((m) => ({
-        from: m.key,
-        count: m.count,
-      })),
-    }));
-  }
+    const results: TagMergeCluster[] = [];
 
-  /**
-   * 優先度判定
-   * - hierarchy: to/xxx 形式
-   * - variant: 表記ゆれ
-   * - similar: それ以外（ベクトル類似）
-   */
-  private detectPriority(cluster: TagCluster): TagMergePriorityKey {
-    const to = cluster.representative.key;
-    const froms = cluster.members.map((m) => m.key);
+    for (const cluster of clusters) {
+      const toKey = cluster.representative.key;
 
-    if (froms.some((f) => f.startsWith(`${to}/`))) {
-      return 'hierarchy';
+      for (const member of cluster.members) {
+        const fromKey = member.key;
+
+        // 同一行は除外
+        if (fromKey === toKey) continue;
+
+        results.push({
+          to: this.statResolver.resolve(toKey),
+          priority: this.priorityResolver.resolve(toKey, fromKey),
+          members: [
+            {
+              tag: this.statResolver.resolve(fromKey),
+            },
+          ],
+        });
+      }
     }
 
-    if (froms.some((f) => this.isVariant(f, to))) {
-      return 'variant';
-    }
-
-    return 'similar';
-  }
-
-  private isVariant(a: string, b: string): boolean {
-    const normalize = (s: string) => s.replace(/[-_/]/g, '').toLowerCase();
-    return normalize(a) === normalize(b);
+    return results;
   }
 }

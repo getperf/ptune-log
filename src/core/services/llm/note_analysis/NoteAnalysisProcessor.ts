@@ -16,7 +16,7 @@ export class NoteAnalysisProcessor {
   constructor(
     private readonly app: App,
     private readonly analyzer: NoteLLMAnalyzer,
-    private readonly normalizer: TagNormalizationService
+    private readonly normalizer: TagNormalizationService,
   ) {
     this.writer = new FrontmatterWriter(app.vault);
   }
@@ -29,7 +29,7 @@ export class NoteAnalysisProcessor {
     file: TFile,
     prompt: string,
     aliases: TagAliases,
-    force = false
+    force = false,
   ): Promise<NoteSummary> {
     logger.debug(`[NoteAnalysisProcessor.process] start file=${file.path}`);
 
@@ -38,14 +38,14 @@ export class NoteAnalysisProcessor {
     // スキップ判定
     if (!force && NoteFrontmatterParser.isLLMTagGenerated(currentFm)) {
       logger.info(
-        `[NoteAnalysisProcessor] skip (already generated): ${file.path}`
+        `[NoteAnalysisProcessor] skip (already generated): ${file.path}`,
       );
       return NoteSummaryFactory.createFromMergedFrontmatter(
         this.app,
         file,
         currentFm,
         currentFm.tags ?? [],
-        []
+        [],
       );
     }
 
@@ -55,7 +55,10 @@ export class NoteAnalysisProcessor {
     const analysis = await this.analyzer.analyze(content, prompt);
 
     // タグ正規化
-    const { normalized, newTags } = this.normalizer.normalize(analysis.tags, aliases)
+    const { normalized, newTags } = this.normalizer.normalize(
+      analysis.tags,
+      aliases,
+    );
 
     // 更新データ
     const newData = {
@@ -73,7 +76,7 @@ export class NoteAnalysisProcessor {
       file,
       merged,
       normalized,
-      newTags
+      newTags,
     );
   }
 }

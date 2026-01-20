@@ -1,17 +1,14 @@
 // src/features/tag_merge/models/TagMergeCluster.ts
 
 import { TagMergePriorityKey } from './TagMergePriority';
+import { TagStat } from 'src/core/models/tags/TagStat';
 
-/**
- * TagMergeCluster
- * - KMeans クラスタを tag_merge ドメイン用に変換した中間モデル
- * - 優先度（priority）はここで確定させる
- */
-export type TagMergeCluster = {
-  to: string;
+export interface TagMergeMember {
+  tag: TagStat;
+}
+
+export interface TagMergeCluster {
+  to: TagStat;
+  members: TagMergeMember[];
   priority: TagMergePriorityKey;
-  members: {
-    from: string;
-    count: number;
-  }[];
-};
+}

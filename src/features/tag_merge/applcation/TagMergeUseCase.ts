@@ -15,6 +15,10 @@ import { ReviewMergeView } from '../ui/phases/ReviewMergeView';
 import { ApplyMergeView } from '../ui/phases/ApplyMergeView';
 import { TagMergePriorityGroupVM } from '../models/TagMergePriorityGroupVM';
 
+import { Tags } from 'src/core/models/tags/Tags';
+import { TagAliases } from 'src/core/models/tags/TagAliases';
+import { TagStatResolver } from 'src/core/services/tags/TagStatResolver';
+
 export class TagMergeUseCase {
   private readonly dialog: TagMergeFlowDialog;
   private readonly tagSuggestionService: TagSuggestionService;
@@ -53,11 +57,20 @@ export class TagMergeUseCase {
     try {
       logger.debug('[TagMergeUseCase] clustering start');
 
-      // ベクトルロード
+      /* --- タグ統計ロード（件数・未登録判定用） --- */
+      const tags = new Tags();
+      await tags.load(this.app.vault);
+
+      const aliases = new TagAliases();
+      await aliases.load(this.app.vault);
+
+      const statResolver = new TagStatResolver(tags, aliases);
+
+      /* --- ベクトルロード --- */
       const vectors = new TagVectors(this.llmClient);
       await vectors.loadFromVault(this.app.vault);
 
-      // クラスタリング
+      /* --- クラスタリング --- */
       const clustering = new KMeansClusteringService();
       const result = clustering.cluster(vectors.getAll(), {
         k: 300,
@@ -68,18 +81,18 @@ export class TagMergeUseCase {
         `[TagMergeUseCase] clustering done: clusters=${result.clusters.length}, total=${result.meta.total}`,
       );
 
-      // クラスタ → マージ候補
-      const clusterBuilder = new TagMergeClusterBuilder();
+      /* --- クラスタ → マージ候補（TagStat 付き） --- */
+      const clusterBuilder = new TagMergeClusterBuilder(statResolver);
       const mergeClusters = clusterBuilder.build(result.clusters);
 
-      // ViewModel 生成
+      /* --- ViewModel 生成 --- */
       const vmBuilder = new TagMergeViewModelBuilder();
       const priorityGroups = vmBuilder.build(mergeClusters);
 
       this.showReviewPhase(priorityGroups);
     } catch (e) {
       logger.error('[TagMergeUseCase] clustering failed', e);
-      // 今回は簡易対応：準備フェーズに戻す
+      // 簡易対応：準備フェーズに戻す
       this.showPreparePhase();
     }
   }
