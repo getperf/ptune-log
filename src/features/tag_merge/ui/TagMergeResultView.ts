@@ -1,11 +1,12 @@
 // src/features/tag_merge/ui/TagMergeResultView.ts
 
 import { TagMergePriorityGroupVM } from '../models/TagMergePriorityGroupVM';
-import { TargetTagEditorDialog } from 'src/core/ui/tags/TargetTagEditorDialog';
 import { TagSuggestionService } from 'src/features/tags/services/TagSuggestionService';
 import { App } from 'obsidian';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { TagMergePriorityTabs } from './TagMergePriorityTabs';
+import { TagMergeRowBuilder } from './builders/TagMergeRowBuilder';
+import { TargetTagEditorDialog } from 'src/core/ui/tags/TargetTagEditorDialog';
 
 /**
  * TagMergeResultView
@@ -14,6 +15,7 @@ import { TagMergePriorityTabs } from './TagMergePriorityTabs';
  */
 export class TagMergeResultView {
   private activePriorityGroup: TagMergePriorityGroupVM;
+  private readonly rowBuilder: TagMergeRowBuilder;
 
   constructor(
     private readonly app: App,
@@ -21,6 +23,10 @@ export class TagMergeResultView {
     private readonly tagSuggestionService: TagSuggestionService,
   ) {
     this.activePriorityGroup = priorityGroups[0];
+    this.rowBuilder = new TagMergeRowBuilder(
+      this.app,
+      this.tagSuggestionService,
+    );
   }
 
   render(container: HTMLElement): void {
@@ -48,8 +54,6 @@ export class TagMergeResultView {
     this.renderPriorityGroup(container, this.activePriorityGroup);
   }
 
-  // --- 以下は既存コードを一切変更せず流用 ---
-
   private renderPriorityGroup(
     container: HTMLElement,
     pg: TagMergePriorityGroupVM,
@@ -73,6 +77,7 @@ export class TagMergeResultView {
   ): void {
     const groupEl = container.createDiv({ cls: 'tag-merge-group' });
 
+    // --- Header ---
     const header = groupEl.createDiv({ cls: 'tag-merge-group-header' });
 
     const cb = header.createEl('input', { type: 'checkbox' });
@@ -89,35 +94,12 @@ export class TagMergeResultView {
       this.openTagEditDialog(group.to);
     });
 
+    // --- Rows ---
     const list = groupEl.createDiv({ cls: 'tag-merge-group-list' });
 
-    for (const item of group.items) {
-      this.renderRow(list, item);
+    for (const row of group.rows) {
+      this.rowBuilder.render(list, row);
     }
-  }
-
-  private renderRow(
-    container: HTMLElement,
-    item: TagMergePriorityGroupVM['groups'][number]['items'][number],
-  ): void {
-    const row = container.createDiv({ cls: 'tag-merge-row' });
-
-    const cb = row.createEl('input', { type: 'checkbox' });
-    cb.checked = item.checked;
-
-    row.createSpan({ text: item.from, cls: 'tag-merge-from' });
-    row.createSpan({ text: ' → ', cls: 'tag-merge-arrow' });
-
-    const toLink = row.createEl('a', {
-      text: item.to,
-      href: '#',
-      cls: 'tag-merge-to-link',
-    });
-
-    toLink.addEventListener('click', (e) => {
-      e.preventDefault();
-      this.openTagEditDialog(item.to);
-    });
   }
 
   private openTagEditDialog(to: string): void {
@@ -127,7 +109,7 @@ export class TagMergeResultView {
       state: { initialInput: to },
       search: this.tagSuggestionService,
       result: {
-        confirm: async () => { },
+        confirm: async () => {},
       },
     }).open();
   }

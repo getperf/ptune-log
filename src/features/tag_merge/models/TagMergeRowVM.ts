@@ -1,8 +1,8 @@
-// src/features/tag_merge/models/TagMergeItemVM.ts
+// src/features/tag_merge/models/TagMergeRowVM.ts
 
 import { TagStat } from 'src/core/models/tags/TagStat';
 
-export type TagMergeItemVM = {
+export type TagMergeRowVM = {
   from: string;
   to: string;
   count: number;
