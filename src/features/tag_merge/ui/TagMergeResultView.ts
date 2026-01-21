@@ -84,7 +84,7 @@ export class TagMergeResultView {
     cb.checked = group.checked;
 
     const toLink = header.createEl('a', {
-      text: `To: ${group.to}`,
+      text: `To: ${group.to}(${group.toStat.count})`,
       href: '#',
       cls: 'tag-merge-to-link',
     });

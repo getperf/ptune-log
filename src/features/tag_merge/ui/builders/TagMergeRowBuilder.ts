@@ -21,9 +21,15 @@ export class TagMergeRowBuilder {
     const cb = el.createEl('input', { type: 'checkbox' });
     cb.checked = row.checked;
 
-    el.createSpan({ text: row.from, cls: 'tag-merge-from' });
+    // from(件数)
+    el.createSpan({
+      text: `${row.from}(${row.fromStat.count})`,
+      cls: 'tag-merge-from',
+    });
+
     el.createSpan({ text: ' → ', cls: 'tag-merge-arrow' });
 
+    // to（件数は group header 側で表示）
     const toLink = el.createEl('a', {
       text: row.to,
       href: '#',
