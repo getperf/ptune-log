@@ -6,12 +6,14 @@ import {
   TAG_MERGE_PRIORITIES,
 } from '../models/TagMergePriority';
 import { TagMergePriorityGroupVM } from '../models/TagMergePriorityGroupVM';
+import { TagMergeRowVM } from '../models/TagMergeRowVM';
 
 /**
  * TagMergeViewModelBuilder
  * - TagMergeCluster を UI 描画用 ViewModel に変換する
- * - 優先度の判定ロジックは持たない
- * - 表示モード（normal / toOnly）は ViewModel に集約
+ * - rows: fromStat.count 降順
+ * - groups: toStat.count 降順（priority 内）
+ * - low/other は既定チェックOFF
  */
 export class TagMergeViewModelBuilder {
   build(clusters: TagMergeCluster[]): TagMergePriorityGroupVM[] {
@@ -24,33 +26,56 @@ export class TagMergeViewModelBuilder {
 
     for (const cluster of clusters) {
       const displayMode = cluster.priority === 'other' ? 'toOnly' : 'normal';
+      const defaultChecked = this.getDefaultChecked(cluster.priority);
+
+      const rawRows: TagMergeRowVM[] = cluster.members.map((m) => {
+        const fromKey = m.tag.key;
+        const toKey = cluster.to.key;
+
+        return {
+          from: fromKey,
+          fromStat: m.tag,
+          to: toKey,
+          count: m.tag.count,
+          checked: defaultChecked,
+          visible: displayMode === 'normal' && fromKey !== toKey,
+        };
+      });
 
       bucket[cluster.priority].groups.push({
         to: cluster.to.key,
-        toStat: cluster.to, // UI で件数・未登録表示に使用
-        checked: true,
+        toStat: cluster.to,
+        checked: defaultChecked,
         displayMode,
-        rows: cluster.members.map((m) => {
-          const fromKey = m.tag.key;
-          const toKey = cluster.to.key;
-
-          return {
-            from: fromKey,
-            fromStat: m.tag, // count / isUnregistered 用
-            to: toKey,
-            count: m.tag.count,
-            checked: true,
-            visible: displayMode === 'normal' && fromKey !== toKey,
-          };
-        }),
+        rows: this.sortRowsByFromCountDesc(rawRows),
       });
     }
 
-    // 表示順は priority 定義に従う（UI 都合）
+    for (const pg of Object.values(bucket)) {
+      pg.groups = this.sortGroupsByToCountDesc(pg.groups);
+    }
+
     return Object.values(bucket).sort(
       (a, b) =>
         (TAG_MERGE_PRIORITIES.get(a.priority)?.order ?? 999) -
         (TAG_MERGE_PRIORITIES.get(b.priority)?.order ?? 999),
     );
+  }
+
+  /** low/other は既定チェックOFF */
+  private getDefaultChecked(priority: TagMergePriorityKey): boolean {
+    return priority !== 'low' && priority !== 'other';
+  }
+
+  /** rows: fromStat.count 降順 */
+  private sortRowsByFromCountDesc(rows: TagMergeRowVM[]): TagMergeRowVM[] {
+    return [...rows].sort((a, b) => b.fromStat.count - a.fromStat.count);
+  }
+
+  /** groups: toStat.count 降順 */
+  private sortGroupsByToCountDesc(
+    groups: TagMergePriorityGroupVM['groups'],
+  ): TagMergePriorityGroupVM['groups'] {
+    return [...groups].sort((a, b) => b.toStat.count - a.toStat.count);
   }
 }

@@ -1,6 +1,7 @@
 import { Vault } from 'obsidian';
 import { TagYamlIO } from '../../services/yaml/TagYamlIO';
 import { logger } from 'src/core/services/logger/loggerInstance';
+import { RawTagEntry } from 'src/features/tags/services/TagExtractor';
 
 // --- タグ統計情報（tag.yaml）を管理するクラス
 export interface TagRow {
@@ -74,8 +75,24 @@ export class Tags {
       .slice(0, limit);
 
     logger.debug(
-      `[Tags.searchByKeyword] keyword="${key}" found=${matched.length}`
+      `[Tags.searchByKeyword] keyword="${key}" found=${matched.length}`,
     );
     return matched;
+  }
+
+  /**
+   * 差分検知用：RawTagEntry Map を取得
+   */
+  getRawEntryMap(): Map<string, RawTagEntry> {
+    const map = new Map<string, RawTagEntry>();
+
+    for (const row of this.map.values()) {
+      map.set(row.name, {
+        tag: row.name,
+        count: row.count,
+      });
+    }
+
+    return map;
   }
 }

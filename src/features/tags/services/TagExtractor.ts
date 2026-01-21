@@ -41,8 +41,8 @@ export class TagExtractor {
       const tags = Array.isArray(yamlTags)
         ? yamlTags
         : yamlTags
-        ? [yamlTags]
-        : [];
+          ? [yamlTags]
+          : [];
       const inlineTags = cache.tags?.map((t) => t.tag) ?? [];
       const all = [...tags, ...inlineTags];
 
@@ -85,8 +85,23 @@ export class TagExtractor {
     logger.debug(
       `[TagExtractor.extractAndGroup] grouped: totalKinds=${
         registry.getAll().length
-      }, totalTags=${tags.getAll().length}`
+      }, totalTags=${tags.getAll().length}`,
     );
     return tags;
+  }
+
+  /**
+   * 差分検知用：RawTagEntry を Map 化して返す
+   */
+  static extractAllAsMap(app: App): Map<string, RawTagEntry> {
+    const list = this.extractAll(app);
+    const map = new Map<string, RawTagEntry>();
+
+    for (const entry of list) {
+      map.set(entry.tag, entry);
+    }
+
+    logger.debug(`[TagExtractor.extractAllAsMap] mapped=${map.size}`);
+    return map;
   }
 }

@@ -20,6 +20,7 @@ import { TagAliases } from 'src/core/models/tags/TagAliases';
 import { TagStatResolver } from 'src/core/services/tags/TagStatResolver';
 import { ExclusionTagFilter } from '../services/ExclusionTagFilter';
 import { TagMergePriorityResolver } from '../services/TagMergePriorityResolver';
+import { TagExtractor } from 'src/features/tags/services/TagExtractor';
 
 export class TagMergeUseCase {
   private readonly dialog: TagMergeFlowDialog;
@@ -36,20 +37,23 @@ export class TagMergeUseCase {
   /**
    * エントリポイント
    */
-  open(): void {
-    this.showPreparePhase();
+  async open(): Promise<void> {
+    await this.showPreparePhase();
     this.dialog.open();
   }
 
   /* =========================
    * Phase 1: クラスタリング準備／実行
    * ========================= */
-  private showPreparePhase(): void {
+  private async showPreparePhase(): Promise<void> {
+    const messages = await this.detectTagDiffMessages();
+
     const view = new PrepareClusteringView(
       async () => {
         await this.runClustering();
       },
       () => this.dialog.close(),
+      messages,
     );
 
     this.dialog.setPhaseView(view);
@@ -85,7 +89,7 @@ export class TagMergeUseCase {
 
       /* --- 除外フィルタ（未登録のみ / 大規模クラスタ除外） --- */
       const exclusionFilter = new ExclusionTagFilter(statResolver, {
-        unregisteredOnly: false,           // 設定化するなら settings 参照
+        unregisteredOnly: false, // 設定化するなら settings 参照
         // excludeIfClusterSizeAtLeast: 10,  // n 件以上は除外
       });
       const { filtered, excluded } = exclusionFilter.filter(result.clusters);
@@ -113,6 +117,47 @@ export class TagMergeUseCase {
       // 簡易対応：準備フェーズに戻す
       this.showPreparePhase();
     }
+  }
+
+  private async detectTagDiffMessages(): Promise<string[]> {
+    const messages: string[] = [];
+
+    // --- マスター（ノート由来タグ）
+    const sourceMap = TagExtractor.extractAllAsMap(this.app);
+    const sourceKeys = new Set(sourceMap.keys());
+
+    // --- Tags DB
+    const tags = new Tags();
+    await tags.load(this.app.vault);
+    const tagDbMap = tags.getRawEntryMap();
+    const tagDbKeys = new Set(tagDbMap.keys());
+
+    const tagAdd = [...sourceKeys].filter((k) => !tagDbKeys.has(k)).length;
+    const tagDel = [...tagDbKeys].filter((k) => !sourceKeys.has(k)).length;
+
+    if (tagAdd > 0 || tagDel > 0) {
+      messages.push(`タグDB: 追加 ${tagAdd} / 削除 ${tagDel}`);
+    } else {
+      messages.push('タグDB: 差分なし');
+    }
+
+    // --- TagVectors
+    const vectors = new TagVectors(this.llmClient);
+    await vectors.loadFromVault(this.app.vault);
+    const vectorMap = vectors.getRawEntryMap();
+    const vectorKeys = new Set(vectorMap.keys());
+
+    const vecAdd = [...sourceKeys].filter((k) => !vectorKeys.has(k)).length;
+    const vecDel = [...vectorKeys].filter((k) => !sourceKeys.has(k)).length;
+
+    if (vecAdd > 0 || vecDel > 0) {
+      messages.push(`ベクトルDB: 追加 ${vecAdd} / 削除 ${vecDel}`);
+      messages.push('※ ベクトル更新は時間・コストがかかります');
+    } else {
+      messages.push('ベクトルDB: 差分なし');
+    }
+
+    return messages;
   }
 
   /* =========================

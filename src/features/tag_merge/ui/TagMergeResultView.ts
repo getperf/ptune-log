@@ -7,6 +7,8 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 import { TagMergePriorityTabs } from './TagMergePriorityTabs';
 import { TagMergeRowBuilder } from './builders/TagMergeRowBuilder';
 import { TargetTagEditorDialog } from 'src/core/ui/tags/TargetTagEditorDialog';
+import { TagMergeRowVM } from '../models/TagMergeRowVM';
+import { TagMergeGroupVM } from '../models/TagMergeGroupVM';
 
 /**
  * TagMergeResultView
@@ -71,10 +73,7 @@ export class TagMergeResultView {
     }
   }
 
-  private renderGroup(
-    container: HTMLElement,
-    group: TagMergePriorityGroupVM['groups'][number],
-  ): void {
+  private renderGroup(container: HTMLElement, group: TagMergeGroupVM): void {
     const groupEl = container.createDiv({ cls: 'tag-merge-group' });
 
     // --- Header ---
@@ -84,7 +83,7 @@ export class TagMergeResultView {
     cb.checked = group.checked;
 
     const toLink = header.createEl('a', {
-      text: `To: ${group.to}(${group.toStat.count})`,
+      text: `${group.to}(${group.toStat.count})`,
       href: '#',
       cls: 'tag-merge-to-link',
     });
@@ -96,10 +95,16 @@ export class TagMergeResultView {
 
     // --- Rows ---
     const list = groupEl.createDiv({ cls: 'tag-merge-group-list' });
-
     for (const row of group.rows) {
+      if (!this.shouldRenderRow(row)) {
+        continue;
+      }
       this.rowBuilder.render(list, row);
     }
+  }
+
+  private shouldRenderRow(row: TagMergeRowVM): boolean {
+    return row.from !== row.to;
   }
 
   private openTagEditDialog(to: string): void {

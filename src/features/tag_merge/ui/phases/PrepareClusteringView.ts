@@ -9,6 +9,7 @@ export class PrepareClusteringView implements TagMergePhaseView {
   constructor(
     private readonly onRunClustering: () => Promise<void>,
     private readonly onCancel: () => void,
+    private readonly precheckMessages: string[] = [],
   ) {}
 
   getTitle(): string {
@@ -26,6 +27,12 @@ export class PrepareClusteringView implements TagMergePhaseView {
     container.createEl('p', {
       text: 'クラスタ分析を実行してください。',
     });
+    if (this.precheckMessages.length > 0) {
+      const ul = container.createEl('ul');
+      for (const msg of this.precheckMessages) {
+        ul.createEl('li', { text: msg });
+      }
+    }
   }
 
   getStatusMessage(): string | undefined {

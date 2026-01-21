@@ -4,6 +4,7 @@ import { cosineSimilarity } from 'src/core/utils/vector/vectorUtils';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
+import { RawTagEntry } from 'src/features/tags/services/TagExtractor';
 
 /** タグ1件分のEmbeddingデータ構造 */
 export interface TagVector {
@@ -41,7 +42,7 @@ export class TagVectors {
     }
 
     logger.info(
-      `[TagVectors.fromTags] generating embeddings for ${embeddingTags.length} tags`
+      `[TagVectors.fromTags] generating embeddings for ${embeddingTags.length} tags`,
     );
 
     const tagNames = embeddingTags.map((t) => t.name);
@@ -92,7 +93,7 @@ export class TagVectors {
       .filter(Boolean)
       .map((line) => JSON.parse(line) as TagVector);
     logger.info(
-      `[TagVectors.loadFromVault] loaded ${this.vectors.length} vectors`
+      `[TagVectors.loadFromVault] loaded ${this.vectors.length} vectors`,
     );
   }
 
@@ -110,7 +111,7 @@ export class TagVectors {
     logger.debug(
       `[TagVectors.findSimilar] done: top=${scored.length}, top1=${
         scored[0]?.name ?? 'none'
-      }`
+      }`,
     );
     return scored;
   }
@@ -118,6 +119,30 @@ export class TagVectors {
   /** getter群 */
   getAll(): TagVector[] {
     return this.vectors;
+  }
+
+  /**
+   * 差分検知用：RawTagEntry Map を取得
+   * count は表示・判断補助用
+   */
+  getRawEntryMap(): Map<string, RawTagEntry> {
+    const map = new Map<string, RawTagEntry>();
+
+    for (const v of this.vectors) {
+      map.set(v.key, {
+        tag: v.key,
+        count: v.count,
+      });
+    }
+
+    return map;
+  }
+
+  /**
+   * 差分検知用：キー集合のみ（軽量）
+   */
+  getKeySet(): Set<string> {
+    return new Set(this.vectors.map((v) => v.key));
   }
 
   size(): number {
