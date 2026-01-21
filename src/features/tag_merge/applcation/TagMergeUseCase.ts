@@ -18,6 +18,8 @@ import { TagMergePriorityGroupVM } from '../models/TagMergePriorityGroupVM';
 import { Tags } from 'src/core/models/tags/Tags';
 import { TagAliases } from 'src/core/models/tags/TagAliases';
 import { TagStatResolver } from 'src/core/services/tags/TagStatResolver';
+import { ExclusionTagFilter } from '../services/ExclusionTagFilter';
+import { TagMergePriorityResolver } from '../services/TagMergePriorityResolver';
 
 export class TagMergeUseCase {
   private readonly dialog: TagMergeFlowDialog;
@@ -81,9 +83,25 @@ export class TagMergeUseCase {
         `[TagMergeUseCase] clustering done: clusters=${result.clusters.length}, total=${result.meta.total}`,
       );
 
+      /* --- 除外フィルタ（未登録のみ / 大規模クラスタ除外） --- */
+      const exclusionFilter = new ExclusionTagFilter(statResolver, {
+        unregisteredOnly: false,           // 設定化するなら settings 参照
+        // excludeIfClusterSizeAtLeast: 10,  // n 件以上は除外
+      });
+      const { filtered, excluded } = exclusionFilter.filter(result.clusters);
+      logger.debug(
+        `[TagMergeUseCase] exclusion applied: filteredClusters=${filtered.length}, excludedItems=${excluded.length}`,
+      );
+
       /* --- クラスタ → マージ候補（TagStat 付き） --- */
-      const clusterBuilder = new TagMergeClusterBuilder(statResolver);
-      const mergeClusters = clusterBuilder.build(result.clusters);
+      const priorityResolver = new TagMergePriorityResolver({
+        largeClusterThreshold: 10,
+      });
+      const clusterBuilder = new TagMergeClusterBuilder(
+        statResolver,
+        priorityResolver,
+      );
+      const mergeClusters = clusterBuilder.build(filtered);
 
       /* --- ViewModel 生成 --- */
       const vmBuilder = new TagMergeViewModelBuilder();

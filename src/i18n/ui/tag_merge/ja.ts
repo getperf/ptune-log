@@ -17,9 +17,9 @@ export const tagMergeJa = {
   },
 
   priority: {
-    hierarchy: '高',
-    variant: '中',
-    similar: '低',
+    high: '高',
+    middle: '中',
+    low: '低',
     other: '除外',
   } satisfies Record<TagMergePriorityKey, string>,
 

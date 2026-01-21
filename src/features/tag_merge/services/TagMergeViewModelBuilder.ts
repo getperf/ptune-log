@@ -15,9 +15,9 @@ import { TagMergePriorityGroupVM } from '../models/TagMergePriorityGroupVM';
 export class TagMergeViewModelBuilder {
   build(clusters: TagMergeCluster[]): TagMergePriorityGroupVM[] {
     const bucket: Record<TagMergePriorityKey, TagMergePriorityGroupVM> = {
-      hierarchy: { priority: 'hierarchy', active: false, groups: [] },
-      variant: { priority: 'variant', active: false, groups: [] },
-      similar: { priority: 'similar', active: false, groups: [] },
+      high: { priority: 'high', active: false, groups: [] },
+      middle: { priority: 'middle', active: false, groups: [] },
+      low: { priority: 'low', active: false, groups: [] },
       other: { priority: 'other', active: false, groups: [] },
     };
 

@@ -1,16 +1,50 @@
 // src/features/tag_merge/services/TagMergePriorityResolver.ts
 
 import { TagMergePriorityKey } from '../models/TagMergePriority';
-import { TagMergePriorityDetector } from './detectors/TagMergePriorityDetector';
+import { HierarchyPriorityDetector } from './detectors/HierarchyPriorityDetector';
+import { VariantPriorityDetector } from './detectors/VariantPriorityDetector';
+
+export interface TagMergePriorityResolverOptions {
+  /**
+   * この件数以上のクラスタは誤検知リスクが高いとみなし low に落とす
+   */
+  largeClusterThreshold: number;
+}
 
 export class TagMergePriorityResolver {
-  constructor(private readonly detectors: TagMergePriorityDetector[]) {}
+  private readonly hierarchyDetector = new HierarchyPriorityDetector();
+  private readonly variantDetector = new VariantPriorityDetector();
 
-  resolve(to: string, from: string): TagMergePriorityKey {
-    for (const detector of this.detectors) {
-      const result = detector.detect(to, from);
-      if (result) return result;
+  constructor(
+    private readonly options: TagMergePriorityResolverOptions,
+  ) { }
+
+  resolve(
+    clusterSize: number,
+    toKey: string,
+    fromKey: string,
+  ): TagMergePriorityKey {
+    // 1件クラスタは自動判定不可
+    if (clusterSize <= 1) {
+      return 'other';
     }
-    return 'similar';
+
+    // 大規模クラスタは誤検知リスク高
+    if (clusterSize >= this.options.largeClusterThreshold) {
+      return 'low';
+    }
+
+    // 強い階層一致
+    if (this.hierarchyDetector.detect(toKey, fromKey)) {
+      return 'high';
+    }
+
+    // 表記ゆれ・バリエーション
+    if (this.variantDetector.detect(toKey, fromKey)) {
+      return 'middle';
+    }
+
+    // それ以外は低優先度
+    return 'middle';
   }
 }

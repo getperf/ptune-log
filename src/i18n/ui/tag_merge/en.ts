@@ -17,9 +17,9 @@ export const tagMergeEn = {
   },
 
   priority: {
-    hierarchy: 'Hierarch',
-    variant: 'Viriant',
-    similar: 'Similar',
+    high: 'High',
+    middle: 'Middle',
+    low: 'Low',
     other: 'Other',
   } satisfies Record<TagMergePriorityKey, string>,
 
