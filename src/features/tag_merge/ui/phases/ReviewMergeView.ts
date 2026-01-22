@@ -49,17 +49,17 @@ export class ReviewMergeView implements TagMergePhaseView {
 
     setting
       .addButton((btn) =>
-        btn.setButtonText('キャンセル').onClick(() => {
-          this.onCancel();
-        }),
-      )
-      .addButton((btn) =>
         btn
           .setButtonText('タグマージ実行')
           .setCta()
           .onClick(() => {
             this.onRunMerge();
           }),
+      )
+      .addButton((btn) =>
+        btn.setButtonText('キャンセル').onClick(() => {
+          this.onCancel();
+        }),
       );
   }
 }
