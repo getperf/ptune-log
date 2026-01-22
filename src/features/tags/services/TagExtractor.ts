@@ -9,6 +9,14 @@ export interface RawTagEntry {
   count: number;
 }
 
+export interface ExtractOptions {
+  /**
+   * 未分類タグ（kind.id === 'unclassified'）を除外する
+   * @default false
+   */
+  excludeUnclassified?: boolean;
+}
+
 /**
  * ノート全体からタグを抽出し、分類情報を付与して Tags モデルを構築するクラス
  */
@@ -93,15 +101,30 @@ export class TagExtractor {
   /**
    * 差分検知用：RawTagEntry を Map 化して返す
    */
-  static extractAllAsMap(app: App): Map<string, RawTagEntry> {
-    const list = this.extractAll(app);
-    const map = new Map<string, RawTagEntry>();
+  static async extractAllAsMap(
+    app: App,
+    options: ExtractOptions = {},
+  ): Promise<Map<string, RawTagEntry>> {
+    const { excludeUnclassified = false } = options;
 
-    for (const entry of list) {
-      map.set(entry.tag, entry);
+    logger.debug('[TagExtractor.extractAllAsMap] start');
+
+    const registry = TagKindRegistry.getInstance();
+    await registry.ensure();
+
+    const tags = this.extractAll(app);
+    const tagEntries = new Map<string, RawTagEntry>();
+
+    for (const tag of tags) {
+      const tagName = tag.tag;
+      if (excludeUnclassified) {
+        const kind = registry.getKindOrUnclassified(tagName);
+        if (kind.id === 'unclassified') continue;
+      }
+      tagEntries.set(tagName, tag);
     }
 
-    logger.debug(`[TagExtractor.extractAllAsMap] mapped=${map.size}`);
-    return map;
+    logger.debug(`[TagExtractor.extractAllAsMap] mapped=${tagEntries.size}`);
+    return tagEntries;
   }
 }

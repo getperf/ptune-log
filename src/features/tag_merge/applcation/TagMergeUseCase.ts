@@ -123,7 +123,9 @@ export class TagMergeUseCase {
     const messages: string[] = [];
 
     // --- マスター（ノート由来タグ）
-    const sourceMap = TagExtractor.extractAllAsMap(this.app);
+    const sourceMap = await TagExtractor.extractAllAsMap(this.app, {
+      excludeUnclassified: true,
+    });
     const sourceKeys = new Set(sourceMap.keys());
 
     // --- Tags DB
@@ -134,6 +136,9 @@ export class TagMergeUseCase {
 
     const tagAdd = [...sourceKeys].filter((k) => !tagDbKeys.has(k)).length;
     const tagDel = [...tagDbKeys].filter((k) => !sourceKeys.has(k)).length;
+
+    const tmp = [...tagDbKeys].filter((k) => !sourceKeys.has(k));
+    logger.debug(`[TagMerge] del: ${tmp}`);
 
     if (tagAdd > 0 || tagDel > 0) {
       messages.push(`タグDB: 追加 ${tagAdd} / 削除 ${tagDel}`);
