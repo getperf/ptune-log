@@ -1,62 +1,70 @@
 // src/features/tag_merge/ui/phases/PrepareClusteringView.ts
 
-import { TagMergePhaseView } from './TagMergePhaseView';
 import { Setting } from 'obsidian';
+import { TagMergePhaseView } from './TagMergePhaseView';
+import { TagMergeClusteringOptions } from '../../models/TagMergeClusteringOptions';
 
-export class PrepareClusteringView implements TagMergePhaseView {
-  private status: string | undefined = '準備中';
+export class PrepareClusteringView extends TagMergePhaseView {
+  private unregisteredOnly: boolean;
 
   constructor(
-    private readonly onRunClustering: () => Promise<void>,
+    private readonly onRun: (
+      options: TagMergeClusteringOptions,
+    ) => Promise<void>,
     private readonly onCancel: () => void,
-    private readonly precheckMessages: string[] = [],
-  ) {}
+    private readonly messages: string[],
+    initialOptions: TagMergeClusteringOptions,
+  ) {
+    super();
+    this.unregisteredOnly = initialOptions.exclusion.unregisteredOnly;
+  }
 
   getTitle(): string {
-    return 'タグの名寄せ候補抽出（タグクラスタリング）';
+    return 'クラスタリング準備';
   }
 
   getDescription() {
     return {
-      summary: 'タグの名寄せ候補自動検出',
-      steps: [],
+      summary: '差分を確認し、クラスタリング条件を指定します。',
     };
   }
 
-  renderBody(container: HTMLElement): void {
-    container.createEl('p', {
-      text: 'クラスタ分析を実行してください。',
-    });
-    if (this.precheckMessages.length > 0) {
-      const ul = container.createEl('ul');
-      for (const msg of this.precheckMessages) {
-        ul.createEl('li', { text: msg });
-      }
+  protected renderBody(container: HTMLElement): void {
+    new Setting(container)
+      .setName('未登録タグのみを対象にする')
+      .setDesc('Tag DB に未登録のタグのみをクラスタリング対象にします')
+      .addToggle((t) =>
+        t.setValue(this.unregisteredOnly).onChange((v) => {
+          this.unregisteredOnly = v;
+        }),
+      );
+
+    for (const msg of this.messages) {
+      container.createEl('div', { text: msg });
     }
   }
 
-  getStatusMessage(): string | undefined {
-    return this.status;
-  }
-
-  renderActions(container: HTMLElement): void {
-    const setting = new Setting(container);
-    setting.settingEl.addClass('tag-merge-actions'); // 右揃え用
-
-    setting
+  protected renderActions(container: HTMLElement): void {
+    new Setting(container)
       .addButton((btn) =>
         btn
-          .setButtonText('クラスタ分析を実行')
+          .setButtonText('クラスタリング実行')
           .setCta()
           .onClick(async () => {
-            this.status = 'クラスタリング実行中…';
-            await this.onRunClustering();
+            await this.onRun(this.buildOptions());
           }),
       )
       .addButton((btn) =>
-        btn.setButtonText('キャンセル').onClick(() => {
-          this.onCancel();
-        }),
+        btn.setButtonText('キャンセル').onClick(this.onCancel),
       );
+  }
+
+  private buildOptions(): TagMergeClusteringOptions {
+    return {
+      k: 600,
+      iterations: 5,
+      exclusion: { unregisteredOnly: this.unregisteredOnly },
+      priority: { largeClusterThreshold: 10 },
+    };
   }
 }

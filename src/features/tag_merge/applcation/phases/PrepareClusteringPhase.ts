@@ -7,6 +7,7 @@ import { PrepareClusteringView } from '../../ui/phases/PrepareClusteringView';
 import { TagMergeContext } from '../TagMergeContext';
 import { TagMergeDiffService } from '../../services/diff/TagMergeDiffService';
 import { TagMergeClusteringService } from '../../services/clustering/TagMergeClusteringService';
+import { TagMergeClusteringOptions } from '../../models/TagMergeClusteringOptions';
 import { TagMergeViewModelBuilder } from '../../services/viewmodel/TagMergeViewModelBuilder';
 
 export class PrepareClusteringPhase {
@@ -24,15 +25,17 @@ export class PrepareClusteringPhase {
     const messages = await diffService.detectMessages();
 
     const view = new PrepareClusteringView(
-      async () => {
+      async (options: TagMergeClusteringOptions) => {
+        // 確定値は Phase で Context に反映
+        this.context.clusteringOptions = options;
+
         const clusteringService = new TagMergeClusteringService();
         const vmBuilder = new TagMergeViewModelBuilder();
 
-        // clusteringOptions は UseCase で事前設定済み
         const clusters = await clusteringService.run(
           this.app,
           this.llmClient,
-          this.context.clusteringOptions,
+          options,
         );
 
         this.context.priorityGroups = vmBuilder.build(clusters);
@@ -40,6 +43,7 @@ export class PrepareClusteringPhase {
       },
       this.onCancel,
       messages,
+      this.context.clusteringOptions,
     );
 
     this.dialog.setPhaseView(view);

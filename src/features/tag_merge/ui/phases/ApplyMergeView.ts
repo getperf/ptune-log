@@ -3,10 +3,12 @@
 import { Setting } from 'obsidian';
 import { TagMergePhaseView } from './TagMergePhaseView';
 
-export class ApplyMergeView implements TagMergePhaseView {
+export class ApplyMergeView extends TagMergePhaseView {
   private status = 'タグマージ準備中';
 
-  constructor(private readonly onComplete: () => void) {}
+  constructor(private readonly onComplete: () => void) {
+    super();
+  }
 
   getTitle(): string {
     return 'タグマージ';
@@ -14,19 +16,19 @@ export class ApplyMergeView implements TagMergePhaseView {
 
   getDescription() {
     return {
-      summary: 'タグマージ。',
+      summary: 'タグマージを実行します。',
     };
-  }
-
-  renderBody(_container: HTMLElement): void {
-    // 表示なし
   }
 
   getStatusMessage(): string | undefined {
     return this.status;
   }
 
-  renderActions(container: HTMLElement): void {
+  protected renderBody(_container: HTMLElement): void {
+    // Apply フェーズでは本文表示なし
+  }
+
+  protected renderActions(container: HTMLElement): void {
     const setting = new Setting(container);
     setting.settingEl.addClass('tag-merge-actions');
 
