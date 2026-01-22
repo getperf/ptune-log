@@ -2,67 +2,88 @@
 
 import { App } from 'obsidian';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
-import { TagSuggestionService } from 'src/features/tags/services/TagSuggestionService';
-
 import { TagMergeFlowDialog } from '../ui/TagMergeFlowDialog';
-import { PrepareClusteringView } from '../ui/phases/PrepareClusteringView';
-import { ReviewMergeView } from '../ui/phases/ReviewMergeView';
-import { ApplyMergeView } from '../ui/phases/ApplyMergeView';
-
-import { TagMergeDiffService } from '../services/diff/TagMergeDiffService';
-import { TagMergeClusteringService } from '../services/clustering/TagMergeClusteringService';
-import { TagMergePriorityGroupVM } from '../models/viewmodels/TagMergePriorityGroupVM';
+import { TagMergeContext } from './TagMergeContext';
+import { PrepareClusteringPhase } from './phases/PrepareClusteringPhase';
+import { ReviewMergePhase } from './phases/ReviewMergePhase';
+import { ApplyMergePhase } from './phases/ApplyMergePhase';
+import { TagSuggestionService } from 'src/features/tags/services/TagSuggestionService';
+import { TagMergeClusteringOptions } from '../models/TagMergeClusteringOptions';
 
 export class TagMergeUseCase {
-  private readonly dialog: TagMergeFlowDialog;
-  private readonly tagSuggestionService: TagSuggestionService;
+  private dialog!: TagMergeFlowDialog;
+  private context!: TagMergeContext;
+  private suggestionService!: TagSuggestionService;
 
   constructor(
     private readonly app: App,
     private readonly llmClient: LLMClient,
-  ) {
-    this.dialog = new TagMergeFlowDialog(app);
-    this.tagSuggestionService = new TagSuggestionService(app, llmClient);
-  }
+  ) {}
 
+  /* =========================
+   * Entry point
+   * ========================= */
   async open(): Promise<void> {
-    const diffService = new TagMergeDiffService(this.app, this.llmClient);
-    const clusteringService = new TagMergeClusteringService();
+    this.initialize();
 
-    const messages = await diffService.detectMessages();
-
-    const prepareView = new PrepareClusteringView(
-      async () => {
-        const priorityGroups: TagMergePriorityGroupVM[] =
-          await clusteringService.run(this.app, this.llmClient);
-
-        this.showReviewPhase(priorityGroups);
-      },
-      () => this.dialog.close(),
-      messages,
-    );
-
-    this.dialog.setPhaseView(prepareView);
+    await this.openPreparePhase();
     this.dialog.open();
   }
 
-  private showReviewPhase(priorityGroups: TagMergePriorityGroupVM[]): void {
-    const view = new ReviewMergeView(
+  /* =========================
+   * Initialization
+   * ========================= */
+  private initialize(): void {
+    this.dialog = new TagMergeFlowDialog(this.app);
+    this.context = this.createContext();
+    this.suggestionService = new TagSuggestionService(this.app, this.llmClient);
+  }
+
+  private createContext(): TagMergeContext {
+    return new TagMergeContext({
+      clusteringOptions: {
+        k: 600,
+        iterations: 5,
+        exclusion: { unregisteredOnly: false },
+        priority: { largeClusterThreshold: 10 },
+      } as TagMergeClusteringOptions,
+    });
+  }
+
+  /* =========================
+   * Phase transitions
+   * ========================= */
+  private async openPreparePhase(): Promise<void> {
+    const phase = new PrepareClusteringPhase(
       this.app,
-      priorityGroups,
-      this.tagSuggestionService,
-      () => this.showApplyPhase(),
+      this.llmClient,
+      this.dialog,
+      this.context,
+      () => this.openReviewPhase(),
       () => this.dialog.close(),
     );
 
-    this.dialog.setPhaseView(view);
+    await phase.open();
   }
 
-  private showApplyPhase(): void {
-    const view = new ApplyMergeView(() => {
-      this.dialog.close();
-    });
+  private openReviewPhase(): void {
+    const phase = new ReviewMergePhase(
+      this.app,
+      this.dialog,
+      this.context,
+      this.suggestionService,
+      () => this.openApplyPhase(),
+      () => this.dialog.close(),
+    );
 
-    this.dialog.setPhaseView(view);
+    phase.open();
+  }
+
+  private openApplyPhase(): void {
+    const phase = new ApplyMergePhase(this.dialog, this.context, () =>
+      this.dialog.close(),
+    );
+
+    phase.open();
   }
 }

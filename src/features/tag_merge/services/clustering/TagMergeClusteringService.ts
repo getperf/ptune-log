@@ -7,21 +7,22 @@ import { TagAliases } from 'src/core/models/tags/TagAliases';
 import { TagVectors } from 'src/core/models/vectors/TagVectors';
 import { KMeansClusteringService } from 'src/core/services/tag_clustering/KMeansClusteringService';
 import { TagStatResolver } from 'src/core/services/tags/TagStatResolver';
+import { TagMergeClusteringOptions } from '../../models/TagMergeClusteringOptions';
 import { logger } from 'src/core/services/logger/loggerInstance';
-import { TagMergePriorityGroupVM } from '../../models/viewmodels/TagMergePriorityGroupVM';
+import { TagMergeCluster } from '../../models/domain/TagMergeCluster';
 import { ExclusionTagFilter } from './ExclusionTagFilter';
 import { TagMergePriorityResolver } from '../priority/TagMergePriorityResolver';
 import { TagMergeClusterBuilder } from './TagMergeClusterBuilder';
-import { TagMergeViewModelBuilder } from '../viewmodel/TagMergeViewModelBuilder';
 
 export class TagMergeClusteringService {
   async run(
     app: App,
     llmClient: LLMClient,
-  ): Promise<TagMergePriorityGroupVM[]> {
-    logger.debug('[TagMergeClusteringService] start');
+    options: TagMergeClusteringOptions,
+  ): Promise<TagMergeCluster[]> {
+    logger.debug('[TagMergeClusteringService] start', options);
 
-    // --- Tags / Aliases
+    /* --- Tags / Aliases --- */
     const tags = new Tags();
     await tags.load(app.vault);
 
@@ -30,45 +31,44 @@ export class TagMergeClusteringService {
 
     const statResolver = new TagStatResolver(tags, aliases);
 
-    // --- Vectors
+    /* --- Vectors --- */
     const vectors = new TagVectors(llmClient);
     await vectors.loadFromVault(app.vault);
 
-    // --- Clustering
+    /* --- Clustering --- */
     const clustering = new KMeansClusteringService();
     const result = clustering.cluster(vectors.getAll(), {
-      k: 600,
-      iterations: 5,
+      k: options.k,
+      iterations: options.iterations,
     });
 
     logger.debug(
       `[TagMergeClusteringService] clustered: clusters=${result.clusters.length}, total=${result.meta.total}`,
     );
 
-    // --- Exclusion
+    /* --- Exclusion --- */
     const exclusionFilter = new ExclusionTagFilter(statResolver, {
-      unregisteredOnly: false,
+      unregisteredOnly: options.exclusion.unregisteredOnly,
+      excludeIfClusterSizeAtLeast:
+        options.exclusion.excludeIfClusterSizeAtLeast,
     });
     const { filtered } = exclusionFilter.filter(result.clusters);
 
-    // --- Priority / Cluster build
+    /* --- Priority / Build --- */
     const priorityResolver = new TagMergePriorityResolver({
-      largeClusterThreshold: 10,
+      largeClusterThreshold: options.priority.largeClusterThreshold,
     });
     const clusterBuilder = new TagMergeClusterBuilder(
       statResolver,
       priorityResolver,
     );
-    const mergeClusters = clusterBuilder.build(filtered);
 
-    // --- ViewModel
-    const vmBuilder = new TagMergeViewModelBuilder();
-    const priorityGroups = vmBuilder.build(mergeClusters);
+    const clusters = clusterBuilder.build(filtered);
 
     logger.debug(
-      `[TagMergeClusteringService] done: priorityGroups=${priorityGroups.length}`,
+      `[TagMergeClusteringService] done: mergeClusters=${clusters.length}`,
     );
 
-    return priorityGroups;
+    return clusters;
   }
 }
