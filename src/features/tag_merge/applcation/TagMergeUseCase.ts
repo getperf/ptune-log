@@ -4,8 +4,8 @@ import { App } from 'obsidian';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
 import { TagVectors } from 'src/core/models/vectors/TagVectors';
 import { KMeansClusteringService } from 'src/core/services/tag_clustering/KMeansClusteringService';
-import { TagMergeClusterBuilder } from '../services/TagMergeClusterBuilder';
-import { TagMergeViewModelBuilder } from '../services/TagMergeViewModelBuilder';
+import { TagMergeClusterBuilder } from '../services/clustering/TagMergeClusterBuilder';
+import { TagMergeViewModelBuilder } from '../services/viewmodel/TagMergeViewModelBuilder';
 import { TagSuggestionService } from 'src/features/tags/services/TagSuggestionService';
 import { logger } from 'src/core/services/logger/loggerInstance';
 
@@ -13,14 +13,14 @@ import { TagMergeFlowDialog } from '../ui/TagMergeFlowDialog';
 import { PrepareClusteringView } from '../ui/phases/PrepareClusteringView';
 import { ReviewMergeView } from '../ui/phases/ReviewMergeView';
 import { ApplyMergeView } from '../ui/phases/ApplyMergeView';
-import { TagMergePriorityGroupVM } from '../models/TagMergePriorityGroupVM';
+import { TagMergePriorityGroupVM } from '../models/viewmodels/TagMergePriorityGroupVM';
 
 import { Tags } from 'src/core/models/tags/Tags';
 import { TagAliases } from 'src/core/models/tags/TagAliases';
 import { TagStatResolver } from 'src/core/services/tags/TagStatResolver';
-import { ExclusionTagFilter } from '../services/ExclusionTagFilter';
-import { TagMergePriorityResolver } from '../services/TagMergePriorityResolver';
+import { ExclusionTagFilter } from '../services/clustering/ExclusionTagFilter';
 import { TagExtractor } from 'src/features/tags/services/TagExtractor';
+import { TagMergePriorityResolver } from '../services/priority/TagMergePriorityResolver';
 
 export class TagMergeUseCase {
   private readonly dialog: TagMergeFlowDialog;

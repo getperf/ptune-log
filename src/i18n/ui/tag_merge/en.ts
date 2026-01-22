@@ -1,6 +1,6 @@
 // src/i18n/ui/tag_merge/en.ts
 
-import { TagMergePriorityKey } from 'src/features/tag_merge/models/TagMergePriority';
+import { TagMergePriorityKey } from 'src/features/tag_merge/models/domain/TagMergePriority';
 
 export const tagMergeEn = {
   phase: {

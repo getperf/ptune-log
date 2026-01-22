@@ -4,7 +4,7 @@ import { App } from 'obsidian';
 import { TagSuggestionService } from 'src/features/tags/services/TagSuggestionService';
 import { TargetTagEditorDialog } from 'src/core/ui/tags/TargetTagEditorDialog';
 import { logger } from 'src/core/services/logger/loggerInstance';
-import { TagMergeRowVM } from '../../models/TagMergeRowVM';
+import { TagMergeRowVM } from '../../models/viewmodels/TagMergeRowVM';
 
 export class TagMergeRowBuilder {
   constructor(

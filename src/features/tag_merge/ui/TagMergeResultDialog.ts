@@ -1,7 +1,7 @@
 // src/features/tag_merge/ui/TagMergeResultDialog.ts
 
 import { App, Modal } from 'obsidian';
-import { TagMergePriorityGroupVM } from '../models/TagMergePriorityGroupVM';
+import { TagMergePriorityGroupVM } from '../models/viewmodels/TagMergePriorityGroupVM';
 import { TagSuggestionService } from 'src/features/tags/services/TagSuggestionService';
 import { TagMergeResultView } from './TagMergeResultView';
 

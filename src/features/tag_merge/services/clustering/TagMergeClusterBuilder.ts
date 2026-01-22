@@ -2,8 +2,8 @@
 
 import { TagCluster } from 'src/core/services/tag_clustering/models/TagCluster';
 import { TagStatResolver } from 'src/core/services/tags/TagStatResolver';
-import { TagMergeCluster } from '../models/TagMergeCluster';
-import { TagMergePriorityResolver } from './TagMergePriorityResolver';
+import { TagMergeCluster } from '../../models/domain/TagMergeCluster';
+import { TagMergePriorityResolver } from '../priority/TagMergePriorityResolver';
 
 type ClusterKey = string;
 

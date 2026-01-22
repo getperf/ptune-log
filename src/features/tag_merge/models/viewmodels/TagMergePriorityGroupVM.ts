@@ -1,5 +1,5 @@
 // src/features/tag_merge/models/TagMergePriorityGroupVM.ts
-import { TagMergePriorityKey } from './TagMergePriority';
+import { TagMergePriorityKey } from '../domain/TagMergePriority';
 import { TagMergeGroupVM } from './TagMergeGroupVM';
 
 export type TagMergePriorityGroupVM = {

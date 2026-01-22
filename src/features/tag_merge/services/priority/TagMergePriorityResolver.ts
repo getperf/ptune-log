@@ -1,6 +1,6 @@
 // src/features/tag_merge/services/TagMergePriorityResolver.ts
 
-import { TagMergePriorityKey } from '../models/TagMergePriority';
+import { TagMergePriorityKey } from '../../models/domain/TagMergePriority';
 import { HierarchyPriorityDetector } from './detectors/HierarchyPriorityDetector';
 import { VariantPriorityDetector } from './detectors/VariantPriorityDetector';
 
@@ -15,9 +15,7 @@ export class TagMergePriorityResolver {
   private readonly hierarchyDetector = new HierarchyPriorityDetector();
   private readonly variantDetector = new VariantPriorityDetector();
 
-  constructor(
-    private readonly options: TagMergePriorityResolverOptions,
-  ) { }
+  constructor(private readonly options: TagMergePriorityResolverOptions) {}
 
   resolve(
     clusterSize: number,

@@ -1,12 +1,12 @@
 // src/features/tag_merge/services/TagMergeViewModelBuilder.ts
 
-import { TagMergeCluster } from '../models/TagMergeCluster';
+import { TagMergeCluster } from '../../models/domain/TagMergeCluster';
 import {
   TagMergePriorityKey,
   TAG_MERGE_PRIORITIES,
-} from '../models/TagMergePriority';
-import { TagMergePriorityGroupVM } from '../models/TagMergePriorityGroupVM';
-import { TagMergeRowVM } from '../models/TagMergeRowVM';
+} from '../../models/domain/TagMergePriority';
+import { TagMergePriorityGroupVM } from '../../models/viewmodels/TagMergePriorityGroupVM';
+import { TagMergeRowVM } from '../../models/viewmodels/TagMergeRowVM';
 
 /**
  * TagMergeViewModelBuilder

@@ -1,14 +1,14 @@
 // src/features/tag_merge/ui/TagMergeResultView.ts
 
-import { TagMergePriorityGroupVM } from '../models/TagMergePriorityGroupVM';
+import { TagMergePriorityGroupVM } from '../models/viewmodels/TagMergePriorityGroupVM';
 import { TagSuggestionService } from 'src/features/tags/services/TagSuggestionService';
 import { App } from 'obsidian';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { TagMergePriorityTabs } from './TagMergePriorityTabs';
 import { TagMergeRowBuilder } from './builders/TagMergeRowBuilder';
 import { TargetTagEditorDialog } from 'src/core/ui/tags/TargetTagEditorDialog';
-import { TagMergeRowVM } from '../models/TagMergeRowVM';
-import { TagMergeGroupVM } from '../models/TagMergeGroupVM';
+import { TagMergeRowVM } from '../models/viewmodels/TagMergeRowVM';
+import { TagMergeGroupVM } from '../models/viewmodels/TagMergeGroupVM';
 
 /**
  * TagMergeResultView
