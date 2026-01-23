@@ -4,6 +4,7 @@ import { TagCluster } from 'src/core/services/tag_clustering/models/TagCluster';
 import { TagStatResolver } from 'src/core/services/tags/TagStatResolver';
 import { TagMergeCluster } from '../../models/domain/TagMergeCluster';
 import { TagMergePriorityResolver } from '../priority/TagMergePriorityResolver';
+import { logger } from 'src/core/services/logger/loggerInstance';
 
 type ClusterKey = string;
 
@@ -20,9 +21,18 @@ export class TagMergeClusterBuilder {
       const toKey = cluster.representative.key;
       const toStat = this.statResolver.resolve(toKey);
       const clusterSize = cluster.members.length;
-
+      if (toKey === '用途/プロジェクト/共通タグ生成') {
+        logger.debug(
+          `[ClusterBuilder][DEBUG] to=${toKey}, members=${clusterSize}`,
+        );
+      }
       for (const member of cluster.members) {
         const fromKey = member.key;
+        if (toKey === '用途/プロジェクト/共通タグ生成') {
+          logger.debug(
+            `[ClusterBuilder][DEBUG] to=${toKey}, fromKey=${fromKey}`,
+          );
+        }
         const fromStat = this.statResolver.resolve(fromKey);
 
         const priority = this.priorityResolver.resolve(

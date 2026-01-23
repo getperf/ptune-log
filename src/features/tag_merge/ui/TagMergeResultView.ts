@@ -74,9 +74,18 @@ export class TagMergeResultView {
   }
 
   private renderGroup(container: HTMLElement, group: TagMergeGroupVM): void {
+    const visibleRows = group.rows.filter((r) => this.shouldRenderRow(r));
+
+    // ★ 単一行のみの場合は省略表示
+    if (visibleRows.length === 1) {
+      this.renderSingleRow(container, visibleRows[0]);
+      return;
+    }
+
+    // --- 通常（複数行）表示 ---
     const groupEl = container.createDiv({ cls: 'tag-merge-group' });
 
-    // --- Header ---
+    // Header
     const header = groupEl.createDiv({ cls: 'tag-merge-group-header' });
 
     const cb = header.createEl('input', { type: 'checkbox' });
@@ -93,14 +102,21 @@ export class TagMergeResultView {
       this.openTagEditDialog(group.to);
     });
 
-    // --- Rows ---
+    // Rows
     const list = groupEl.createDiv({ cls: 'tag-merge-group-list' });
-    for (const row of group.rows) {
-      if (!this.shouldRenderRow(row)) {
-        continue;
-      }
+    for (const row of visibleRows) {
       this.rowBuilder.render(list, row);
     }
+  }
+
+  /**
+   * 単一行グループ表示
+   * - to 見出しを省略
+   * - row 表示のみ
+   */
+  private renderSingleRow(container: HTMLElement, row: TagMergeRowVM): void {
+    const rowEl = container.createDiv({ cls: 'tag-merge-single-row' });
+    this.rowBuilder.render(rowEl, row);
   }
 
   private shouldRenderRow(row: TagMergeRowVM): boolean {

@@ -13,7 +13,10 @@ import { TagMergeRowVM } from '../../models/viewmodels/TagMergeRowVM';
  * - TagMergeCluster を UI 描画用 ViewModel に変換する
  * - rows: fromStat.count 降順
  * - groups: toStat.count 降順（priority 内）
- * - low/other は既定チェックOFF
+ * - low / other は既定チェック OFF
+ *
+ * NOTE:
+ * - 件数・表示文言の生成は View 側で行う
  */
 export class TagMergeViewModelBuilder {
   build(clusters: TagMergeCluster[]): TagMergePriorityGroupVM[] {
@@ -51,10 +54,12 @@ export class TagMergeViewModelBuilder {
       });
     }
 
+    // priority 内の並び替え（既存仕様）
     for (const pg of Object.values(bucket)) {
       pg.groups = this.sortGroupsByToCountDesc(pg.groups);
     }
 
+    // priority の並び替え（既存仕様）
     return Object.values(bucket).sort(
       (a, b) =>
         (TAG_MERGE_PRIORITIES.get(a.priority)?.order ?? 999) -
@@ -62,7 +67,7 @@ export class TagMergeViewModelBuilder {
     );
   }
 
-  /** low/other は既定チェックOFF */
+  /** low / other は既定チェック OFF */
   private getDefaultChecked(priority: TagMergePriorityKey): boolean {
     return priority !== 'low' && priority !== 'other';
   }

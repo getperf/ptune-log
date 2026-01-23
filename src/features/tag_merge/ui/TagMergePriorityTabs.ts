@@ -21,10 +21,11 @@ export class TagMergePriorityTabs {
     const ui = i18n.ui.tagMerge;
     for (const pg of this.priorityGroups) {
       const label = ui.priority?.[pg.priority] ?? pg.priority;
+      const title = `${label}(${pg.groups.length})`;
 
       const tab = container.createDiv({
         cls: 'tag-merge-priority-tab',
-        text: label,
+        text: title,
       });
 
       if (pg === this.activePriority) {
