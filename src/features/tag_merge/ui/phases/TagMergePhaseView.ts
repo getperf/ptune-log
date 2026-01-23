@@ -8,8 +8,24 @@ export abstract class TagMergePhaseView {
     return undefined;
   }
 
-  getStatusMessage(): string | undefined {
-    return undefined;
+  /** ===== Status 管理 ===== */
+  private statusText?: string;
+  private statusEl?: HTMLDivElement;
+
+  /**
+   * 処理中ステータスを更新
+   */
+  updateStatus(message?: string): void {
+    this.statusText = message;
+
+    if (!this.statusEl) return;
+
+    if (message) {
+      this.statusEl.textContent = message;
+      this.statusEl.style.display = '';
+    } else {
+      this.statusEl.style.display = 'none';
+    }
   }
 
   /** フェーズ固有の描画 */
@@ -36,13 +52,15 @@ export abstract class TagMergePhaseView {
     const body = container.createDiv({ cls: 'tag-merge-phase-body' });
     this.renderBody(body);
 
-    // Status
-    const status = this.getStatusMessage();
-    if (status) {
-      container.createEl('div', {
-        cls: 'tag-merge-phase-status',
-        text: status,
-      });
+    // Status（常に生成）
+    this.statusEl = container.createDiv({
+      cls: 'tag-merge-phase-status is-active',
+    });
+
+    if (this.statusText) {
+      this.statusEl.textContent = this.statusText;
+    } else {
+      this.statusEl.style.display = 'none';
     }
 
     // Actions

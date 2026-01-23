@@ -6,17 +6,21 @@ import { TagMergeClusteringOptions } from '../../models/TagMergeClusteringOption
 
 export class PrepareClusteringView extends TagMergePhaseView {
   private unregisteredOnly: boolean;
+  private rebuildDb: boolean;
 
   constructor(
     private readonly onRun: (
       options: TagMergeClusteringOptions,
+      rebuildDb: boolean,
     ) => Promise<void>,
     private readonly onCancel: () => void,
     private readonly messages: string[],
     initialOptions: TagMergeClusteringOptions,
+    hasDiff: boolean, // ★ 差分有無
   ) {
     super();
     this.unregisteredOnly = initialOptions.exclusion.unregisteredOnly;
+    this.rebuildDb = hasDiff; // ★ 差分があれば既定 ON
   }
 
   getTitle(): string {
@@ -30,6 +34,7 @@ export class PrepareClusteringView extends TagMergePhaseView {
   }
 
   protected renderBody(container: HTMLElement): void {
+    // 未登録タグのみを対象
     new Setting(container)
       .setName('未登録タグのみを対象にする')
       .setDesc('Tag DB に未登録のタグのみをクラスタリング対象にします')
@@ -39,6 +44,17 @@ export class PrepareClusteringView extends TagMergePhaseView {
         }),
       );
 
+    // ★ DB 更新トグル（追加）
+    new Setting(container)
+      .setName('クラスタリング前に DB を更新する')
+      .setDesc('差分検知結果に基づき Tag DB / Vector DB を再構築します')
+      .addToggle((t) =>
+        t.setValue(this.rebuildDb).onChange((v) => {
+          this.rebuildDb = v;
+        }),
+      );
+
+    // 差分メッセージ（件数のみ）
     for (const msg of this.messages) {
       container.createEl('div', { text: msg });
     }
@@ -51,7 +67,7 @@ export class PrepareClusteringView extends TagMergePhaseView {
           .setButtonText('クラスタリング実行')
           .setCta()
           .onClick(async () => {
-            await this.onRun(this.buildOptions());
+            await this.onRun(this.buildOptions(), this.rebuildDb);
           }),
       )
       .addButton((btn) =>
