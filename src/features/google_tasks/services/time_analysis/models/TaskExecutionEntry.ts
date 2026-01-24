@@ -2,6 +2,8 @@
 
 import { MyTask } from 'src/core/models/tasks/MyTask';
 import { RelatedNote } from './RelatedNote';
+import { ReviewFlag } from 'src/core/models/tasks/MyTask/ReviewFlag';
+import { logger } from 'src/core/services/logger/loggerInstance';
 
 export interface PomodoroSum {
   planned: number;
@@ -23,7 +25,8 @@ export class TaskExecutionEntry {
       delta?: number;
     },
     public readonly started?: string,
-    public readonly completed?: string
+    public readonly completed?: string,
+    public readonly reviewFlags?: ReviewFlag[],
   ) {}
 
   /**
@@ -68,7 +71,10 @@ export class TaskExecutionEntry {
       parentTaskKey,
       pomodoro,
       task.started,
-      task.completed
+      task.completed,
+      task.reviewFlags && task.reviewFlags.length > 0
+        ? [...task.reviewFlags]
+        : undefined,
     );
   }
 }

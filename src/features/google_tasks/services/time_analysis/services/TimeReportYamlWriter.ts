@@ -27,9 +27,10 @@ export class TimeReportYamlWriter {
           {
             status: e.status,
             pomodoro: e.pomodoro,
+            reviewFlags: e.reviewFlags,
             relatedNotes: e.relatedNotes,
           },
-        ])
+        ]),
       ),
     };
 

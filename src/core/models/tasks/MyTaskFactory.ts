@@ -4,10 +4,14 @@ import { PomodoroInfo } from './MyTask/PomodoroInfo';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
 import { GoogleTaskRaw } from './google/GoogleTaskRaw';
 import { MarkdownTaskEntry } from './MarkdownTaskEntry';
+import { ReviewFlagNotesCodec } from './MyTask/ReviewFlagNotesCodec';
 
 export class MyTaskFactory {
   static fromGoogleTask(task: GoogleTaskRaw, tasklistId?: string): MyTask {
-    // note から抽出
+    // --- reviewFlags ---
+    const reviewFlags = ReviewFlagNotesCodec.decode(task.note);
+
+    // --- pomodoro / time ---
     const pomodoroFromNote = this.parsePomodoroInfo(task.note);
     const startedFromNote = this.extractTimestamp('started', task.note);
     const completedFromNote = this.extractTimestamp('completed', task.note);
@@ -18,7 +22,7 @@ export class MyTaskFactory {
       (task.pomodoro
         ? new PomodoroInfo(
             task.pomodoro.planned ?? 0,
-            task.pomodoro.actual ?? 0
+            task.pomodoro.actual ?? 0,
           )
         : undefined);
 
@@ -31,11 +35,14 @@ export class MyTaskFactory {
       completedFromApi ??
       (task.pomodoro?.actual ? this.parseDate(task.updated) : undefined);
 
-    return new MyTask(
+    // --- note 本文（review / pomodoro / time 情報を除外） ---
+    const noteBody = this.extractNoteBody(task.note);
+
+    const myTask = new MyTask(
       task.id ?? '',
       task.title ?? '',
       tasklistId,
-      this.extractNoteBody(task.note),
+      noteBody,
       task.parent,
       task.position,
       pomodoro,
@@ -45,17 +52,22 @@ export class MyTaskFactory {
       completed,
       this.parseDate(task.updated),
       started,
-      task.deleted ?? false
+      task.deleted ?? false,
     );
+
+    if (reviewFlags.length > 0) {
+      myTask.reviewFlags = reviewFlags;
+    }
+
+    return myTask;
   }
 
   /**
-   * 指定されたキーからUTC時刻文字列（Zなし）を抽出します。
-   * Google Tasksの仕様ではZがなくてもUTCとして解釈されます。
+   * 指定キーからUTC時刻文字列（Zなし）を抽出
    */
   private static extractTimestamp(
     key: 'started' | 'completed',
-    note?: string
+    note?: string,
   ): string | undefined {
     if (!note) return undefined;
     const pattern = new RegExp(`${key}=([^\\s]+)`);
@@ -65,13 +77,15 @@ export class MyTaskFactory {
 
   private static extractNoteBody(note?: string): string | undefined {
     if (!note) return undefined;
+
     return (
-      note
-        .replace(/🍅x\d+/, '')
-        .replace(/✅x\d+/, '')
-        .replace(/started=[^\s]+/, '')
-        .replace(/completed=[^\s]+/, '')
-        .trim() || undefined
+      ReviewFlagNotesCodec.strip(
+        note
+          .replace(/🍅x\d+/, '')
+          .replace(/✅x[\d.]+/, '')
+          .replace(/started=[^\s]+/, '')
+          .replace(/completed=[^\s]+/, ''),
+      ) || undefined
     );
   }
 
@@ -79,7 +93,7 @@ export class MyTaskFactory {
     if (!note) return undefined;
     const planned = this.extractInt(note, /🍅x(\d+)/) ?? 0;
     const actual = this.extractFloat(note, /✅x([\d.]+)/);
-    return new PomodoroInfo(planned, actual);
+    return planned > 0 ? new PomodoroInfo(planned, actual) : undefined;
   }
 
   private static extractInt(text: string, pattern: RegExp): number | undefined {
@@ -89,13 +103,13 @@ export class MyTaskFactory {
 
   private static extractFloat(
     text: string,
-    pattern: RegExp
+    pattern: RegExp,
   ): number | undefined {
     const match = text.match(pattern);
     return match ? parseFloat(match[1]) : undefined;
   }
 
-  /** --- 文字列をUTC ISO文字列に変換 */
+  /** 文字列をUTC ISO文字列に変換 */
   private static parseDate(dateStr?: string): string | undefined {
     return dateStr ? DateUtil.utcString(new Date(dateStr)) : undefined;
   }
@@ -107,10 +121,14 @@ export class MyTaskFactory {
     if (source.parent) target.parent = source.parent;
     if (source.position) target.position = source.position;
 
+    if (source.reviewFlags) {
+      target.reviewFlags = [...source.reviewFlags];
+    }
+
     if (source.pomodoro) {
       target.pomodoro = new PomodoroInfo(
         source.pomodoro.planned,
-        source.pomodoro.actual
+        source.pomodoro.actual,
       );
     }
 
@@ -124,12 +142,11 @@ export class MyTaskFactory {
   }
 
   /**
-   * DailyNoteTaskEntry → MyTask 変換
-   * Google Tasksエクスポート処理で使用
+   * DailyNoteTaskEntry → MyTask
    */
   static fromDailyNoteTaskEntry(
     parsed: MarkdownTaskEntry,
-    taskListName = 'Today'
+    taskListName = 'Today',
   ): MyTask {
     const pomodoro =
       parsed.pomodoro && parsed.pomodoro > 0
@@ -137,20 +154,20 @@ export class MyTaskFactory {
         : undefined;
 
     return new MyTask(
-      '', // id
-      parsed.title, // title
-      undefined, // parent
-      `from: ${taskListName}`, // note
-      undefined, // tasklist_id
-      undefined, // due
-      pomodoro, // PomodoroInfo
-      'needsAction', // status
-      undefined, // position
-      undefined, // priority
-      undefined, // completed
-      DateUtil.utcString(), // createdAt
-      undefined, // updatedAt
-      false // deleted
+      '',
+      parsed.title,
+      undefined,
+      `from: ${taskListName}`,
+      undefined,
+      undefined,
+      pomodoro,
+      'needsAction',
+      undefined,
+      undefined,
+      undefined,
+      DateUtil.utcString(),
+      undefined,
+      false,
     );
   }
 }

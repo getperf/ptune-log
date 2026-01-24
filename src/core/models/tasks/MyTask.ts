@@ -1,6 +1,9 @@
+// File: src/core/models/tasks/MyTask.ts
 import { MyTaskFactory } from './MyTaskFactory';
 import { PomodoroInfo } from './MyTask/PomodoroInfo';
 import { GoogleTaskWrite } from './google/GoogleTaskWrite';
+import { ReviewFlag } from './MyTask/ReviewFlag';
+import { ReviewFlagNotesCodec } from './MyTask/ReviewFlagNotesCodec';
 
 export class MyTask {
   constructor(
@@ -17,7 +20,8 @@ export class MyTask {
     public completed?: string, // UTC文字列
     public updated?: string,
     public started?: string, // UTC文字列
-    public deleted: boolean = false
+    public deleted: boolean = false,
+    public reviewFlags?: ReviewFlag[],
   ) {}
 
   toString(): string {
@@ -51,10 +55,17 @@ export class MyTask {
   toGoogleTaskWrite(): GoogleTaskWrite {
     const notes: string[] = [];
 
+    // ユーザメモ
     if (this.note) {
       notes.push(this.note);
     }
 
+    // reviewFlags → notes
+    if (this.reviewFlags && this.reviewFlags.length > 0) {
+      notes.push(ReviewFlagNotesCodec.encode(this.reviewFlags));
+    }
+
+    // pomodoro
     if (this.pomodoro) {
       let tomato = `🍅x${this.pomodoro.planned}`;
       if (this.pomodoro.actual !== undefined) {
