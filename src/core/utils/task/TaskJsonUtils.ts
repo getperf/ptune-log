@@ -1,10 +1,11 @@
-// File: src/core/utils/file/TaskJsonUtils.ts
+// File: src/core/utils/task/TaskJsonUtils.ts
 import { App, normalizePath } from 'obsidian';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { MyTask } from 'src/core/models/tasks/MyTask';
 import { MyTaskFactory } from 'src/core/models/tasks/MyTaskFactory';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
 import { GoogleTaskRaw } from 'src/core/models/tasks/google/GoogleTaskRaw';
+import { ReviewFlag } from 'src/core/models/tasks/MyTask/ReviewFlag';
 
 /**
  * JSONファイル内のタスク構造を型で保証
@@ -22,6 +23,9 @@ export interface TaskJsonRecord {
   completed: string | null;
   started: string | null;
   tasklist_id?: string | null;
+
+  // ★ reviewFlags を正規データとして保持
+  reviewFlags?: ReviewFlag[];
 }
 
 /**
@@ -51,6 +55,12 @@ export class TaskJsonUtils {
       completed: t.completed ?? null,
       started: t.started ?? null,
       tasklist_id: t.tasklist_id ?? null,
+
+      // ★ reviewFlags を保存
+      reviewFlags:
+        t.reviewFlags && t.reviewFlags.length > 0
+          ? [...t.reviewFlags]
+          : undefined,
     }));
 
     const adapter = this.app.vault.adapter;
@@ -65,7 +75,6 @@ export class TaskJsonUtils {
   }
 
   /** --- 指定日のタスクJSONを読み込み（存在しない場合は空配列） */
-  /** 指定日のタスクJSONを読み込み（存在しない場合は空配列） */
   async load(date: Date): Promise<MyTask[]> {
     const fileName = `tasks_${DateUtil.localDate(date)}.json`;
     const path = normalizePath(`${TaskJsonUtils.BASE_DIR}/${fileName}`);
@@ -80,6 +89,7 @@ export class TaskJsonUtils {
     const raw = JSON.parse(jsonText) as TaskJsonRecord[];
 
     const tasks = raw.map((t) => {
+      // GoogleTaskRaw は「API互換用の一時構造」
       const normalized: GoogleTaskRaw = {
         id: t.id,
         title: t.title,
@@ -97,13 +107,30 @@ export class TaskJsonUtils {
         completed: t.completed ?? undefined,
         started: t.started ?? undefined,
 
-        // --- JSONには存在しない項目は補完 ---
+        // JSONには存在しない項目は補完
         due: undefined,
         updated: undefined,
         deleted: false,
       };
 
-      return MyTaskFactory.fromGoogleTask(normalized, t.tasklist_id ?? 'Today');
+      // GoogleTask 互換変換
+      const task = MyTaskFactory.fromGoogleTask(
+        normalized,
+        t.tasklist_id ?? 'Today',
+      );
+
+      // ★ JSON由来の正規データとして reviewFlags を復元
+      if (Array.isArray(t.reviewFlags) && t.reviewFlags.length > 0) {
+        task.reviewFlags = [...t.reviewFlags];
+      }
+
+      logger.debug(
+        `[TaskJsonUtils.load] id=${task.id} reviewFlags=${JSON.stringify(
+          task.reviewFlags,
+        )}`,
+      );
+
+      return task;
     });
 
     logger.info(`[TaskJsonUtils] loaded ${tasks.length} tasks from ${path}`);

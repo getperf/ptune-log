@@ -10,6 +10,9 @@ import { TagMergeClusteringService } from '../../services/clustering/TagMergeClu
 import { TagMergeClusteringOptions } from '../../models/TagMergeClusteringOptions';
 import { TagMergeViewModelBuilder } from '../../services/viewmodel/TagMergeViewModelBuilder';
 import { TagDBMaintainer } from 'src/features/tags/services/TagDBMaintainer';
+import { TagAliases } from 'src/core/models/tags/TagAliases';
+import { Tags } from 'src/core/models/tags/Tags';
+import { logger } from 'src/core/services/logger/loggerInstance';
 
 export class PrepareClusteringPhase {
   constructor(
@@ -22,10 +25,9 @@ export class PrepareClusteringPhase {
   ) {}
 
   async open(): Promise<void> {
-    // --- 差分検知
     const diffService = new TagMergeDiffService(this.app, this.llmClient);
     const diffSummary = await diffService.detect();
-    const messages = diffService.buildMessages(diffSummary);
+    const baseMessages = diffService.buildMessages(diffSummary);
 
     const hasDiff =
       diffSummary.tagDB.added.length > 0 ||
@@ -33,20 +35,36 @@ export class PrepareClusteringPhase {
       diffSummary.vectorDB.added.length > 0 ||
       diffSummary.vectorDB.removed.length > 0;
 
-    // --- View 作成
+    // --- 初期表示用（参考値）
+    const displayOptions = this.context.clusteringOptions;
+    await this.fillCounts(displayOptions);
+    displayOptions.k = this.resolveK(displayOptions);
+
+    const messages = [
+      ...baseMessages,
+      `タグ総数: ${displayOptions.totalTagCount}`,
+      `未登録タグ数: ${displayOptions.exclusion?.unregisteredCount ?? 0}`,
+      `クラスタ数 (k): ${displayOptions.k}`,
+    ];
+
     const view = new PrepareClusteringView(
       async (options: TagMergeClusteringOptions, rebuildDb: boolean) => {
-        // Context 反映
+        // ★ 実行時は必ず再計算
+        await this.fillCounts(options);
+        options.k = this.resolveK(options);
+
+        logger.debug(
+          `[PrepareClustering] run: total=${options.totalTagCount}, unregistered=${options.exclusion?.unregisteredCount}, k=${options.k}`,
+        );
+
         this.context.clusteringOptions = options;
 
-        // --- DB 更新（任意）
         if (rebuildDb) {
           view.updateStatus('DB 更新中...');
           const maintainer = new TagDBMaintainer(this.app, this.llmClient);
-          await maintainer.rebuildAll(); // 暫定：常に全再構築
+          await maintainer.rebuildAll();
         }
 
-        // --- クラスタリング
         view.updateStatus('クラスタリング中...');
         const clusteringService = new TagMergeClusteringService();
         const vmBuilder = new TagMergeViewModelBuilder();
@@ -64,11 +82,33 @@ export class PrepareClusteringPhase {
       },
       this.onCancel,
       messages,
-      this.context.clusteringOptions,
-      hasDiff, // ★ 差分ありなら DB 更新トグル既定 ON
+      displayOptions,
+      hasDiff,
     );
 
     view.updateStatus('準備中...');
     this.dialog.setPhaseView(view);
+  }
+
+  private async fillCounts(options: TagMergeClusteringOptions): Promise<void> {
+    const tags = new Tags();
+    await tags.load(this.app.vault);
+    options.totalTagCount = tags.getAll().length;
+
+    const aliases = new TagAliases();
+    await aliases.load(this.app.vault);
+    const unchecked = aliases.getUnchecked();
+
+    options.exclusion = {
+      ...options.exclusion,
+      unregisteredCount: unchecked.length,
+    };
+  }
+
+  private resolveK(options: TagMergeClusteringOptions): number {
+    if (options.exclusion?.unregisteredOnly) {
+      return Math.max(1, options.exclusion.unregisteredCount ?? 1);
+    }
+    return Math.max(1, Math.floor((options.totalTagCount ?? 1) * 0.7));
   }
 }

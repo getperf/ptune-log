@@ -38,9 +38,9 @@ export class TagMergePriorityResolver {
     }
 
     // 表記ゆれ・バリエーション
-    if (this.variantDetector.detect(toKey, fromKey)) {
-      return 'middle';
-    }
+    // if (this.variantDetector.detect(toKey, fromKey)) {
+    //   return 'middle';
+    // }
 
     // それ以外は低優先度
     return 'middle';

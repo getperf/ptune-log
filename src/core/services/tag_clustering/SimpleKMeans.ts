@@ -17,7 +17,12 @@ export class SimpleKMeans {
     const n = vectors.length;
 
     // --- 初期中心（先頭 k 件を使用：再現性重視） ---
-    let centroids = vectors.slice(0, k).map((v) => [...v]);
+    let centroids = vectors.slice(0, k).map((v, i) => {
+      if (!Array.isArray(v)) {
+        throw new Error(`Invalid centroid vector at ${i}`);
+      }
+      return Array.from(v); // ★ 明示変換
+    });
 
     let assignments = new Array<number>(n).fill(0);
 

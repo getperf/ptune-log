@@ -37,8 +37,14 @@ export class TagMergeClusteringService {
 
     /* --- Clustering --- */
     const clustering = new KMeansClusteringService();
+    logger.debug(
+      `[TagMergeClusteringService] start ${JSON.stringify(options)}`,
+    );
+    logger.debug(
+      `[TagMergeClusteringService] before cluster: vectors=${vectors.getAll().length}, k=${options.k}`,
+    );
     const result = clustering.cluster(vectors.getAll(), {
-      k: options.k,
+      k: 300,
       iterations: options.iterations,
     });
 
