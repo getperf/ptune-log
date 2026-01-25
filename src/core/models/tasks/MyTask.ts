@@ -21,7 +21,7 @@ export class MyTask {
     public updated?: string,
     public started?: string, // UTC文字列
     public deleted: boolean = false,
-    public reviewFlags?: ReviewFlag[],
+    public reviewFlags?: Set<ReviewFlag>,
   ) {}
 
   toString(): string {
@@ -61,7 +61,11 @@ export class MyTask {
     }
 
     // reviewFlags → notes
-    if (this.reviewFlags && this.reviewFlags.length > 0) {
+    if (this.note && this.note.trim().length > 0) {
+      notes.push(ReviewFlagNotesCodec.strip(this.note) ?? this.note);
+    }
+
+    if (this.reviewFlags && this.reviewFlags.size > 0) {
       notes.push(ReviewFlagNotesCodec.encode(this.reviewFlags));
     }
 

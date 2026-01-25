@@ -55,8 +55,9 @@ export class MyTaskFactory {
       task.deleted ?? false,
     );
 
-    if (reviewFlags.length > 0) {
-      myTask.reviewFlags = reviewFlags;
+    const flags = ReviewFlagNotesCodec.decode(task.note);
+    if (flags.size > 0) {
+      myTask.reviewFlags = flags;
     }
 
     return myTask;
@@ -121,8 +122,8 @@ export class MyTaskFactory {
     if (source.parent) target.parent = source.parent;
     if (source.position) target.position = source.position;
 
-    if (source.reviewFlags) {
-      target.reviewFlags = [...source.reviewFlags];
+    if (source.reviewFlags && source.reviewFlags.size > 0) {
+      target.reviewFlags = new Set(source.reviewFlags);
     }
 
     if (source.pomodoro) {

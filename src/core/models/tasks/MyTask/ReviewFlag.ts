@@ -1,9 +1,7 @@
-// src/core/models/tasks/review_flags/ReviewFlag.ts
-export enum ReviewFlag {
-  stuckUnknown = 'stuckUnknown',
-  toolOrEnvIssue = 'toolOrEnvIssue',
-  decisionPending = 'decisionPending',
-  scopeExpanded = 'scopeExpanded',
-  unresolved = 'unresolved',
-  newIssueFound = 'newIssueFound',
-}
+// src/core/models/tasks/MyTask/ReviewFlag.ts
+
+/**
+ * ReviewFlag は ptune 側が定義する文字列キー。
+ * ptune-log では語彙を固定せず、string として保持する。
+ */
+export type ReviewFlag = string;

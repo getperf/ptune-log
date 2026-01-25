@@ -1,38 +1,35 @@
-// File: src/core/models/tasks/review_flags/ReviewFlagNotesCodec.ts
+// File: src/core/models/tasks/MyTask/ReviewFlagNotesCodec.ts
 import { ReviewFlag } from './ReviewFlag';
 
 export class ReviewFlagNotesCodec {
-  private static readonly PATTERN = /#ptune:review=([^\s]+)/;
+  private static readonly _pattern = /#ptune:review=([^\s]+)/;
 
-  /** notes → reviewFlags */
-  static decode(notes?: string): ReviewFlag[] {
-    if (!notes) return [];
+  /** notes → reviewFlags(Set) */
+  static decode(notes?: string): Set<ReviewFlag> {
+    if (!notes) return new Set<ReviewFlag>();
 
-    const match = notes.match(this.PATTERN);
-    if (!match) return [];
+    const match = notes.match(this._pattern);
+    if (!match) return new Set<ReviewFlag>();
 
-    return match[1]
+    const raw = match[1] ?? '';
+    const flags = raw
       .split(',')
-      .map((v) => v.trim())
-      .filter((v): v is ReviewFlag =>
-        Object.values(ReviewFlag).includes(v as ReviewFlag),
-      );
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+
+    return new Set<ReviewFlag>(flags);
   }
 
-  /** reviewFlags → notes 用文字列 */
-  static encode(flags: ReviewFlag[]): string {
-    if (!flags || flags.length === 0) return '';
-    return `#ptune:review=${flags.join(',')}`;
+  /** reviewFlags → notes 用文字列（Iterable を受ける） */
+  static encode(flags: Iterable<ReviewFlag>): string {
+    const uniq = Array.from(new Set(flags));
+    return `#ptune:review=${uniq.join(',')}`;
   }
 
-  /** notes から review 定義を除去 */
+  /** notes から review 部分を除去 */
   static strip(notes?: string): string | undefined {
-    if (!notes) return undefined;
-    return (
-      notes
-        .replace(this.PATTERN, '')
-        .replace(/\s{2,}/g, ' ')
-        .trim() || undefined
-    );
+    if (!notes) return notes;
+    const stripped = notes.replace(this._pattern, '').trim();
+    return stripped.length > 0 ? stripped : undefined;
   }
 }

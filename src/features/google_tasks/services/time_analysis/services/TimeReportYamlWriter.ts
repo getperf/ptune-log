@@ -27,7 +27,7 @@ export class TimeReportYamlWriter {
           {
             status: e.status,
             pomodoro: e.pomodoro,
-            reviewFlags: e.reviewFlags,
+            reviewFlags: e.reviewFlags ? Array.from(e.reviewFlags) : undefined,
             relatedNotes: e.relatedNotes,
           },
         ]),

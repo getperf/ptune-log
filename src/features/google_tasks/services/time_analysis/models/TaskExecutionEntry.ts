@@ -26,7 +26,7 @@ export class TaskExecutionEntry {
     },
     public readonly started?: string,
     public readonly completed?: string,
-    public readonly reviewFlags?: ReviewFlag[],
+    public readonly reviewFlags?: Set<ReviewFlag>,
   ) {}
 
   /**
@@ -72,8 +72,8 @@ export class TaskExecutionEntry {
       pomodoro,
       task.started,
       task.completed,
-      task.reviewFlags && task.reviewFlags.length > 0
-        ? [...task.reviewFlags]
+      task.reviewFlags && task.reviewFlags.size > 0
+        ? new Set(task.reviewFlags)
         : undefined,
     );
   }

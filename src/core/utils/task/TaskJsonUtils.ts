@@ -9,6 +9,7 @@ import { ReviewFlag } from 'src/core/models/tasks/MyTask/ReviewFlag';
 
 /**
  * JSONファイル内のタスク構造を型で保証
+ * ※ 永続化形式は Array を維持（Set はJSON化不可）
  */
 export interface TaskJsonRecord {
   id: string;
@@ -24,7 +25,7 @@ export interface TaskJsonRecord {
   started: string | null;
   tasklist_id?: string | null;
 
-  // ★ reviewFlags を正規データとして保持
+  // ★ reviewFlags は JSON では配列
   reviewFlags?: ReviewFlag[];
 }
 
@@ -54,12 +55,12 @@ export class TaskJsonUtils {
       note: t.note ?? null,
       completed: t.completed ?? null,
       started: t.started ?? null,
-      tasklist_id: t.tasklist_id ?? null,
+      tasklist_id: (t as any).tasklist_id ?? null,
 
-      // ★ reviewFlags を保存
+      // ★ Set → Array（永続化）
       reviewFlags:
-        t.reviewFlags && t.reviewFlags.length > 0
-          ? [...t.reviewFlags]
+        t.reviewFlags && t.reviewFlags.size > 0
+          ? Array.from(t.reviewFlags)
           : undefined,
     }));
 
@@ -119,14 +120,14 @@ export class TaskJsonUtils {
         t.tasklist_id ?? 'Today',
       );
 
-      // ★ JSON由来の正規データとして reviewFlags を復元
+      // ★ Array → Set（ドメイン表現へ）
       if (Array.isArray(t.reviewFlags) && t.reviewFlags.length > 0) {
-        task.reviewFlags = [...t.reviewFlags];
+        task.reviewFlags = new Set<ReviewFlag>(t.reviewFlags);
       }
 
       logger.debug(
         `[TaskJsonUtils.load] id=${task.id} reviewFlags=${JSON.stringify(
-          task.reviewFlags,
+          task.reviewFlags ? Array.from(task.reviewFlags) : [],
         )}`,
       );
 
