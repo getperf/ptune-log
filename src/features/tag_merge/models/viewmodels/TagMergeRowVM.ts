@@ -1,15 +1,35 @@
-// src/features/tag_merge/models/TagMergeRowVM.ts
+// src/features/tag_merge/models/viewmodels/TagMergeRowVM.ts
 
 import { TagStat } from 'src/core/models/tags/TagStat';
 
-export type TagMergeRowVM = {
-  from: string;
+export class TagMergeRowVM {
+  readonly from: string;
   to: string;
-  count: number;
+  readonly count: number;
+  readonly fromStat: TagStat;
 
   // --- UI state ---
   checked: boolean;
 
-  /** TagStat（UI 用） */
-  fromStat: TagStat;
-};
+  constructor(params: {
+    from: string;
+    to: string;
+    count: number;
+    checked: boolean;
+    fromStat: TagStat;
+  }) {
+    this.from = params.from;
+    this.to = params.to;
+    this.count = params.count;
+    this.checked = params.checked;
+    this.fromStat = params.fromStat;
+  }
+
+  setChecked(checked: boolean): void {
+    this.checked = checked;
+  }
+
+  isSelf(): boolean {
+    return this.from === this.to;
+  }
+}

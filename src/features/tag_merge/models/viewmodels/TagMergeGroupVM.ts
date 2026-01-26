@@ -1,22 +1,51 @@
-// src/features/tag_merge/models/TagMergeGroupVM.ts
+// src/features/tag_merge/models/viewmodels/TagMergeGroupVM.ts
+
 import { TagStat } from 'src/core/models/tags/TagStat';
 import { TagMergeRowVM } from './TagMergeRowVM';
 
-export type TagMergeGroupDisplayMode =
-  | 'normal' // from → to list
-  | 'toOnly'; // to link only (Other)
+export type TagMergeGroupDisplayMode = 'normal' | 'toOnly';
 
-export type TagMergeGroupVM = {
+export class TagMergeGroupVM {
   to: string;
+  readonly toStat: TagStat;
+  readonly displayMode: TagMergeGroupDisplayMode;
+  readonly rows: TagMergeRowVM[];
 
   // --- UI state ---
   checked: boolean;
 
-  /** 代表タグの統計情報（UI 用） */
-  toStat: TagStat;
+  constructor(params: {
+    to: string;
+    toStat: TagStat;
+    displayMode: TagMergeGroupDisplayMode;
+    checked: boolean;
+    rows: TagMergeRowVM[];
+  }) {
+    this.to = params.to;
+    this.toStat = params.toStat;
+    this.displayMode = params.displayMode;
+    this.checked = params.checked;
+    this.rows = params.rows;
+  }
 
-  /** 表示モード(Oherかそれ以外) */
-  displayMode: TagMergeGroupDisplayMode;
+  /** to checkbox → from rows 一括反映 */
+  setChecked(checked: boolean): void {
+    this.checked = checked;
+    for (const row of this.rows) {
+      row.setChecked(checked);
+    }
+  }
 
-  rows: TagMergeRowVM[];
-};
+  /** 表示対象 row（View からロジックを剥がす） */
+  getVisibleRows(): TagMergeRowVM[] {
+    return this.rows.filter((r) => !r.isSelf());
+  }
+
+  /** 将来拡張：to 一括変更 */
+  setTo(newTo: string): void {
+    this.to = newTo;
+    for (const row of this.rows) {
+      row.to = newTo;
+    }
+  }
+}

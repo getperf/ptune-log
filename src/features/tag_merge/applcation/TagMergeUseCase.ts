@@ -2,7 +2,7 @@
 
 import { App } from 'obsidian';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
-import { TagMergeFlowDialog } from '../ui/TagMergeFlowDialog';
+import { TagMergeFlowDialog } from '../ui/dialogs/TagMergeFlowDialog';
 import { TagMergeContext } from './TagMergeContext';
 import { PrepareClusteringPhase } from './phases/PrepareClusteringPhase';
 import { ReviewMergePhase } from './phases/ReviewMergePhase';

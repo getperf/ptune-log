@@ -1,7 +1,6 @@
 // src/features/tag_merge/ui/TagMergePriorityTabs.ts
 
-import { TagMergePriorityGroupVM } from '../models/viewmodels/TagMergePriorityGroupVM';
-import { TAG_MERGE_PRIORITIES } from '../models/domain/TagMergePriority';
+import { TagMergePriorityGroupVM } from 'src/features/tag_merge/models/viewmodels/TagMergePriorityGroupVM';
 import { i18n } from 'src/i18n';
 
 export class TagMergePriorityTabs {

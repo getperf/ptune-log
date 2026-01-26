@@ -1,4 +1,4 @@
-// src/features/tag_merge/services/TagMergeViewModelBuilder.ts
+// src/features/tag_merge/services/viewmodel/TagMergeViewModelBuilder.ts
 
 import { TagMergeCluster } from '../../models/domain/TagMergeCluster';
 import {
@@ -6,17 +6,19 @@ import {
   TAG_MERGE_PRIORITIES,
 } from '../../models/domain/TagMergePriority';
 import { TagMergePriorityGroupVM } from '../../models/viewmodels/TagMergePriorityGroupVM';
+import { TagMergeGroupVM } from '../../models/viewmodels/TagMergeGroupVM';
 import { TagMergeRowVM } from '../../models/viewmodels/TagMergeRowVM';
 
 /**
  * TagMergeViewModelBuilder
- * - TagMergeCluster を UI 描画用 ViewModel に変換する
+ * - TagMergeCluster → ViewModel(class)
  * - rows: fromStat.count 降順
  * - groups: toStat.count 降順（priority 内）
  * - low / other は既定チェック OFF
  *
  * NOTE:
- * - 件数・表示文言の生成は View 側で行う
+ * - 表示制御・状態変更ロジックは ViewModel に集約
+ * - Builder は生成と初期並び順のみを担当
  */
 export class TagMergeViewModelBuilder {
   build(clusters: TagMergeCluster[]): TagMergePriorityGroupVM[] {
@@ -31,27 +33,28 @@ export class TagMergeViewModelBuilder {
       const displayMode = cluster.priority === 'other' ? 'toOnly' : 'normal';
       const defaultChecked = this.getDefaultChecked(cluster.priority);
 
-      const rawRows: TagMergeRowVM[] = cluster.members.map((m) => {
-        const fromKey = m.tag.key;
-        const toKey = cluster.to.key;
+      // --- rows ---
+      const rows = cluster.members.map(
+        (m) =>
+          new TagMergeRowVM({
+            from: m.tag.key,
+            to: cluster.to.key,
+            count: m.tag.count,
+            checked: defaultChecked,
+            fromStat: m.tag,
+          }),
+      );
 
-        return {
-          from: fromKey,
-          fromStat: m.tag,
-          to: toKey,
-          count: m.tag.count,
-          checked: defaultChecked,
-          visible: displayMode === 'normal' && fromKey !== toKey,
-        };
-      });
-
-      bucket[cluster.priority].groups.push({
+      // --- group ---
+      const group = new TagMergeGroupVM({
         to: cluster.to.key,
         toStat: cluster.to,
-        checked: defaultChecked,
         displayMode,
-        rows: this.sortRowsByFromCountDesc(rawRows),
+        checked: defaultChecked,
+        rows: this.sortRowsByFromCountDesc(rows),
       });
+
+      bucket[cluster.priority].groups.push(group);
     }
 
     // priority 内の並び替え（既存仕様）
@@ -79,8 +82,8 @@ export class TagMergeViewModelBuilder {
 
   /** groups: toStat.count 降順 */
   private sortGroupsByToCountDesc(
-    groups: TagMergePriorityGroupVM['groups'],
-  ): TagMergePriorityGroupVM['groups'] {
+    groups: TagMergeGroupVM[],
+  ): TagMergeGroupVM[] {
     return [...groups].sort((a, b) => b.toStat.count - a.toStat.count);
   }
 }

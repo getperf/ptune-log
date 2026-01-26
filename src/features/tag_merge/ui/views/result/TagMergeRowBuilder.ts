@@ -1,10 +1,10 @@
-// src/features/tag_merge/ui/builders/TagMergeRowBuilder.ts
+// src/features/tag_merge/ui/views/result/TagMergeRowBuilder.ts
 
 import { App } from 'obsidian';
 import { TagSuggestionService } from 'src/features/tags/services/TagSuggestionService';
 import { TargetTagEditorDialog } from 'src/core/ui/tags/TargetTagEditorDialog';
 import { logger } from 'src/core/services/logger/loggerInstance';
-import { TagMergeRowVM } from '../../models/viewmodels/TagMergeRowVM';
+import { TagMergeRowVM } from 'src/features/tag_merge/models/viewmodels/TagMergeRowVM';
 
 export class TagMergeRowBuilder {
   constructor(
@@ -12,17 +12,27 @@ export class TagMergeRowBuilder {
     private readonly tagSuggestionService: TagSuggestionService,
   ) {}
 
-  render(container: HTMLElement, row: TagMergeRowVM): void {
+  render(
+    container: HTMLElement,
+    row: TagMergeRowVM,
+    options?: {
+      onToggle?: (checked: boolean) => void;
+    },
+  ): void {
     const el = container.createDiv({ cls: 'tag-merge-row' });
 
     const cb = el.createEl('input', { type: 'checkbox' });
     cb.checked = row.checked;
 
+    if (options?.onToggle) {
+      cb.addEventListener('change', () => {
+        options.onToggle!(cb.checked);
+      });
+    }
+
     if (this.isSameFromTo(row)) {
-      // to(件数) のみ表示
       this.renderToOnly(el, row);
     } else {
-      // from(件数) -> to
       this.renderFromTo(el, row);
     }
   }

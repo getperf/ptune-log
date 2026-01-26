@@ -1,14 +1,13 @@
-// src/features/tag_merge/ui/TagMergeResultView.ts
+// src/features/tag_merge/ui/views/result/TagMergeResultView.ts
 
-import { TagMergePriorityGroupVM } from '../models/viewmodels/TagMergePriorityGroupVM';
+import { TagMergePriorityGroupVM } from '../../../models/viewmodels/TagMergePriorityGroupVM';
 import { TagSuggestionService } from 'src/features/tags/services/TagSuggestionService';
 import { App } from 'obsidian';
 import { logger } from 'src/core/services/logger/loggerInstance';
-import { TagMergePriorityTabs } from './TagMergePriorityTabs';
-import { TagMergeRowBuilder } from './builders/TagMergeRowBuilder';
 import { TargetTagEditorDialog } from 'src/core/ui/tags/TargetTagEditorDialog';
-import { TagMergeRowVM } from '../models/viewmodels/TagMergeRowVM';
-import { TagMergeGroupVM } from '../models/viewmodels/TagMergeGroupVM';
+import { TagMergeGroupVM } from '../../../models/viewmodels/TagMergeGroupVM';
+import { TagMergePriorityTabs } from './TagMergePriorityTabs';
+import { TagMergeRowBuilder } from './TagMergeRowBuilder';
 
 /**
  * TagMergeResultView
@@ -74,7 +73,7 @@ export class TagMergeResultView {
   }
 
   private renderGroup(container: HTMLElement, group: TagMergeGroupVM): void {
-    const visibleRows = group.rows.filter((r) => this.shouldRenderRow(r));
+    const visibleRows = group.getVisibleRows();
 
     // ★ 単一行のみの場合は省略表示
     if (visibleRows.length === 1) {
@@ -82,14 +81,18 @@ export class TagMergeResultView {
       return;
     }
 
-    // --- 通常（複数行）表示 ---
     const groupEl = container.createDiv({ cls: 'tag-merge-group' });
 
-    // Header
+    // --- Header ---
     const header = groupEl.createDiv({ cls: 'tag-merge-group-header' });
 
     const cb = header.createEl('input', { type: 'checkbox' });
     cb.checked = group.checked;
+
+    cb.addEventListener('change', () => {
+      group.setChecked(cb.checked);
+      this.renderBody(container);
+    });
 
     const toLink = header.createEl('a', {
       text: `${group.to}(${group.toStat.count})`,
@@ -102,10 +105,15 @@ export class TagMergeResultView {
       this.openTagEditDialog(group.to);
     });
 
-    // Rows
+    // --- Rows ---
     const list = groupEl.createDiv({ cls: 'tag-merge-group-list' });
     for (const row of visibleRows) {
-      this.rowBuilder.render(list, row);
+      this.rowBuilder.render(list, row, {
+        onToggle: (checked) => {
+          row.setChecked(checked);
+          this.renderBody(container);
+        },
+      });
     }
   }
 
@@ -114,13 +122,12 @@ export class TagMergeResultView {
    * - to 見出しを省略
    * - row 表示のみ
    */
-  private renderSingleRow(container: HTMLElement, row: TagMergeRowVM): void {
+  private renderSingleRow(
+    container: HTMLElement,
+    row: ReturnType<TagMergeGroupVM['getVisibleRows']>[number],
+  ): void {
     const rowEl = container.createDiv({ cls: 'tag-merge-single-row' });
     this.rowBuilder.render(rowEl, row);
-  }
-
-  private shouldRenderRow(row: TagMergeRowVM): boolean {
-    return row.from !== row.to;
   }
 
   private openTagEditDialog(to: string): void {

@@ -1,6 +1,6 @@
 // features/tag_merge/application/phases/ApplyMergePhase.ts
 
-import { TagMergeFlowDialog } from '../../ui/TagMergeFlowDialog';
+import { TagMergeFlowDialog } from '../../ui/dialogs/TagMergeFlowDialog';
 import { ApplyMergeView } from '../../ui/phases/ApplyMergeView';
 import { TagMergeContext } from '../TagMergeContext';
 // import { buildEditedResult } from '../../services/apply/TagMergeApplyInputBuilder';

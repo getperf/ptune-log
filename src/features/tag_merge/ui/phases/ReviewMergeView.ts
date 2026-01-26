@@ -2,7 +2,7 @@
 
 import { Setting, App } from 'obsidian';
 import { TagMergePhaseView } from './TagMergePhaseView';
-import { TagMergeResultView } from '../TagMergeResultView';
+import { TagMergeResultView } from '../views/result/TagMergeResultView';
 import { TagMergePriorityGroupVM } from '../../models/viewmodels/TagMergePriorityGroupVM';
 import { TagSuggestionService } from 'src/features/tags/services/TagSuggestionService';
 

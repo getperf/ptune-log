@@ -1,7 +1,7 @@
 // src/features/tag_merge/ui/TagMergeFlowDialog.ts
 
 import { App, Modal } from 'obsidian';
-import { TagMergePhaseView } from './phases/TagMergePhaseView';
+import { TagMergePhaseView } from '../phases/TagMergePhaseView';
 
 export class TagMergeFlowDialog extends Modal {
   private currentView!: TagMergePhaseView;

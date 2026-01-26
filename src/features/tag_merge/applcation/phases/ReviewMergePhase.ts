@@ -1,7 +1,7 @@
 // features/tag_merge/application/phases/ReviewMergePhase.ts
 
 import { App } from 'obsidian';
-import { TagMergeFlowDialog } from '../../ui/TagMergeFlowDialog';
+import { TagMergeFlowDialog } from '../../ui/dialogs/TagMergeFlowDialog';
 import { ReviewMergeView } from '../../ui/phases/ReviewMergeView';
 import { TagMergeContext } from '../TagMergeContext';
 import { TagSuggestionService } from 'src/features/tags/services/TagSuggestionService';
