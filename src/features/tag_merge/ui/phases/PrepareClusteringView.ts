@@ -1,12 +1,14 @@
-// src/features/tag_merge/ui/phases/PrepareClusteringView.ts
+// File: src/features/tag_merge/ui/phases/PrepareClusteringView.ts
 
 import { Setting } from 'obsidian';
 import { TagMergePhaseView } from './TagMergePhaseView';
 import { TagMergeClusteringOptions } from '../../models/TagMergeClusteringOptions';
+import { TagMergeDebugOptions } from '../../applcation/TagMergeContext';
 
 export class PrepareClusteringView extends TagMergePhaseView {
   private unregisteredOnly: boolean;
   private rebuildDb: boolean;
+  private showRenameCandidateDebug: boolean;
 
   constructor(
     private readonly onRun: (
@@ -21,6 +23,7 @@ export class PrepareClusteringView extends TagMergePhaseView {
     super();
     this.unregisteredOnly = initialOptions.exclusion.unregisteredOnly;
     this.rebuildDb = hasDiff;
+    this.showRenameCandidateDebug = false; // 初期値（Context 側で上書き可能）
   }
 
   getTitle(): string {
@@ -52,6 +55,15 @@ export class PrepareClusteringView extends TagMergePhaseView {
         }),
       );
 
+    new Setting(container)
+      .setName('Rename 候補のデバッグ表示を有効にする')
+      .setDesc('RenameCandidate の JSON をデバッグモーダルで表示します')
+      .addToggle((t) =>
+        t.setValue(this.showRenameCandidateDebug).onChange((v) => {
+          this.showRenameCandidateDebug = v;
+        }),
+      );
+
     for (const msg of this.messages) {
       container.createEl('div', { text: msg });
     }
@@ -70,6 +82,12 @@ export class PrepareClusteringView extends TagMergePhaseView {
       .addButton((btn) =>
         btn.setButtonText('キャンセル').onClick(this.onCancel),
       );
+  }
+
+  getDebugOptions(): TagMergeDebugOptions {
+    return {
+      showRenameCandidateDebug: this.showRenameCandidateDebug,
+    };
   }
 
   private buildOptions(): TagMergeClusteringOptions {

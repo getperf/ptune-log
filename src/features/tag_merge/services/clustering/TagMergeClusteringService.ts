@@ -66,7 +66,6 @@ export class TagMergeClusteringService {
       priorityResolver,
     );
 
-    // ★ 修正ポイント
     const { clusters, debugText } = clusterBuilder.build(filtered);
 
     // await this.saveDebugText(app, debugText);

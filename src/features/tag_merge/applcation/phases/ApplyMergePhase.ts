@@ -1,10 +1,10 @@
-// src/features/tag_merge/application/phases/ApplyMergePhase.ts
+// File: src/features/tag_merge/application/phases/ApplyMergePhase.ts
 
+import { App } from 'obsidian';
 import { TagMergeFlowDialog } from '../../ui/dialogs/TagMergeFlowDialog';
 import { ApplyMergeView } from '../../ui/phases/ApplyMergeView';
 import { TagMergeContext } from '../TagMergeContext';
 import { RenameCandidateExtractor } from '../../services/tag_rename/RenameCandidateExtractor';
-import { App } from 'obsidian';
 
 export class ApplyMergePhase {
   constructor(
@@ -17,8 +17,9 @@ export class ApplyMergePhase {
   open(): void {
     // --- Review 確定後、Apply 開始時に一度だけ変換 ---
     const extractor = new RenameCandidateExtractor(this.app);
+
     extractor.extract(this.context.priorityGroups, {
-      debug: true, // 件数確認のみ
+      debug: this.context.debugOptions.showRenameCandidateDebug,
     });
 
     const view = new ApplyMergeView(() => {

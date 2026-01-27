@@ -57,7 +57,12 @@ export class PrepareClusteringPhase {
           `[PrepareClustering] run: total=${options.totalTagCount}, unregistered=${options.exclusion?.unregisteredCount}, k=${options.k}`,
         );
 
+        // --- clustering options を確定 ---
         this.context.clusteringOptions = options;
+
+        // --- debug options を確定 ---
+        const debugOptions = view.getDebugOptions();
+        this.context.debugOptions = debugOptions;
 
         if (rebuildDb) {
           view.updateStatus('DB 更新中...');

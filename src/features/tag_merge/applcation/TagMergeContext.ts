@@ -1,22 +1,25 @@
-// features/tag_merge/application/TagMergeContext.ts
+// File: src/features/tag_merge/application/TagMergeContext.ts
 
 import { TagMergeClusteringOptions } from '../models/TagMergeClusteringOptions';
 import { TagMergePriorityGroupVM } from '../models/viewmodels/TagMergePriorityGroupVM';
+
+export type TagMergeDebugOptions = {
+  showRenameCandidateDebug: boolean;
+};
 
 /**
  * フェーズ間で共有する確定状態のみを保持する
  */
 export class TagMergeContext {
-  /**
-   * クラスタリング条件（Prepare で確定）
-   */
   clusteringOptions!: TagMergeClusteringOptions;
+  priorityGroups!: TagMergePriorityGroupVM[];
 
   /**
-   * レビュー用 ViewModel（クラスタリング結果）
-   * Review / Apply で参照
+   * デバッグ・開発者向けオプション
    */
-  priorityGroups!: TagMergePriorityGroupVM[];
+  debugOptions: TagMergeDebugOptions = {
+    showRenameCandidateDebug: false,
+  };
 
   constructor(init?: Partial<TagMergeContext>) {
     if (init) {
