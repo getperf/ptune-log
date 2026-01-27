@@ -20,6 +20,9 @@ import { DailyNoteLoader } from 'src/core/services/daily_notes/file_io/DailyNote
 import { DailyNoteWriter } from 'src/core/services/daily_notes/file_io/DailyNoteWriter';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
+import { logger } from 'src/core/services/logger/loggerInstance';
+import { TaskReviewDateResolver } from './services/TaskReviewDateResolver';
+import { TodayTaskImporter } from '../import/TodayTaskImporter';
 
 export type TaskReviewStatus =
   | 'idle'
@@ -54,7 +57,7 @@ export class TaskReviewReportService {
   constructor(
     private readonly plugin: Plugin,
     private readonly settings: GoogleAuthSettings,
-    llmClient?: LLMClient
+    llmClient?: LLMClient,
   ) {
     if (llmClient) {
       this.llmAnalysis = new LLMTimeAnalysisService(this.app, llmClient);
@@ -63,7 +66,7 @@ export class TaskReviewReportService {
 
   /** GoogleTasks API 実行を Service 内に集約 */
   private async withApi(
-    fn: (api: GoogleTasksAPI) => Promise<void>
+    fn: (api: GoogleTasksAPI) => Promise<void>,
   ): Promise<void> {
     return GoogleTasksCommandUtil.wrap(this.plugin, this.settings, fn)();
   }
@@ -71,23 +74,33 @@ export class TaskReviewReportService {
   /** 振り返り実行（単一入口） */
   async generate(date: Date, options: TaskReviewOptions): Promise<void> {
     const notify = options.statusListener?.onStatusChange;
-
-    // --- 当日のみインポート ---
-    let tasks: MyTask[] = [];
-
-    if (this.settings.useWinApp) {
-      const source = new WinTaskImportSource(this.app);
-      tasks = await source.loadTasks();
-    } else {
-      await this.withApi(async (api) => {
-        const source = new ApiTaskImportSource(api);
-        tasks = await source.loadTasks();
-      });
-    }
     const saver = new TaskJsonUtils(this.app);
-    await saver.save(tasks, date);
 
-    // --- 分析フェーズ ---
+    // --- 日付モード判定 ---
+    notify?.('loading', '日付を確認中');
+    const mode = await TaskReviewDateResolver.resolve(date, saver);
+
+    // --- 今日のみ import + save ---
+    if (mode === 'today-import') {
+      notify?.('importing', '今日のタスクを取得中');
+
+      const importer = new TodayTaskImporter(
+        this.app,
+        this.plugin,
+        this.settings,
+      );
+
+      const tasks = await importer.import();
+      await saver.save(tasks, date);
+    }
+
+    // --- 過去日で未保存はエラー（仕様化は保留） ---
+    if (mode === 'past-missing') {
+      notify?.('error', '過去日のタスクデータが見つかりません');
+      throw new Error(`Task JSON not found for ${DateUtil.localDate(date)}`);
+    }
+
+    // --- 分析（常にローカル JSON 起点） ---
     notify?.('aggregating', '時間分析中');
 
     const analysis = new TaskReviewAnalysisService(this.app, this.llmAnalysis);
@@ -96,12 +109,12 @@ export class TaskReviewReportService {
 
     // --- DailyNote 更新 ---
     const dailyNote = await DailyNoteLoader.load(this.app, date);
-
     const updated = dailyNote.appendTaskReview(
       result.markdown,
       `(${DateUtil.localTime()})`,
-      'first'
+      'first',
     );
+
     const writer = new DailyNoteWriter(this.app);
     await writer.write(updated, date);
 

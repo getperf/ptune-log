@@ -1,10 +1,15 @@
-// File: src/features/tag_merge/application/phases/ApplyMergePhase.ts
+// src/features/tag_merge/application/phases/ApplyMergePhase.ts
 
 import { App } from 'obsidian';
 import { TagMergeFlowDialog } from '../../ui/dialogs/TagMergeFlowDialog';
 import { ApplyMergeView } from '../../ui/phases/ApplyMergeView';
 import { TagMergeContext } from '../TagMergeContext';
+
 import { RenameCandidateExtractor } from '../../services/tag_rename/RenameCandidateExtractor';
+import { RenameOperationRowBuilder } from '../../services/tag_rename/RenameOperationRowBuilder';
+import { RenameOperationBuilder } from '../../services/tag_rename/RenameOperationBuilder';
+import { RenameOperationExecutor } from '../../services/tag_rename/RenameOperationExecutor';
+import { TagRenamer } from 'src/features/tag_wrangler/services/TagRenamer';
 
 export class ApplyMergePhase {
   constructor(
@@ -15,17 +20,32 @@ export class ApplyMergePhase {
   ) {}
 
   open(): void {
-    // --- Review 確定後、Apply 開始時に一度だけ変換 ---
+    const debugRename = this.context.debugOptions?.showWorkDataDebug === true;
+
     const extractor = new RenameCandidateExtractor(this.app);
-
-    extractor.extract(this.context.priorityGroups, {
-      debug: this.context.debugOptions.showWorkDataDebug,
+    const candidates = extractor.extract(this.context.priorityGroups, {
+      debug: debugRename,
     });
 
-    const view = new ApplyMergeView(() => {
-      // 将来: RenameOperationBuilder / TagRenamer 実行
-      this.onDone();
+    const rows = new RenameOperationRowBuilder(this.app).build(candidates, {
+      debug: debugRename,
     });
+
+    const operation = new RenameOperationBuilder().build(rows);
+
+    const view = new ApplyMergeView(
+      async () => {
+        const executor = new RenameOperationExecutor(new TagRenamer(this.app));
+
+        await executor.execute(operation, (state) => {
+          view.updateProgress(state);
+        });
+
+        view.updateDone();
+        this.onDone();
+      },
+      () => this.onDone(),
+    );
 
     this.dialog.setPhaseView(view);
   }

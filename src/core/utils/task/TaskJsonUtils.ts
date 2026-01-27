@@ -75,6 +75,17 @@ export class TaskJsonUtils {
     return path;
   }
 
+  /** --- 指定日のタスクJSONが存在するか */
+  async exists(date: Date): Promise<boolean> {
+    const fileName = `tasks_${DateUtil.localDate(date)}.json`;
+    const path = normalizePath(`${TaskJsonUtils.BASE_DIR}/${fileName}`);
+    const adapter = this.app.vault.adapter;
+
+    const exists = await adapter.exists(path);
+    logger.debug(`[TaskJsonUtils.exists] ${path} -> ${exists}`);
+    return exists;
+  }
+
   /** --- 指定日のタスクJSONを読み込み（存在しない場合は空配列） */
   async load(date: Date): Promise<MyTask[]> {
     const fileName = `tasks_${DateUtil.localDate(date)}.json`;
