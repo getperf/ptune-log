@@ -29,6 +29,10 @@ export class TagMergeRowVM {
     this.checked = checked;
   }
 
+  setTo(newTo: string): void {
+    this.to = newTo;
+  }
+
   isSelf(): boolean {
     return this.from === this.to;
   }

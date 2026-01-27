@@ -7,7 +7,7 @@ export type TagMergeGroupDisplayMode = 'normal' | 'toOnly';
 
 export class TagMergeGroupVM {
   to: string;
-  readonly toStat: TagStat;
+  toStat: TagStat;
   readonly displayMode: TagMergeGroupDisplayMode;
   readonly rows: TagMergeRowVM[];
 
@@ -36,16 +36,21 @@ export class TagMergeGroupVM {
     }
   }
 
-  /** 表示対象 row（View からロジックを剥がす） */
+  /** 表示対象 row */
   getVisibleRows(): TagMergeRowVM[] {
     return this.rows.filter((r) => !r.isSelf());
   }
 
-  /** 将来拡張：to 一括変更 */
-  setTo(newTo: string): void {
+  /** group 編集：配下 row の to を一括変更 */
+  setTo(newTo: string, newToStat?: TagStat): void {
     this.to = newTo;
+
+    if (newToStat) {
+      this.toStat = newToStat;
+    }
+
     for (const row of this.rows) {
-      row.to = newTo;
+      row.setTo(newTo);
     }
   }
 }

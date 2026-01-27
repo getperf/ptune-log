@@ -1,6 +1,6 @@
 // features/tag_merge/services/clustering/TagMergeClusteringService.ts
 
-import { App } from 'obsidian';
+import { App, normalizePath } from 'obsidian';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
 import { Tags } from 'src/core/models/tags/Tags';
 import { TagAliases } from 'src/core/models/tags/TagAliases';
@@ -38,9 +38,6 @@ export class TagMergeClusteringService {
     /* --- Clustering --- */
     const clustering = new KMeansClusteringService();
     logger.debug(
-      `[TagMergeClusteringService] start ${JSON.stringify(options)}`,
-    );
-    logger.debug(
       `[TagMergeClusteringService] before cluster: vectors=${vectors.getAll().length}, k=${options.k}`,
     );
     const result = clustering.cluster(vectors.getAll(), {
@@ -69,12 +66,40 @@ export class TagMergeClusteringService {
       priorityResolver,
     );
 
-    const clusters = clusterBuilder.build(filtered);
+    // ★ 修正ポイント
+    const { clusters, debugText } = clusterBuilder.build(filtered);
+
+    // await this.saveDebugText(app, debugText);
 
     logger.debug(
       `[TagMergeClusteringService] done: mergeClusters=${clusters.length}`,
     );
 
     return clusters;
+  }
+
+  private async saveDebugText(app: App, text: string): Promise<void> {
+    if (!text) return;
+
+    const configDir = app.vault.configDir;
+    const path = normalizePath(
+      `${configDir}/plugins/ptune-log/work/tag-merge-clusters.txt`,
+    );
+
+    const vault = app.vault;
+    logger.info(`[TagMergeClusteringService] saving debug text to ${path}`);
+
+    try {
+      await vault.create(path, text);
+    } catch (e: any) {
+      if (e?.message?.includes('File already exists')) {
+        const file = vault.getAbstractFileByPath(path);
+        if (file) {
+          await vault.modify(file as any, text);
+          return;
+        }
+      }
+      throw e;
+    }
   }
 }

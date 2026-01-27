@@ -80,7 +80,7 @@ export class TagMergeUseCase {
   }
 
   private openApplyPhase(): void {
-    const phase = new ApplyMergePhase(this.dialog, this.context, () =>
+    const phase = new ApplyMergePhase(this.app, this.dialog, this.context, () =>
       this.dialog.close(),
     );
 

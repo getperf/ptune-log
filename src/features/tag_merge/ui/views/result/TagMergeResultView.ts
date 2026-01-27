@@ -1,22 +1,19 @@
 // src/features/tag_merge/ui/views/result/TagMergeResultView.ts
 
-import { TagMergePriorityGroupVM } from '../../../models/viewmodels/TagMergePriorityGroupVM';
-import { TagSuggestionService } from 'src/features/tags/services/TagSuggestionService';
 import { App } from 'obsidian';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { TargetTagEditorDialog } from 'src/core/ui/tags/TargetTagEditorDialog';
+import { TagSuggestionService } from 'src/features/tags/services/TagSuggestionService';
+import { TagMergePriorityGroupVM } from '../../../models/viewmodels/TagMergePriorityGroupVM';
 import { TagMergeGroupVM } from '../../../models/viewmodels/TagMergeGroupVM';
+import { TagMergeRowVM } from '../../../models/viewmodels/TagMergeRowVM';
 import { TagMergePriorityTabs } from './TagMergePriorityTabs';
 import { TagMergeRowBuilder } from './TagMergeRowBuilder';
 
-/**
- * TagMergeResultView
- * - 埋め込み可能な純 View
- * - DOM に直接描画する
- */
 export class TagMergeResultView {
   private activePriorityGroup: TagMergePriorityGroupVM;
   private readonly rowBuilder: TagMergeRowBuilder;
+  private bodyEl?: HTMLElement;
 
   constructor(
     private readonly app: App,
@@ -34,20 +31,23 @@ export class TagMergeResultView {
     container.empty();
     container.addClass('tag-merge-result-view');
 
-    // --- Tabs ---
     const tabsEl = container.createDiv();
     new TagMergePriorityTabs(this.priorityGroups, (pg) => {
       this.activePriorityGroup = pg;
-      this.renderBody(bodyEl);
+      this.renderBodyWithScrollRestore();
     }).render(tabsEl);
 
-    // --- Body ---
-    const bodyEl = container.createDiv({ cls: 'tag-merge-result-body' });
-    this.renderBody(bodyEl);
+    this.bodyEl = container.createDiv({ cls: 'tag-merge-result-body' });
+    this.renderBody(this.bodyEl);
+  }
 
-    logger.debug(
-      `[TagMergeResultView] priorityGroups=${this.priorityGroups.length}`,
-    );
+  private renderBodyWithScrollRestore(): void {
+    if (!this.bodyEl) return;
+    const scrollTop = this.bodyEl.scrollTop;
+    this.renderBody(this.bodyEl);
+    requestAnimationFrame(() => {
+      if (this.bodyEl) this.bodyEl.scrollTop = scrollTop;
+    });
   }
 
   private renderBody(container: HTMLElement): void {
@@ -60,38 +60,30 @@ export class TagMergeResultView {
     pg: TagMergePriorityGroupVM,
   ): void {
     if (pg.groups.length === 0) {
-      container.createEl('p', {
-        text: '対象なし',
-        cls: 'tag-merge-empty',
-      });
+      container.createEl('p', { text: '対象なし', cls: 'tag-merge-empty' });
       return;
     }
-
     for (const group of pg.groups) {
       this.renderGroup(container, group);
     }
   }
 
   private renderGroup(container: HTMLElement, group: TagMergeGroupVM): void {
-    const visibleRows = group.getVisibleRows();
+    const rows = group.getVisibleRows();
 
-    // ★ 単一行のみの場合は省略表示
-    if (visibleRows.length === 1) {
-      this.renderSingleRow(container, visibleRows[0]);
+    if (rows.length === 1) {
+      this.renderSingleRow(container, rows[0]);
       return;
     }
 
     const groupEl = container.createDiv({ cls: 'tag-merge-group' });
-
-    // --- Header ---
     const header = groupEl.createDiv({ cls: 'tag-merge-group-header' });
 
     const cb = header.createEl('input', { type: 'checkbox' });
     cb.checked = group.checked;
-
     cb.addEventListener('change', () => {
       group.setChecked(cb.checked);
-      this.renderBody(container);
+      this.renderBodyWithScrollRestore();
     });
 
     const toLink = header.createEl('a', {
@@ -102,42 +94,64 @@ export class TagMergeResultView {
 
     toLink.addEventListener('click', (e) => {
       e.preventDefault();
-      this.openTagEditDialog(group.to);
+      this.openGroupToEdit(group);
     });
 
-    // --- Rows ---
     const list = groupEl.createDiv({ cls: 'tag-merge-group-list' });
-    for (const row of visibleRows) {
+    for (const row of rows) {
       this.rowBuilder.render(list, row, {
         onToggle: (checked) => {
           row.setChecked(checked);
-          this.renderBody(container);
+          this.renderBodyWithScrollRestore();
+        },
+        onEditTo: () => {
+          this.openRowToEdit(row);
         },
       });
     }
   }
 
-  /**
-   * 単一行グループ表示
-   * - to 見出しを省略
-   * - row 表示のみ
-   */
-  private renderSingleRow(
-    container: HTMLElement,
-    row: ReturnType<TagMergeGroupVM['getVisibleRows']>[number],
-  ): void {
-    const rowEl = container.createDiv({ cls: 'tag-merge-single-row' });
-    this.rowBuilder.render(rowEl, row);
+  private renderSingleRow(container: HTMLElement, row: TagMergeRowVM): void {
+    const el = container.createDiv({ cls: 'tag-merge-single-row' });
+    this.rowBuilder.render(el, row, {
+      onToggle: (checked) => {
+        row.setChecked(checked);
+        this.renderBodyWithScrollRestore();
+      },
+      onEditTo: () => {
+        this.openRowToEdit(row);
+      },
+    });
   }
 
-  private openTagEditDialog(to: string): void {
-    logger.debug(`[TagMergeResultView] open edit dialog to=${to}`);
+  private openGroupToEdit(group: TagMergeGroupVM): void {
+    this.openTagEditDialog(group.to, (newTo) => {
+      group.setTo(newTo);
+      this.renderBodyWithScrollRestore();
+    });
+  }
+
+  private openRowToEdit(row: TagMergeRowVM): void {
+    this.openTagEditDialog(row.to, (newTo) => {
+      row.setTo(newTo);
+      this.renderBodyWithScrollRestore();
+    });
+  }
+
+  private openTagEditDialog(
+    initialTo: string,
+    onConfirm: (newTo: string) => void,
+  ): void {
+    logger.debug(`[TagMergeResultView] open edit dialog to=${initialTo}`);
 
     new TargetTagEditorDialog(this.app, {
-      state: { initialInput: to },
+      state: { initialInput: initialTo },
       search: this.tagSuggestionService,
       result: {
-        confirm: async () => {},
+        confirm: async (value) => {
+          if (!value || value === initialTo) return;
+          onConfirm(value);
+        },
       },
     }).open();
   }

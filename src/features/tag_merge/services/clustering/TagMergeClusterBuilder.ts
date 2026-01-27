@@ -4,15 +4,13 @@ import { TagCluster } from 'src/core/services/tag_clustering/models/TagCluster';
 import { TagStatResolver } from 'src/core/services/tags/TagStatResolver';
 import { TagMergeCluster } from '../../models/domain/TagMergeCluster';
 import { TagMergePriorityResolver } from '../priority/TagMergePriorityResolver';
-import { logger } from 'src/core/services/logger/loggerInstance';
 
 type ClusterKey = string;
 
-/**
- * デバッグ用表示モデル
- * to -> [{ from, priority }]
- */
-type DebugClusterMap = Map<string, Array<{ from: string; priority: string }>>;
+export type TagMergeClusterBuildResult = {
+  clusters: TagMergeCluster[];
+  debugText: string;
+};
 
 export class TagMergeClusterBuilder {
   constructor(
@@ -20,9 +18,14 @@ export class TagMergeClusterBuilder {
     private readonly priorityResolver: TagMergePriorityResolver,
   ) {}
 
-  build(clusters: TagCluster[]): TagMergeCluster[] {
+  build(clusters: TagCluster[]): TagMergeClusterBuildResult {
     const grouped = new Map<ClusterKey, TagMergeCluster>();
-    const debugMap: DebugClusterMap = new Map();
+
+    // デバッグ集計用
+    const debugMap = new Map<
+      string,
+      Array<{ from: string; priority: string }>
+    >();
 
     for (const cluster of clusters) {
       const toKey = cluster.representative.key;
@@ -39,7 +42,7 @@ export class TagMergeClusterBuilder {
           fromKey,
         );
 
-        // ---- 本来のクラスタ生成処理 ----
+        // ---- 本処理 ----
         const key = this.buildGroupKey(toKey, priority);
         let group = grouped.get(key);
         if (!group) {
@@ -50,20 +53,19 @@ export class TagMergeClusterBuilder {
           };
           grouped.set(key, group);
         }
-
         group.members.push({ tag: fromStat });
 
-        // ---- デバッグ用集計 ----
+        // ---- デバッグ集計 ----
         const list = debugMap.get(toKey) ?? [];
         list.push({ from: fromKey, priority });
         debugMap.set(toKey, list);
       }
     }
 
-    // ---- デバッグ出力（まとめて）----
-    this.logDebugClusters(debugMap);
-
-    return Array.from(grouped.values());
+    return {
+      clusters: Array.from(grouped.values()),
+      debugText: this.buildDebugText(debugMap),
+    };
   }
 
   private buildGroupKey(toKey: string, priority: string): ClusterKey {
@@ -71,23 +73,26 @@ export class TagMergeClusterBuilder {
   }
 
   /**
-   * toタグ単位で from(優先度) を一覧表示
+   * デバッグ用テキスト生成
    *
-   * 出力例:
-   * 用途/開発 : 用途/実装(高), 用途/設計(中)
+   * to
+   *   from(priority)
    */
-  private logDebugClusters(map: DebugClusterMap): void {
-    logger.debug('[ClusterBuilder] ===== cluster summary =====');
-    const lines = [];
+  private buildDebugText(
+    map: Map<string, Array<{ from: string; priority: string }>>,
+  ): string {
+    const blocks: string[] = [];
+
     for (const [to, members] of map.entries()) {
-      const summary = members
+      const lines = members
         .filter((m) => m.from !== to)
-        .map((m) => `${m.from}(${m.priority})`)
-        .join(', ');
-      if (members.length > 1) {
-        lines.push(`${to} : ${summary}`);
-      }
+        .map((m) => `\t${m.from}(${m.priority})`);
+
+      if (lines.length === 0) continue;
+
+      blocks.push([to, ...lines].join('\n'));
     }
-    logger.debug(`[ClusterBuilder] ${lines.join('\n')}`);
+
+    return blocks.join('\n\n');
   }
 }

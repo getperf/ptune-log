@@ -17,6 +17,7 @@ export class TagMergeRowBuilder {
     row: TagMergeRowVM,
     options?: {
       onToggle?: (checked: boolean) => void;
+      onEditTo?: () => void;
     },
   ): void {
     const el = container.createDiv({ cls: 'tag-merge-row' });
@@ -30,18 +31,18 @@ export class TagMergeRowBuilder {
       });
     }
 
-    if (this.isSameFromTo(row)) {
-      this.renderToOnly(el, row);
+    if (row.isSelf()) {
+      this.renderToOnly(el, row, options);
     } else {
-      this.renderFromTo(el, row);
+      this.renderFromTo(el, row, options);
     }
   }
 
-  private isSameFromTo(row: TagMergeRowVM): boolean {
-    return row.from === row.to;
-  }
-
-  private renderToOnly(el: HTMLElement, row: TagMergeRowVM): void {
+  private renderToOnly(
+    el: HTMLElement,
+    row: TagMergeRowVM,
+    options?: { onEditTo?: () => void },
+  ): void {
     const toLink = el.createEl('a', {
       text: `${row.to}(${row.fromStat.count})`,
       href: '#',
@@ -50,11 +51,15 @@ export class TagMergeRowBuilder {
 
     toLink.addEventListener('click', (e) => {
       e.preventDefault();
-      this.openTagEditDialog(row.to);
+      options?.onEditTo?.();
     });
   }
 
-  private renderFromTo(el: HTMLElement, row: TagMergeRowVM): void {
+  private renderFromTo(
+    el: HTMLElement,
+    row: TagMergeRowVM,
+    options?: { onEditTo?: () => void },
+  ): void {
     el.createSpan({
       text: `${row.from}(${row.fromStat.count})`,
       cls: 'tag-merge-from',
@@ -70,19 +75,7 @@ export class TagMergeRowBuilder {
 
     toLink.addEventListener('click', (e) => {
       e.preventDefault();
-      this.openTagEditDialog(row.to);
+      options?.onEditTo?.();
     });
-  }
-
-  private openTagEditDialog(to: string): void {
-    logger.debug(`[TagMergeRowBuilder] open edit dialog to=${to}`);
-
-    new TargetTagEditorDialog(this.app, {
-      state: { initialInput: to },
-      search: this.tagSuggestionService,
-      result: {
-        confirm: async () => {},
-      },
-    }).open();
   }
 }
