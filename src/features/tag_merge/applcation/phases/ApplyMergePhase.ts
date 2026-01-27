@@ -19,7 +19,7 @@ export class ApplyMergePhase {
     const extractor = new RenameCandidateExtractor(this.app);
 
     extractor.extract(this.context.priorityGroups, {
-      debug: this.context.debugOptions.showRenameCandidateDebug,
+      debug: this.context.debugOptions.showWorkDataDebug,
     });
 
     const view = new ApplyMergeView(() => {

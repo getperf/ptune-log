@@ -4,7 +4,7 @@ import { TagMergeClusteringOptions } from '../models/TagMergeClusteringOptions';
 import { TagMergePriorityGroupVM } from '../models/viewmodels/TagMergePriorityGroupVM';
 
 export type TagMergeDebugOptions = {
-  showRenameCandidateDebug: boolean;
+  showWorkDataDebug: boolean;
 };
 
 /**
@@ -18,7 +18,7 @@ export class TagMergeContext {
    * デバッグ・開発者向けオプション
    */
   debugOptions: TagMergeDebugOptions = {
-    showRenameCandidateDebug: false,
+    showWorkDataDebug: false,
   };
 
   constructor(init?: Partial<TagMergeContext>) {

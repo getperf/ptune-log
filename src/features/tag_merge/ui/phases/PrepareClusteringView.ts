@@ -86,7 +86,7 @@ export class PrepareClusteringView extends TagMergePhaseView {
 
   getDebugOptions(): TagMergeDebugOptions {
     return {
-      showRenameCandidateDebug: this.showRenameCandidateDebug,
+      showWorkDataDebug: this.showRenameCandidateDebug,
     };
   }
 

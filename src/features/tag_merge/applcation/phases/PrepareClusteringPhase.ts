@@ -13,6 +13,7 @@ import { TagDBMaintainer } from 'src/features/tags/services/TagDBMaintainer';
 import { TagAliases } from 'src/core/models/tags/TagAliases';
 import { Tags } from 'src/core/models/tags/Tags';
 import { logger } from 'src/core/services/logger/loggerInstance';
+import { DebugViewModal } from '../../ui/utils/DebugViewModal';
 
 export class PrepareClusteringPhase {
   constructor(
@@ -74,13 +75,22 @@ export class PrepareClusteringPhase {
         const clusteringService = new TagMergeClusteringService();
         const vmBuilder = new TagMergeViewModelBuilder();
 
-        const clusters = await clusteringService.run(
+        const result = await clusteringService.run(
           this.app,
           this.llmClient,
           options,
         );
 
-        this.context.priorityGroups = vmBuilder.build(clusters);
+        // --- デバッグ表示（UI 制御） ---
+        if (this.context.debugOptions.showWorkDataDebug && result.debugText) {
+          new DebugViewModal(
+            this.app,
+            'Clustering Debug',
+            result.debugText,
+          ).open();
+        }
+
+        this.context.priorityGroups = vmBuilder.build(result.clusters);
 
         view.updateStatus('完了');
         this.onNext();
