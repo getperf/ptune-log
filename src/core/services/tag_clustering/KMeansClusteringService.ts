@@ -1,6 +1,6 @@
 import { TagVector } from 'src/core/models/vectors/TagVectors';
 import { cosineSimilarity } from 'src/core/utils/vector/vectorUtils';
-import { SimpleKMeans } from './SimpleKMeans';
+import { SimilarityKMeans } from './SimilarityKMeans';
 import { TagCluster } from './models/TagCluster';
 import { TagClusterResult } from './models/TagClusterResult';
 import { logger } from '../logger/loggerInstance';
@@ -31,7 +31,7 @@ export class KMeansClusteringService {
       dim: vectors[0]?.length,
     });
 
-    const assignments = SimpleKMeans.run(vectors, { k, iterations });
+    const assignments = SimilarityKMeans.run(vectors, { k, iterations });
 
     logger.debug('[KMeans] assignments returned', {
       length: assignments.length,

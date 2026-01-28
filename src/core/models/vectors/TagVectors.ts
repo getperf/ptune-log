@@ -5,6 +5,7 @@ import { logger } from 'src/core/services/logger/loggerInstance';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
 import { RawTagEntry } from 'src/features/tags/services/TagExtractor';
+import { normalizeTag } from 'src/core/utils/tag/normalizeTag';
 
 /** タグ1件分のEmbeddingデータ構造 */
 export interface TagVector {
@@ -22,7 +23,6 @@ export class TagVectors {
   private static readonly VECTOR_DB_FILE = 'tag_vectors.jsonl';
   private static readonly META_INFO_FILE = 'tag_db_info.json';
 
-  /** パス取得メソッド */
   static getVectorDbPath(): string {
     return normalizePath(`${this.META_DIR}/${this.VECTOR_DB_FILE}`);
   }
@@ -33,7 +33,8 @@ export class TagVectors {
 
   constructor(private llmClient: LLMClient) {}
 
-  /** Tags から Embedding を生成して内部に格納 */
+  /** Tags から Embedding を生成して内部に格納（tail + 正規化） */
+  /** Tags から Embedding を生成して内部に格納（tail のみ） */
   async fromTags(vault: Vault, tags: Tags): Promise<void> {
     const embeddingTags = tags.getEmbeddingTags();
     if (embeddingTags.length === 0) {
@@ -42,23 +43,64 @@ export class TagVectors {
     }
 
     logger.info(
-      `[TagVectors.fromTags] generating embeddings for ${embeddingTags.length} tags`,
+      `[TagVectors.fromTags] generating embeddings for ${embeddingTags.length} tags (tail-only)`,
     );
 
-    const tagNames = embeddingTags.map((t) => t.name);
-    const embedTexts = await this.llmClient.embedBatch(tagNames);
+    // ★ 末尾ワードのみ抽出
+    const embedTexts = embeddingTags
+      .map((t) => this.extractTail(t.name))
+      .filter((t): t is string => !!t);
 
-    this.vectors = embeddingTags.map((row, i) => ({
-      key: row.name,
-      embedding: embedTexts[i],
-      count: row.count,
-    }));
+    if (embedTexts.length === 0) {
+      logger.warn('[TagVectors.fromTags] no valid tail texts for embedding');
+      return;
+    }
+
+    let embeddings: number[][];
+
+    try {
+      embeddings = await this.llmClient.embedBatch(embedTexts);
+    } catch (err) {
+      // 失敗時は vectors を触らない
+      logger.error(
+        '[TagVectors.fromTags] embedding failed, keep existing vectors',
+        err,
+      );
+      return;
+    }
+
+    if (!embeddings || embeddings.length !== embedTexts.length) {
+      logger.error(
+        '[TagVectors.fromTags] embedding result invalid, skip update',
+        { expected: embedTexts.length, actual: embeddings?.length },
+      );
+      return;
+    }
+
+    // ★ 成功した場合のみ更新
+    let embIndex = 0;
+    this.vectors = embeddingTags
+      .map((row) => {
+        const tail = this.extractTail(row.name);
+        if (!tail) return null;
+
+        const v = {
+          key: row.name, // 元タグ（フルパス）
+          embedding: embeddings[embIndex],
+          count: row.count,
+        };
+        embIndex += 1;
+        return v;
+      })
+      .filter((v): v is TagVector => v !== null);
   }
 
   /** ベクトルデータを `_tagging/meta` に保存 */
   async save(vault: Vault): Promise<void> {
     if (this.vectors.length === 0) {
-      logger.warn('[TagVectors.save] no vectors to save');
+      logger.warn(
+        '[TagVectors.save] vectors is empty, skip saving to avoid overwrite',
+      );
       return;
     }
 
@@ -72,10 +114,25 @@ export class TagVectors {
       created_at: DateUtil.utcString(),
       total: this.vectors.length,
       model: this.llmClient['settings']?.embeddingModel ?? 'unknown',
+      strategy: 'tail+normalize',
     };
     await vault.adapter.write(infoPath, JSON.stringify(info, null, 2));
 
     logger.info(`[TagVectors.save] saved ${this.vectors.length} vectors`);
+  }
+
+  /** タグの末尾ワードを安全に抽出する */
+  private extractTail(tag: string): string | null {
+    if (!tag) return null;
+
+    // 末尾の / を除去
+    const trimmed = tag.replace(/\/+$/, '');
+    if (!trimmed) return null;
+
+    const parts = trimmed.split('/');
+    const tail = parts[parts.length - 1]?.trim();
+
+    return tail || null;
   }
 
   /** ベクトルデータをロード */
@@ -121,26 +178,17 @@ export class TagVectors {
     return this.vectors;
   }
 
-  /**
-   * 差分検知用：RawTagEntry Map を取得
-   * count は表示・判断補助用
-   */
   getRawEntryMap(): Map<string, RawTagEntry> {
     const map = new Map<string, RawTagEntry>();
-
     for (const v of this.vectors) {
       map.set(v.key, {
         tag: v.key,
         count: v.count,
       });
     }
-
     return map;
   }
 
-  /**
-   * 差分検知用：キー集合のみ（軽量）
-   */
   getKeySet(): Set<string> {
     return new Set(this.vectors.map((v) => v.key));
   }

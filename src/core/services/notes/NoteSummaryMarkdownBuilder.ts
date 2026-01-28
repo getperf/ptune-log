@@ -26,7 +26,7 @@ export class NoteSummaryMarkdownBuilder {
       ...this.renderSummary(note, {
         checklist,
         sentenceSplit,
-      })
+      }),
     );
 
     if (note.goal) {
@@ -44,7 +44,7 @@ export class NoteSummaryMarkdownBuilder {
   private static renderNoteHeading(
     note: NoteSummary,
     baseHeadingLevel: number,
-    withLink: boolean
+    withLink: boolean,
   ): string {
     const base = note.notePath.replace(/\.md$/, '').split('/').pop();
     const path = note.notePath.replace(/\.md$/, '');
@@ -57,16 +57,20 @@ export class NoteSummaryMarkdownBuilder {
   // --- Summary ---
   private static renderSummary(
     note: NoteSummary,
-    opts: { checklist: boolean; sentenceSplit: boolean }
+    opts: { checklist: boolean; sentenceSplit: boolean },
   ): string[] {
     const { checklist, sentenceSplit } = opts;
     const bullet = checklist ? '- [ ] ' : '- ';
 
+    // 日本語の文末記号（。！？）で分割
+    // または、ピリオド直後の空白を検出し、次が英大文字 or 日本語文字なら文の開始とみなす
     const sentences = sentenceSplit
       ? note.summary
-        .split(/(?<=[。．.!?])\s*/)
-        .map((s) => s.trim())
-        .filter(Boolean)
+          .split(
+            /(?<=[。！？])\s*|(?<=\.)\s+(?=[A-Z\u3040-\u30FF\u4E00-\u9FFF])/,
+          )
+          .map((s) => s.trim())
+          .filter(Boolean)
       : [note.summary];
 
     return sentences.map((s) => `${bullet}${s}`);
