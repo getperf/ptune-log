@@ -3,6 +3,7 @@
 import { App, normalizePath, stringifyYaml } from 'obsidian';
 import { TimeReport } from '../models/TimeReport';
 import { logger } from 'src/core/services/logger/loggerInstance';
+import { TaskExecutionKeyFormatter } from '../utils/TaskExecutionKeyFormatter';
 
 export class TimeReportYamlWriter {
   static readonly BASE_DIR = '_journal/meta';
@@ -22,15 +23,21 @@ export class TimeReportYamlWriter {
       date: report.date,
       source: report.source,
       tasks: Object.fromEntries(
-        [...report.tasks.entries()].map(([key, e]) => [
-          key,
-          {
-            status: e.status,
-            pomodoro: e.pomodoro,
-            reviewFlags: e.reviewFlags ? Array.from(e.reviewFlags) : undefined,
-            relatedNotes: e.relatedNotes,
-          },
-        ]),
+        [...report.tasks.entries()].map(([key, e]) => {
+          const yamlKey = TaskExecutionKeyFormatter.toYamlKey(e, report.tasks);
+
+          return [
+            yamlKey,
+            {
+              status: e.status,
+              pomodoro: e.pomodoro,
+              reviewFlags: e.reviewFlags
+                ? Array.from(e.reviewFlags)
+                : undefined,
+              relatedNotes: e.relatedNotes,
+            },
+          ];
+        }),
       ),
     };
 

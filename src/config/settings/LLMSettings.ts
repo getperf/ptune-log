@@ -12,7 +12,7 @@ export interface LLMSettings {
 
 export const providerDefaults: Record<string, Partial<LLMSettings>> = {
   'OpenAI Chat': {
-    model: 'gpt-4o-mini',
+    model: 'gpt-4.1-mini',
     embeddingModel: 'text-embedding-3-small',
     baseUrl: 'https://api.openai.com/v1',
     temperature: 0.2,

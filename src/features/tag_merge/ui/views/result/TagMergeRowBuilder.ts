@@ -31,11 +31,12 @@ export class TagMergeRowBuilder {
       });
     }
 
-    if (row.isSelf()) {
-      this.renderToOnly(el, row, options);
-    } else {
-      this.renderFromTo(el, row, options);
-    }
+    this.renderFromTo(el, row, options);
+    // if (row.isSelf()) {
+    //   this.renderToOnly(el, row, options);
+    // } else {
+    //   this.renderFromTo(el, row, options);
+    // }
   }
 
   private renderToOnly(

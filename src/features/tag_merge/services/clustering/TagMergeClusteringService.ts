@@ -13,6 +13,7 @@ import { TagMergeCluster } from '../../models/domain/TagMergeCluster';
 import { ExclusionTagFilter } from './ExclusionTagFilter';
 import { TagMergePriorityResolver } from '../priority/TagMergePriorityResolver';
 import { TagMergeClusterBuilder } from './TagMergeClusterBuilder';
+import { TagMergePostFilter } from './TagMergePostFilter';
 
 export type TagMergeClusteringResult = {
   clusters: TagMergeCluster[];
@@ -47,15 +48,14 @@ export class TagMergeClusteringService {
       iterations: options.iterations,
     });
 
-    /* --- Exclusion --- */
+    /* --- Exclusion (size-based only) --- */
     const exclusionFilter = new ExclusionTagFilter(statResolver, {
-      unregisteredOnly: options.exclusion.unregisteredOnly,
       excludeIfClusterSizeAtLeast:
         options.exclusion.excludeIfClusterSizeAtLeast,
     });
     const { filtered } = exclusionFilter.filter(result.clusters);
 
-    /* --- Priority / Build --- */
+    /* --- Priority / Build (ALL tags) --- */
     const priorityResolver = new TagMergePriorityResolver({
       largeClusterThreshold: options.priority.largeClusterThreshold,
     });
@@ -66,10 +66,15 @@ export class TagMergeClusteringService {
 
     const { clusters, debugText } = clusterBuilder.build(filtered);
 
+    /* --- Post Filter (view condition) --- */
+    const finalClusters = options.exclusion.unregisteredOnly
+      ? TagMergePostFilter.filterUnregisteredOnly(clusters)
+      : clusters;
+
     logger.debug(
-      `[TagMergeClusteringService] done: mergeClusters=${clusters.length}`,
+      `[TagMergeClusteringService] done: mergeClusters=${finalClusters.length}`,
     );
 
-    return { clusters, debugText };
+    return { clusters: finalClusters, debugText };
   }
 }

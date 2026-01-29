@@ -37,14 +37,14 @@ export class PrepareClusteringView extends TagMergePhaseView {
   }
 
   protected renderBody(container: HTMLElement): void {
-    new Setting(container)
-      .setName('未登録タグのみを対象にする')
-      .setDesc('Tag DB に未登録のタグのみをクラスタリング対象にします')
-      .addToggle((t) =>
-        t.setValue(this.unregisteredOnly).onChange((v) => {
-          this.unregisteredOnly = v;
-        }),
-      );
+    // new Setting(container)
+    //   .setName('未登録タグのみを対象にする')
+    //   .setDesc('Tag DB に未登録のタグのみをクラスタリング対象にします')
+    //   .addToggle((t) =>
+    //     t.setValue(this.unregisteredOnly).onChange((v) => {
+    //       this.unregisteredOnly = v;
+    //     }),
+    //   );
 
     new Setting(container)
       .setName('クラスタリング前に DB を更新する')

@@ -9,7 +9,7 @@ export function renderLLMSettings(
   containerEl: HTMLElement,
   config: ConfigManager,
   settings: PluginSettings,
-  settingTab: PluginSettingTab
+  settingTab: PluginSettingTab,
 ) {
   const t = i18n.ui.settingsLlm;
 
@@ -47,7 +47,7 @@ export function renderLLMSettings(
             }
           }, 50);
         }
-      })
+      }),
   );
 
   new Setting(containerEl)
@@ -59,7 +59,7 @@ export function renderLLMSettings(
         .setValue(settings.llm.apiKey)
         .onChange(async (value) => {
           await config.update('llm.apiKey', value.trim());
-        })
+        }),
     );
 
   new Setting(containerEl)
@@ -71,7 +71,7 @@ export function renderLLMSettings(
         .setValue(settings.llm.baseUrl)
         .onChange(async (value) => {
           await config.update('llm.baseUrl', value.trim());
-        })
+        }),
     );
 
   new Setting(containerEl)
@@ -82,6 +82,8 @@ export function renderLLMSettings(
         .addOptions({
           'gpt-3.5-turbo': 'gpt-3.5-turbo',
           'gpt-4o-mini': 'gpt-4o-mini',
+          'gpt-4.1-mini': 'gpt-4.1-mini',
+          // 'gpt-5.2-mini': 'gpt-5.2-mini',
           'claude-3-5-haiku-20241022': 'claude-3-5-haiku',
           'gemini-2.5-flash': 'gemini-2.5-flash',
           'gemini-2.5-flash-lite': 'gemini-2.5-flash-lite',
@@ -89,7 +91,7 @@ export function renderLLMSettings(
         .setValue(settings.llm.model)
         .onChange(async (value) => {
           await config.update('llm.model', value);
-        })
+        }),
     );
 
   new Setting(containerEl)
@@ -107,7 +109,7 @@ export function renderLLMSettings(
         .setValue(settings.llm.embeddingModel)
         .onChange(async (value) => {
           await config.update('llm.embeddingModel', value);
-        })
+        }),
     );
 
   new Setting(containerEl)
@@ -120,7 +122,7 @@ export function renderLLMSettings(
         .setDynamicTooltip()
         .onChange(async (value) => {
           await config.update('llm.temperature', value);
-        })
+        }),
     );
 
   new Setting(containerEl)
@@ -135,7 +137,7 @@ export function renderLLMSettings(
           if (!isNaN(num)) {
             await config.update('llm.maxTokens', num);
           }
-        })
+        }),
     );
 
   new Setting(containerEl)
@@ -148,7 +150,7 @@ export function renderLLMSettings(
         .setDynamicTooltip()
         .onChange(async (value) => {
           await config.update('llm.minSimilarityScore', value);
-        })
+        }),
     );
 
   new Setting(containerEl)
@@ -159,7 +161,7 @@ export function renderLLMSettings(
         .setValue(settings.llm.enableChecklist ?? true)
         .onChange(async (value) => {
           await config.update('llm.enableChecklist', value);
-        })
+        }),
     );
 
   const notePath = '_templates/llm/tag_generate.md';
@@ -172,9 +174,9 @@ export function renderLLMSettings(
         .setCta()
         .onClick(() => {
           settingTab.app.commands.executeCommandById(
-            'ptune-log:llm-select-template'
+            'ptune-log:llm-select-template',
           );
-        })
+        }),
     )
     .addButton((btn) =>
       btn
@@ -187,7 +189,7 @@ export function renderLLMSettings(
           } else {
             new Notice(t.promptTemplate.noticeNotFound(notePath));
           }
-        })
+        }),
     );
 
   new Setting(containerEl)
@@ -200,13 +202,13 @@ export function renderLLMSettings(
         .onClick(() => {
           try {
             settingTab.app.commands.executeCommandById(
-              'ptune-log:preview-llm-tag-prompt'
+              'ptune-log:preview-llm-tag-prompt',
             );
             new Notice(t.promptPreview.noticeOpen);
           } catch (e) {
             console.error(e);
             new Notice(t.promptPreview.noticeFail);
           }
-        })
+        }),
     );
 }

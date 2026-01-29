@@ -24,7 +24,6 @@ import { TagNormalizationService } from 'src/core/services/tags/TagNormalization
 
 // --- feature usecase ---
 import { DailyReviewUseCase } from '../application/DailyReviewUseCase';
-import { KptAnalysisUseCase } from 'src/features/note_analysis/application/KptAnalysisUseCase';
 import { KptAnalysisCommandRegistrar } from 'src/features/note_analysis/commands/KptAnalysisCommandRegistrar';
 import { TagMergeCommandRegistrar } from 'src/features/tag_merge/commands/TagMergeCommandRegistrar';
 
@@ -37,7 +36,6 @@ export class DailyReviewFeature {
 
   private readonly runner: NoteAnalysisRunner;
   private readonly dailyReviewUseCase: DailyReviewUseCase;
-  private readonly kptAnalysisUseCase: KptAnalysisUseCase;
 
   private readonly llmRegistrar: DailyReviewCommandRegistrar;
   private readonly tagRegistrar: TagCommandRegistrar;
@@ -50,7 +48,7 @@ export class DailyReviewFeature {
   constructor(
     private readonly app: App,
     llmSettings: LLMSettings,
-    reviewSettings: ReviewSettings
+    reviewSettings: ReviewSettings,
   ) {
     logger.debug('[DailyReviewFeature] initializing');
 
@@ -71,20 +69,13 @@ export class DailyReviewFeature {
       app,
       this.llmClient,
       this.runner,
-      reviewSettings
-    );
-
-    // --- KPT Analysis UseCase
-    this.kptAnalysisUseCase = new KptAnalysisUseCase(
-      app,
-      this.llmClient,
-      reviewSettings
+      reviewSettings,
     );
 
     // --- コマンド登録
     this.llmRegistrar = new DailyReviewCommandRegistrar(
       app,
-      this.dailyReviewUseCase
+      this.dailyReviewUseCase,
     );
     this.tagRegistrar = new TagCommandRegistrar(app, this.llmClient);
     this.vectorRegistrar = new VectorCommandRegistrar(app, this.llmClient);
@@ -92,11 +83,12 @@ export class DailyReviewFeature {
     this.llmSettingCommandRegistrar = new LLMSettingsCommandRegistrar(app);
     this.kptAnalysisRegistrar = new KptAnalysisCommandRegistrar(
       app,
-      this.kptAnalysisUseCase
+      this.llmClient,
+      reviewSettings,
     );
     this.tagMergeCommandRegistrar = new TagMergeCommandRegistrar(
       app,
-      this.llmClient
+      this.llmClient,
     );
     logger.debug('[DailyReviewFeature] initialized successfully');
   }
