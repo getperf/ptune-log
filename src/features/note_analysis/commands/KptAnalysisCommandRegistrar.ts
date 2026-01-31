@@ -7,6 +7,9 @@ import { ReviewSettings } from 'src/config/settings/ReviewSettings';
 
 import { KptAnalysisUseCase } from '../application/KptAnalysisUseCase';
 import { NoteSummaryExportUseCase } from '../application/NoteSummaryExportUseCase';
+import { KptSortableModal, SAMPLE_DATA } from '../services/KptSortableSandbox';
+
+/* ★ 検証用モーダルを追加 */
 
 export class KptAnalysisCommandRegistrar {
   constructor(
@@ -16,6 +19,9 @@ export class KptAnalysisCommandRegistrar {
   ) {}
 
   register(plugin: Plugin): void {
+    /* =========================
+     * 既存：KPT分析（現行）
+     * ========================= */
     plugin.addCommand({
       id: 'kpt-analysis-run',
       name: i18n.ui.noteAnalysis.command.runKpt,
@@ -31,6 +37,17 @@ export class KptAnalysisCommandRegistrar {
         // );
 
         await useCase.run();
+      },
+    });
+
+    /* =========================
+     * 追加：KPT編集（SortableJS 検証）
+     * ========================= */
+    plugin.addCommand({
+      id: 'kpt-edit-sortable-sandbox',
+      name: 'KPT編集（SortableJS 検証）',
+      callback: () => {
+        new KptSortableModal(this.app, SAMPLE_DATA).open();
       },
     });
   }
