@@ -4,15 +4,27 @@ import { App, Modal, Setting, TFile } from 'obsidian';
 import { IProgressReporter } from 'src/core/services/llm/note_analysis/IProgressReporter';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
 import { i18n } from 'src/i18n';
+import {
+  DailyReviewRunOptions,
+  NoteSummaryOutputFormat,
+  SentenceMode,
+} from '../application/DailyReviewRunOptions';
 
 export class DailyReviewModal extends Modal implements IProgressReporter {
   private isRunning = false;
   private messageEl!: HTMLDivElement;
   private countTextEl!: HTMLParagraphElement;
   private progressBarEl!: HTMLProgressElement;
+
   private files: TFile[] = [];
   private selectedDate: Date;
-  private forceRegenerate = false;
+
+  /** 実行オプション（集約） */
+  private runOptions: DailyReviewRunOptions = {
+    forceRegenerate: false,
+    sentenceMode: 'raw',
+    outputFormat: 'xmind',
+  };
 
   constructor(
     app: App,
@@ -25,9 +37,9 @@ export class DailyReviewModal extends Modal implements IProgressReporter {
         modal: DailyReviewModal,
         files: TFile[],
         selectedDate: Date,
-        forceRegenerate: boolean
+        options: DailyReviewRunOptions,
       ) => void;
-    }
+    },
   ) {
     super(app);
     this.files = options.initialFiles ?? [];
@@ -47,65 +59,114 @@ export class DailyReviewModal extends Modal implements IProgressReporter {
     contentEl.createEl('h2', { text: title });
 
     if (this.options.mode === 'date') {
-      // 📅 日付選択（過去7日分）
-      new Setting(contentEl)
-        // i18n置換：「対象日（タグ抽出＆保存）」
-        .setName(i18n.ui.dailyReview.modal.dateSelect.label)
-        // i18n置換：「過去7日間から選択してください」
-        .setDesc(i18n.ui.dailyReview.modal.dateSelect.description)
-        .addDropdown((drop) => {
-          const opts: Record<string, string> = {};
-          for (let i = 0; i < 7; i++) {
-            const d = DateUtil.mNow().subtract(i, 'days');
-            const s = d.format('YYYY-MM-DD');
-            opts[s] = s;
-          }
-          const selected = DateUtil.m(this.selectedDate).format('YYYY-MM-DD');
-          drop.addOptions(opts);
-          drop.setValue(selected);
-
-          drop.onChange(async (value) => {
-            this.selectedDate = new Date(value);
-            if (this.options.onDateChange) {
-              this.files = await this.options.onDateChange(this.selectedDate);
-              this.updateCountText();
-              this.progressBarEl.max = this.files.length;
-            }
-          });
-        });
-
+      this.buildDateSelector(contentEl);
       this.countTextEl = contentEl.createEl('p');
       this.updateCountText();
     } else {
       contentEl.createEl('p', {
-        // i18n置換：「{count} 件の記録ノートに要約とタグを追加します。実行しますか？」
         text: i18n.ui.dailyReview.modal.confirm.withCount.replace(
           '{count}',
-          String(this.files.length)
+          String(this.files.length),
         ),
       });
     }
 
-    // プログレスバー
     this.progressBarEl = contentEl.createEl('progress');
     this.progressBarEl.max = this.files.length;
     this.progressBarEl.value = 0;
 
     this.messageEl = contentEl.createEl('div', { text: '' });
 
-    // 再解析トグル
-    new Setting(contentEl)
+    // --- options ---
+    this.buildForceRegenerateSetting(contentEl);
+    this.buildSentenceModeSetting(contentEl);
+    this.buildOutputFormatSetting(contentEl);
+
+    // --- actions ---
+    this.buildActionButtons(contentEl);
+  }
+
+  // -------------------------
+  // Settings builders
+  // -------------------------
+
+  private buildDateSelector(container: HTMLElement): void {
+    new Setting(container)
+      // i18n置換：「対象日（タグ抽出＆保存）」
+      .setName(i18n.ui.dailyReview.modal.dateSelect.label)
+      // i18n置換：「過去7日間から選択してください」
+      .setDesc(i18n.ui.dailyReview.modal.dateSelect.description)
+      .addDropdown((drop) => {
+        const opts: Record<string, string> = {};
+        for (let i = 0; i < 7; i++) {
+          const d = DateUtil.mNow().subtract(i, 'days');
+          const s = d.format('YYYY-MM-DD');
+          opts[s] = s;
+        }
+        const selected = DateUtil.m(this.selectedDate).format('YYYY-MM-DD');
+        drop.addOptions(opts);
+        drop.setValue(selected);
+
+        drop.onChange(async (value) => {
+          this.selectedDate = new Date(value);
+          if (this.options.onDateChange) {
+            this.files = await this.options.onDateChange(this.selectedDate);
+            this.updateCountText();
+            this.progressBarEl.max = this.files.length;
+          }
+        });
+      });
+  }
+
+  private buildForceRegenerateSetting(container: HTMLElement): void {
+    new Setting(container)
       // i18n置換：「解析済みノートも再実行する」
+
       .setName(i18n.ui.dailyReview.modal.option.forceRegenerate.label)
+
       // i18n置換：「summary/tags があるノートも LLM で再解析します」
       .setDesc(i18n.ui.dailyReview.modal.option.forceRegenerate.description)
       .addToggle((toggle) => {
-        toggle.setValue(false);
-        toggle.onChange((value) => (this.forceRegenerate = value));
+        toggle.setValue(this.runOptions.forceRegenerate);
+        toggle.onChange((value) => (this.runOptions.forceRegenerate = value));
       });
+  }
 
-    // 実行・キャンセル
-    new Setting(contentEl)
+  private buildSentenceModeSetting(container: HTMLElement): void {
+    new Setting(container)
+      .setName(i18n.ui.dailyReview.modal.option.sentenceMode.label)
+      .setDesc(i18n.ui.dailyReview.modal.option.sentenceMode.description)
+      .addDropdown((drop) => {
+        drop.addOptions({
+          raw: i18n.ui.dailyReview.modal.option.sentenceMode.raw,
+          llm: i18n.ui.dailyReview.modal.option.sentenceMode.llm,
+        });
+        drop.setValue(this.runOptions.sentenceMode);
+        drop.onChange(
+          (value) => (this.runOptions.sentenceMode = value as SentenceMode),
+        );
+      });
+  }
+
+  private buildOutputFormatSetting(container: HTMLElement): void {
+    new Setting(container)
+      .setName(i18n.ui.dailyReview.modal.option.outputFormat.label)
+      .setDesc(i18n.ui.dailyReview.modal.option.outputFormat.description)
+      .addDropdown((drop) => {
+        drop.addOptions({
+          xmind: 'XMind',
+          outliner: 'Outliner',
+        });
+        drop.setValue(this.runOptions.outputFormat);
+        drop.onChange(
+          (value) =>
+            (this.runOptions.outputFormat = value as NoteSummaryOutputFormat),
+        );
+      });
+  }
+
+  private buildActionButtons(container: HTMLElement): void {
+    new Setting(container)
       .addButton((btn) =>
         btn
           // i18n置換：「実行する」
@@ -116,29 +177,31 @@ export class DailyReviewModal extends Modal implements IProgressReporter {
             this.isRunning = true;
             btn.setDisabled(true);
             this.progressBarEl.max = this.files.length;
-            this.options.onConfirm(
-              this,
-              this.files,
-              this.selectedDate,
-              this.forceRegenerate
-            );
-          })
+
+            this.options.onConfirm(this, this.files, this.selectedDate, {
+              ...this.runOptions,
+            });
+          }),
       )
       .addButton((btn) =>
         // i18n置換：「キャンセル」
         btn
           .setButtonText(i18n.ui.shared.action.cancel)
-          .onClick(() => this.close())
+          .onClick(() => this.close()),
       );
   }
+
+  // -------------------------
+  // helpers / progress
+  // -------------------------
 
   private updateCountText(): void {
     // i18n置換：「{count} 件の記録ノートに要約とタグを追加します。実行しますか？」
     this.countTextEl.setText(
       i18n.ui.dailyReview.modal.confirm.withCount.replace(
         '{count}',
-        String(this.files.length)
-      )
+        String(this.files.length),
+      ),
     );
   }
 
@@ -153,8 +216,8 @@ export class DailyReviewModal extends Modal implements IProgressReporter {
     this.messageEl.setText(
       `⏳ ${i18n.ui.dailyReview.modal.progress.start.replace(
         '{total}',
-        String(total)
-      )}`
+        String(total),
+      )}`,
     );
   }
 
@@ -164,8 +227,8 @@ export class DailyReviewModal extends Modal implements IProgressReporter {
     this.messageEl.setText(
       `⏳ ${i18n.ui.dailyReview.modal.progress.processing.replace(
         '{path}',
-        file.path
-      )}`
+        file.path,
+      )}`,
     );
   }
 
@@ -174,7 +237,7 @@ export class DailyReviewModal extends Modal implements IProgressReporter {
     this.messageEl.setText(
       i18n.ui.dailyReview.modal.progress.finished
         .replace('{success}', String(success))
-        .replace('{errors}', String(errors))
+        .replace('{errors}', String(errors)),
     );
   }
 

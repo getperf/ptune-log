@@ -32,9 +32,27 @@ export const dailyReviewJa = {
     },
 
     option: {
+      /** 既存 */
       forceRegenerate: {
         label: '解析済みノートも再実行する',
         description: 'summary/tags があるノートも LLM で再解析します',
+      },
+
+      /** 追加：センテンス要約モード */
+      sentenceMode: {
+        label: 'センテンスの扱い',
+        description:
+          'ノート要約をそのまま使うか、LLMで短く要約するかを選択します',
+        raw: 'そのまま使用（要約なし）',
+        llm: 'LLMで要約する',
+      },
+
+      /** 追加：出力フォーマット */
+      outputFormat: {
+        label: 'ノートサマリ出力形式',
+        description: '生成されるレポートの構造を、用途に応じて選択します',
+        outliner: 'Outliner（折りたたみ可能な階層表示）',
+        xmind: 'XMind（マインドマップ向け構造）',
       },
     },
 

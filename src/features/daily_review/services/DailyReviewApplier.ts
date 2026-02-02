@@ -13,6 +13,7 @@ import { getText } from './comment';
 import { TagAliases } from 'src/core/models/tags/TagAliases';
 import { TagAliasCommitService } from 'src/core/services/tags/TagAliasCommitService';
 import { logger } from 'src/core/services/logger/loggerInstance';
+import { DateUtil } from 'src/core/utils/date/DateUtil';
 
 export class DailyReviewApplier {
   private readonly writer: DailyNoteWriter;
@@ -24,19 +25,29 @@ export class DailyReviewApplier {
     this.writer = new DailyNoteWriter(app);
   }
 
-  async apply(date: Date, summaries: NoteSummaries): Promise<void> {
-    const dailyNote = await DailyNoteLoader.load(this.app, date);
+  async apply(
+    date: Date,
+    summaries: NoteSummaries,
+    reportMd?: string,
+  ): Promise<void> {
+    let dailyNote = await DailyNoteLoader.load(this.app, date);
 
+    // --- ① レポートを kpts セクション配下に追記 ---
+    if (reportMd && reportMd.trim().length > 0) {
+      dailyNote = this.appendToKpts(dailyNote, reportMd);
+    }
+
+    // --- ② reviewedNote（初回のみ） ---
+    dailyNote = this.applyReviewedNoteIfNeeded(dailyNote, summaries);
+
+    // --- ③ タグ一覧 ---
     const tagListMd = DailyReviewTagListBuilder.build(summaries);
-    const updated = this.applyReviewedNoteIfNeeded(
-      dailyNote,
-      summaries,
-    ).updateReviewMemo(tagListMd);
+    dailyNote = dailyNote.updateReviewMemo(tagListMd);
 
-    // --- daily note 確定 ---
-    await this.writer.write(updated, date);
+    // --- write ---
+    await this.writer.write(dailyNote, date);
 
-    // --- Alias 辞書 commit（振り返り確定点）---
+    // --- ④ Alias 辞書 commit ---
     const newTags = summaries.getAllUnregisteredTags();
     if (newTags.length > 0) {
       logger.info(
@@ -51,32 +62,32 @@ export class DailyReviewApplier {
     }
   }
 
-  /** reviewedNote は初回のみ更新する */
+  private appendToKpts(dailyNote: DailyNote, reportMd: string): DailyNote {
+    const suffix = `(${DateUtil.localTime()})`;
+    return dailyNote.appendKpt(reportMd, suffix, 'first');
+  }
+
+  /** reviewedNote は初回のみ更新 */
   private applyReviewedNoteIfNeeded(
     dailyNote: DailyNote,
     summaries: NoteSummaries,
   ): DailyNote {
-    if (!this.shouldUpdateReviewedNote(dailyNote)) {
+    if (dailyNote.reviewedNote.hasContent()) {
       return dailyNote;
     }
 
     const summaryMd = DailyReviewSummaryBuilder.build(summaries, this.settings);
-    const reviewedNoteMdParts: string[] = [summaryMd.trimEnd()];
+    const parts: string[] = [summaryMd.trimEnd()];
 
     if (this.settings.enableDailyNoteUserReview) {
       const header = MarkdownCommentBlock.build(
         getText('daily-review-comment'),
       );
       const footer = MarkdownCommentBlock.build(getText('kpt-action-comment'));
-      reviewedNoteMdParts.unshift(header);
-      reviewedNoteMdParts.push('', footer);
+      parts.unshift(header);
+      parts.push('', footer);
     }
 
-    return dailyNote.updateReviewedNote(reviewedNoteMdParts.join('\n'));
-  }
-
-  /** reviewedNote 更新可否判定 */
-  private shouldUpdateReviewedNote(dailyNote: DailyNote): boolean {
-    return !dailyNote.reviewedNote.hasContent();
+    return dailyNote.updateReviewedNote(parts.join('\n'));
   }
 }

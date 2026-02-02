@@ -6,6 +6,7 @@ export interface SummaryRenderOptions {
   sentenceSplit?: boolean; // true ならセンテンス分割
   withLink?: boolean; // タイトルにリンク追加（既定: true）
   withUserReview?: boolean; // ユーザレビュー欄を追加（既定: false）
+  bullet?: boolean; // 箇条書きを付けるか（既定 true）
 }
 
 export class NoteSummaryMarkdownBuilder {
@@ -16,6 +17,7 @@ export class NoteSummaryMarkdownBuilder {
       sentenceSplit = false,
       withLink = true,
       withUserReview = false,
+      bullet = true,
     } = options;
 
     const lines: string[] = [];
@@ -26,6 +28,7 @@ export class NoteSummaryMarkdownBuilder {
       ...this.renderSummary(note, {
         checklist,
         sentenceSplit,
+        bullet,
       }),
     );
 
@@ -55,15 +58,14 @@ export class NoteSummaryMarkdownBuilder {
   }
 
   // --- Summary ---
-  private static renderSummary(
+  static renderSummary(
     note: NoteSummary,
-    opts: { checklist: boolean; sentenceSplit: boolean },
+    opts: { checklist: boolean; sentenceSplit: boolean; bullet: boolean },
   ): string[] {
-    const { checklist, sentenceSplit } = opts;
-    const bullet = checklist ? '- [ ] ' : '- ';
+    const { checklist, sentenceSplit, bullet } = opts;
 
-    // 日本語の文末記号（。！？）で分割
-    // または、ピリオド直後の空白を検出し、次が英大文字 or 日本語文字なら文の開始とみなす
+    const bulletPrefix = bullet ? (checklist ? '- [ ] ' : '- ') : '';
+
     const sentences = sentenceSplit
       ? note.summary
           .split(
@@ -73,7 +75,7 @@ export class NoteSummaryMarkdownBuilder {
           .filter(Boolean)
       : [note.summary];
 
-    return sentences.map((s) => `${bullet}${s}`);
+    return sentences.map((s) => `${bulletPrefix}${s}`);
   }
 
   // --- Goal ---
