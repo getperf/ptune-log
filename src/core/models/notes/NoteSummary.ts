@@ -8,7 +8,6 @@ import {
 /**
  * --- NoteSummary
  * 単一ノートの解析結果を保持するモデル。
- * createdAt, dailynote, taskKey, goal などメタ情報を統一管理。
  */
 export class NoteSummary {
   constructor(
@@ -17,17 +16,30 @@ export class NoteSummary {
     public readonly tags: string[],
     public readonly unregisteredTags: string[],
     public readonly createdAt: Date,
-    public readonly dailynote?: string, // リンク形式
+    public readonly dailynote?: string,
     public readonly taskKey?: string,
     public noteFolder: string = 'ルート',
     public readonly updatedAt?: Date,
     public readonly file?: TFile,
-    public readonly goal?: string
+    public readonly goal?: string,
   ) {}
 
-  /** --- fromFileData
-   * TFileとfrontmatterデータから NoteSummary を生成。
-   */
+  /** --- ノートタイトル解決 */
+  getNoteTitle(opts: { stripNumericPrefix?: boolean } = {}): string {
+    const raw = this.deriveFileName();
+    return opts.stripNumericPrefix ? stripNumericPrefix(raw) : raw;
+  }
+
+  private deriveFileName(): string {
+    return this.notePath.split('/').pop()!.replace(/\.md$/, '');
+  }
+
+  /** --- Markdown 要約生成 */
+  toMarkdownSummary(options: SummaryRenderOptions = {}): string {
+    return NoteSummaryMarkdownBuilder.render(this, options);
+  }
+
+  /** --- fromFileData */
   static fromFileData(
     file: TFile,
     data: {
@@ -38,7 +50,7 @@ export class NoteSummary {
       dailynote?: string;
       taskKey?: string;
       goal?: string;
-    }
+    },
   ): NoteSummary {
     const summary = data.summary ?? '(要約なし)';
     const tags = data.tags ?? [];
@@ -46,9 +58,7 @@ export class NoteSummary {
     const updatedAt = new Date(file.stat.mtime);
 
     logger.debug(
-      `[NoteSummary.fromFileData] created ${file.path}, tags=${
-        tags.length
-      }, goal=${data.goal ?? 'none'}`
+      `[NoteSummary.fromFileData] created ${file.path}, tags=${tags.length}`,
     );
 
     return new NoteSummary(
@@ -62,12 +72,12 @@ export class NoteSummary {
       'ルート',
       updatedAt,
       file,
-      data.goal ?? undefined
+      data.goal,
     );
   }
+}
 
-  /** --- Markdown 要約を生成 */
-  toMarkdownSummary(options: SummaryRenderOptions = {}): string {
-    return NoteSummaryMarkdownBuilder.render(this, options);
-  }
+/** --- 数値プレフィックス除去ユーティリティ */
+function stripNumericPrefix(text: string): string {
+  return text.replace(/^\d+_?/, '');
 }

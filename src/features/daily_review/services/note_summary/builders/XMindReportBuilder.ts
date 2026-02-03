@@ -1,5 +1,6 @@
 // src/features/daily_review/services/note_summary/builders/XMindReportBuilder.ts
 
+import { wrapWithCodeBlock } from 'src/core/utils/markdown/CodeBlockUtil';
 import { NoteSummaryDocument } from '../../../model/NoteSummaryDocument';
 import { ReportBuilder } from '../ReportBuilder';
 
@@ -8,16 +9,17 @@ export class XMindReportBuilder implements ReportBuilder {
     const lines: string[] = [];
 
     for (const project of doc.projects) {
-      lines.push(`# ${project.projectPath}`);
+      lines.push(project.projectTitle);
 
       for (const note of project.notes) {
-        lines.push(`## ${note.noteLink}`);
+        lines.push(`\t${note.noteTitle}`);
         for (const s of note.sentences) {
-          lines.push(`### ${s.text}`);
+          lines.push(`\t\t${s.text}`);
         }
       }
     }
 
-    return lines.join('\n');
+    const text = lines.join('\n');
+    return wrapWithCodeBlock(text, 'text');
   }
 }
