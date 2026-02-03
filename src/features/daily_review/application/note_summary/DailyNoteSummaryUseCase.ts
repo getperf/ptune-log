@@ -8,9 +8,17 @@ import {
   ReportBuilderFactory,
 } from '../../services/note_summary/ReportBuilderFactory';
 import { SentenceMode } from '../DailyReviewRunOptions';
+import { buildSentenceSummarySystemPrompt } from '../../services/note_summary/prompts';
+import { LLMClient } from 'src/core/services/llm/client/LLMClient';
+import { SentenceSummaryAdapter } from '../../services/note_summary/SentenceSummaryAdapter';
+import { logger } from 'src/core/services/logger/loggerInstance';
+import { NoteSummaryDocument } from '../../model/NoteSummaryDocument';
 
 export class DailyNoteSummaryUseCase {
-  constructor(private readonly app: App) {}
+  constructor(
+    private readonly app: App,
+    private readonly llmClient: LLMClient,
+  ) {}
 
   async execute(
     summaries: NoteSummaries,
@@ -19,8 +27,56 @@ export class DailyNoteSummaryUseCase {
       outputFormat: OutputFormat;
     },
   ): Promise<string> {
+    // 1. 構造化ドキュメント生成
     const doc = await NoteSummaryDocumentBuilder.build(this.app, summaries);
+
+    // 2. LLM 要約（必要な場合のみ）
+    if (options.sentenceMode === 'llm') {
+      await this.applyLlmSentenceSummary(doc);
+    }
+
+    // 3. 出力生成
     const builder = ReportBuilderFactory.create(options.outputFormat);
     return builder.build(doc);
+  }
+
+  /**
+   * LLM による Sentence 要約を適用する
+   * - 失敗時は何もしない（原文維持）
+   */
+  private async applyLlmSentenceSummary(
+    doc: NoteSummaryDocument,
+  ): Promise<void> {
+    const adapter = new SentenceSummaryAdapter(doc);
+    const sentenceInputs = adapter.extract();
+
+    logger.debug(
+      '[DailyNoteSummaryUseCase] extracted sentences=%d',
+      sentenceInputs.length,
+    );
+
+    if (sentenceInputs.length === 0) {
+      return;
+    }
+
+    const system = buildSentenceSummarySystemPrompt();
+    const user = JSON.stringify(sentenceInputs, null, 2);
+
+    const output = await this.llmClient.complete(system, user);
+
+    if (!output) {
+      logger.warn('[DailyNoteSummaryUseCase] LLM returned null');
+      return;
+    }
+
+    logger.debug('[DailyNoteSummaryUseCase] LLM raw output=%s', output);
+
+    // フェンス除去（最小安全策）
+    const normalized = output
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/i, '')
+      .replace(/```$/i, '');
+
+    adapter.apply(normalized);
   }
 }

@@ -85,7 +85,7 @@ export class DailyReviewUseCase {
     options: DailyReviewRunOptions,
   ): Promise<void> {
     const applier = new DailyReviewApplier(this.app, this.reviewSettings);
-    const reportUseCase = new DailyNoteSummaryUseCase(this.app);
+    const reportUseCase = new DailyNoteSummaryUseCase(this.app, this.client);
 
     try {
       const summaries = await this.runner.runOnFiles(
