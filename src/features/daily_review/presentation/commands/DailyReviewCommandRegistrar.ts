@@ -1,9 +1,9 @@
 // File: src/features/daily_review/commands/DailyReviewCommandRegistrar.ts
 
 import { App, Plugin, TFolder } from 'obsidian';
-import { DailyReviewUseCase } from '../application/DailyReviewUseCase';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { i18n } from 'src/i18n';
+import { DailyReviewUseCase } from '../../application/DailyReviewUseCase';
 
 /**
  * DailyReviewCommandRegistrar
@@ -19,7 +19,7 @@ import { i18n } from 'src/i18n';
 export class DailyReviewCommandRegistrar {
   constructor(
     private readonly app: App,
-    private readonly useCase: DailyReviewUseCase
+    private readonly useCase: DailyReviewUseCase,
   ) {}
 
   register(plugin: Plugin): void {
@@ -35,13 +35,13 @@ export class DailyReviewCommandRegistrar {
               .setIcon('bot')
               .onClick(() => {
                 logger.debug(
-                  `[DailyReviewCommandRegistrar] runOnFolder: ${file.path}`
+                  `[DailyReviewCommandRegistrar] runOnFolder: ${file.path}`,
                 );
                 void this.useCase.runOnFolder(file);
-              })
+              }),
           );
         }
-      })
+      }),
     );
 
     // --- コマンド：今日の振り返り ---

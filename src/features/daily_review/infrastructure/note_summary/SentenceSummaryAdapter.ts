@@ -1,7 +1,10 @@
 // src/features/daily_review/services/note_summary/SentenceSummaryAdapter.ts
 
 import { logger } from 'src/core/services/logger/loggerInstance';
-import { NoteSummaryDocument, Sentence } from '../../model/NoteSummaryDocument';
+import {
+  NoteSummaryDocument,
+  Sentence,
+} from '../../domain/models/NoteSummaryDocument';
 
 export type SentenceInput = {
   id: string;

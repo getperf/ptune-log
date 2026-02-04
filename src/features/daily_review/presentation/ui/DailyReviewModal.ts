@@ -4,7 +4,7 @@ import { App, Modal, Setting, TFile } from 'obsidian';
 import { IProgressReporter } from 'src/core/services/llm/note_analysis/IProgressReporter';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
 import { i18n } from 'src/i18n';
-import { DailyReviewRunOptions } from '../application/DailyReviewRunOptions';
+import { DailyReviewRunOptions } from '../../application/DailyReviewRunOptions';
 
 export class DailyReviewModal extends Modal implements IProgressReporter {
   private isRunning = false;

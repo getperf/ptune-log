@@ -2,16 +2,16 @@
 
 import { App } from 'obsidian';
 import { NoteSummaries } from 'src/core/models/notes/NoteSummaries';
-import { NoteSummaryDocumentBuilder } from '../../services/note_summary/NoteSummaryDocumentBuilder';
+import { NoteSummaryDocumentBuilder } from '../../infrastructure/note_summary/NoteSummaryDocumentBuilder';
 import {
   OutputFormat,
   ReportBuilderFactory,
-} from '../../services/note_summary/ReportBuilderFactory';
-import { buildSentenceSummarySystemPrompt } from '../../services/note_summary/prompts';
+} from '../../infrastructure/note_summary/ReportBuilderFactory';
+import { buildSentenceSummarySystemPrompt } from '../../infrastructure/note_summary/prompts';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
-import { SentenceSummaryAdapter } from '../../services/note_summary/SentenceSummaryAdapter';
+import { SentenceSummaryAdapter } from '../../infrastructure/note_summary/SentenceSummaryAdapter';
 import { logger } from 'src/core/services/logger/loggerInstance';
-import { NoteSummaryDocument } from '../../model/NoteSummaryDocument';
+import { NoteSummaryDocument } from '../../domain/models/NoteSummaryDocument';
 import { ReviewSettings } from 'src/config/settings/ReviewSettings';
 
 export class DailyNoteSummaryUseCase {

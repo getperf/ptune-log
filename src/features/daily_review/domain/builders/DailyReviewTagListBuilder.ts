@@ -2,8 +2,8 @@
 
 import { NoteSummaries } from 'src/core/models/notes/NoteSummaries';
 import { MarkdownCommentBlock } from 'src/core/utils/markdown/MarkdownCommentBlock';
-import { getText } from './comment';
 import { i18n } from 'src/i18n';
+import { getText } from '../../i18n/comment';
 
 const HEADER_PREFIX = '### ';
 
@@ -32,7 +32,7 @@ export class DailyReviewTagListBuilder {
         '',
         MarkdownCommentBlock.build(comment),
         '',
-        newTags.map((t) => `#${t}`).join(' ')
+        newTags.map((t) => `#${t}`).join(' '),
       );
     }
 

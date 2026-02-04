@@ -9,7 +9,7 @@ import {
   NoteSummaryDocument,
   ProjectNode,
   Sentence,
-} from '../../model/NoteSummaryDocument';
+} from '../../domain/models/NoteSummaryDocument';
 
 export class NoteSummaryDocumentBuilder {
   /**

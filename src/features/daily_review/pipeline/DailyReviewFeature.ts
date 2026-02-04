@@ -6,7 +6,7 @@ import { LLMSettings } from 'src/config/settings/LLMSettings';
 import { ReviewSettings } from 'src/config/settings/ReviewSettings';
 
 // --- コマンド登録 ---
-import { DailyReviewCommandRegistrar } from '../commands/DailyReviewCommandRegistrar';
+import { DailyReviewCommandRegistrar } from '../presentation/commands/DailyReviewCommandRegistrar';
 import { VectorCommandRegistrar } from '../../vectors/commands/VectorCommandRegistrar';
 import { NoteReviewCommandRegistrar } from '../../note_review/commands/NoteReviewCommandRegistrar';
 import { TagCommandRegistrar } from '../../tags/commands/TagCommandRegistrar';

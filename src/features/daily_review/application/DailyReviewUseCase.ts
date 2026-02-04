@@ -1,12 +1,12 @@
 // File: src/features/daily_review/application/DailyReviewUseCase.ts
 
 import { App, Notice, TFolder } from 'obsidian';
-import { DailyReviewModal } from '../ui/DailyReviewModal';
+import { DailyReviewModal } from '../presentation/ui/DailyReviewModal';
 import { NoteAnalysisRunner } from '../../../core/services/llm/note_analysis/NoteAnalysisRunner';
 import { ReviewSettings } from 'src/config/settings/ReviewSettings';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
 import { NoteAnalysisPromptService } from 'src/core/services/llm/note_analysis/NoteAnalysisPromptService';
-import { DailyReviewApplier } from '../services/DailyReviewApplier';
+import { DailyReviewApplier } from '../infrastructure/note_summary/DailyReviewApplier';
 import { DailyNoteSummaryUseCase } from './note_summary/DailyNoteSummaryUseCase';
 import { DailyReviewRunOptions } from './DailyReviewRunOptions';
 import { logger } from 'src/core/services/logger/loggerInstance';

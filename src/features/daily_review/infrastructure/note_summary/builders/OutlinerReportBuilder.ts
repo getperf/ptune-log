@@ -1,8 +1,8 @@
 // src/features/daily_review/services/note_summary/builders/OutlinerReportBuilder.ts
 
 import { i18n } from 'src/i18n';
-import { NoteSummaryDocument } from '../../../model/NoteSummaryDocument';
-import { ReportBuilder } from '../ReportBuilder';
+import { NoteSummaryDocument } from '../../../domain/models/NoteSummaryDocument';
+import { ReportBuilder } from '../../../domain/ports/ReportBuilder';
 import { MarkdownCommentBlock } from 'src/core/utils/markdown/MarkdownCommentBlock';
 
 export class OutlinerReportBuilder implements ReportBuilder {

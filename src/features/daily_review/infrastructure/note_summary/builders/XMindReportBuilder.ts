@@ -2,9 +2,9 @@
 
 import { wrapWithCodeBlock } from 'src/core/utils/markdown/CodeBlockUtil';
 import { MarkdownCommentBlock } from 'src/core/utils/markdown/MarkdownCommentBlock';
-import { NoteSummaryDocument } from '../../../model/NoteSummaryDocument';
-import { ReportBuilder } from '../ReportBuilder';
-import { getText } from '../../comment';
+import { NoteSummaryDocument } from '../../../domain/models/NoteSummaryDocument';
+import { ReportBuilder } from '../../../domain/ports/ReportBuilder';
+import { getText } from '../../../i18n/comment';
 
 export class XMindReportBuilder implements ReportBuilder {
   build(doc: NoteSummaryDocument): string {

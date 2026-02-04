@@ -5,15 +5,15 @@ import { NoteSummaries } from 'src/core/models/notes/NoteSummaries';
 import { DailyNote } from 'src/core/models/daily_notes/DailyNote';
 import { DailyNoteLoader } from 'src/core/services/daily_notes/file_io/DailyNoteLoader';
 import { DailyNoteWriter } from 'src/core/services/daily_notes/file_io/DailyNoteWriter';
-import { DailyReviewSummaryBuilder } from './DailyReviewSummaryBuilder';
-import { DailyReviewTagListBuilder } from './DailyReviewTagListBuilder';
+import { DailyReviewSummaryBuilder } from '../../domain/builders/DailyReviewSummaryBuilder';
 import { ReviewSettings } from 'src/config/settings/ReviewSettings';
 import { MarkdownCommentBlock } from 'src/core/utils/markdown/MarkdownCommentBlock';
-import { getText } from './comment';
+import { getText } from '../../i18n/comment';
 import { TagAliases } from 'src/core/models/tags/TagAliases';
 import { TagAliasCommitService } from 'src/core/services/tags/TagAliasCommitService';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
+import { DailyReviewTagListBuilder } from '../../domain/builders/DailyReviewTagListBuilder';
 
 export class DailyReviewApplier {
   private readonly writer: DailyNoteWriter;
