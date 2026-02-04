@@ -23,4 +23,22 @@ export const UI_SETTINGS_REVIEW_JA: UiSettingsReviewI18n = {
       text: 'テキスト（XMind／マインドマップ）',
     },
   },
+
+  sentenceMode: {
+    name: 'センテンス要約モード',
+    desc: 'センテンス要約の生成方法を選択します。',
+    options: {
+      none: '無効',
+      llm: 'LLM による要約',
+    },
+  },
+
+  noteSummaryOutputFormat: {
+    name: 'ノート要約の出力形式',
+    desc: 'ノート要約結果の出力形式を選択します。',
+    options: {
+      outliner: 'アウトライナー（Markdown）',
+      xmind: 'XMind／マインドマップ',
+    },
+  },
 };

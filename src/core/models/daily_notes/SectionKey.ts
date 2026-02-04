@@ -8,7 +8,7 @@ export type SectionKey =
   // --- NoteReview ---
   | 'note.review.memo'
   | 'note.report'
-  | 'note.kpt';
+  | 'review.point';
 
 export type DailyNoteLabelKey =
   | SectionKey
@@ -16,4 +16,4 @@ export type DailyNoteLabelKey =
   | 'task.timelog.backlog'
   | 'task.timelog.analysis'
   | 'note.tags.daily'
-  | 'note.tags.unregistered'
+  | 'note.tags.unregistered';

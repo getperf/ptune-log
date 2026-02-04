@@ -27,7 +27,7 @@ export class DailyReviewSummaryBuilder {
 
     return {
       checklist: false,
-      sentenceSplit: true,
+      sentenceSplit: false,
       withLink: true,
       withUserReview: false,
     };

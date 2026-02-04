@@ -8,14 +8,19 @@ export const enTexts = {
     'These review comments will be used in the subsequent KPT analysis.',
   ],
 
-  'kpt-action-comment': [
-    'Review comments will be reflected in the KPT analysis.',
-    'Please revise or add notes, then run the KPT analysis.',
+  'review-point-action-comment': [
+    '[XMind Review Procedure]',
+    '1. Copy all text under the "Input" section.',
+    '2. Paste it into XMind and edit it (adjust structure, granularity, and wording).',
+    '3. Paste the edited content under the "Output" section.',
+    '4. The "Output" section will be recorded as the summary of the review.',
   ],
+
+  'xmind-input-heading': 'Input (for XMind)',
+  'xmind-output-heading': 'Output（XMind editing result）',
 
   'daily-review-unregistered-guide': [
     '※ Some unregistered tags were detected.',
     '-> Please use the command "**Register and Merge Tags into Alias Dictionary**" to normalize them.',
   ],
-
 } as const;

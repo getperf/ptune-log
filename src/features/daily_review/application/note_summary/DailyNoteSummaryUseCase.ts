@@ -7,36 +7,34 @@ import {
   OutputFormat,
   ReportBuilderFactory,
 } from '../../services/note_summary/ReportBuilderFactory';
-import { SentenceMode } from '../DailyReviewRunOptions';
 import { buildSentenceSummarySystemPrompt } from '../../services/note_summary/prompts';
 import { LLMClient } from 'src/core/services/llm/client/LLMClient';
 import { SentenceSummaryAdapter } from '../../services/note_summary/SentenceSummaryAdapter';
 import { logger } from 'src/core/services/logger/loggerInstance';
 import { NoteSummaryDocument } from '../../model/NoteSummaryDocument';
+import { ReviewSettings } from 'src/config/settings/ReviewSettings';
 
 export class DailyNoteSummaryUseCase {
   constructor(
     private readonly app: App,
     private readonly llmClient: LLMClient,
+    private readonly reviewSettings: ReviewSettings,
   ) {}
 
-  async execute(
-    summaries: NoteSummaries,
-    options: {
-      sentenceMode: SentenceMode;
-      outputFormat: OutputFormat;
-    },
-  ): Promise<string> {
+  async execute(summaries: NoteSummaries): Promise<string> {
     // 1. 構造化ドキュメント生成
     const doc = await NoteSummaryDocumentBuilder.build(this.app, summaries);
 
-    // 2. LLM 要約（必要な場合のみ）
-    if (options.sentenceMode === 'llm') {
+    // 2. LLM 要約
+    if (this.reviewSettings.sentenceMode === 'llm') {
       await this.applyLlmSentenceSummary(doc);
     }
 
     // 3. 出力生成
-    const builder = ReportBuilderFactory.create(options.outputFormat);
+    const builder = ReportBuilderFactory.create(
+      this.reviewSettings.noteSummaryOutputFormat as OutputFormat,
+    );
+
     return builder.build(doc);
   }
 
@@ -71,7 +69,6 @@ export class DailyNoteSummaryUseCase {
 
     logger.debug('[DailyNoteSummaryUseCase] LLM raw output=%s', output);
 
-    // フェンス除去（最小安全策）
     const normalized = output
       .replace(/^```json\s*/i, '')
       .replace(/^```\s*/i, '')

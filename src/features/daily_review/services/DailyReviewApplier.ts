@@ -32,9 +32,9 @@ export class DailyReviewApplier {
   ): Promise<void> {
     let dailyNote = await DailyNoteLoader.load(this.app, date);
 
-    // --- ① レポートを kpts セクション配下に追記 ---
+    // --- ① レポートを reviewPoints セクション配下に追記 ---
     if (reportMd && reportMd.trim().length > 0) {
-      dailyNote = this.appendToKpts(dailyNote, reportMd);
+      dailyNote = this.appendToReviewPoints(dailyNote, reportMd);
     }
 
     // --- ② reviewedNote（初回のみ） ---
@@ -62,9 +62,12 @@ export class DailyReviewApplier {
     }
   }
 
-  private appendToKpts(dailyNote: DailyNote, reportMd: string): DailyNote {
+  private appendToReviewPoints(
+    dailyNote: DailyNote,
+    reportMd: string,
+  ): DailyNote {
     const suffix = `(${DateUtil.localTime()})`;
-    return dailyNote.appendKpt(reportMd, suffix, 'first');
+    return dailyNote.appendReviewPoint(reportMd, suffix, 'first');
   }
 
   /** reviewedNote は初回のみ更新 */
@@ -83,7 +86,9 @@ export class DailyReviewApplier {
       const header = MarkdownCommentBlock.build(
         getText('daily-review-comment'),
       );
-      const footer = MarkdownCommentBlock.build(getText('kpt-action-comment'));
+      const footer = MarkdownCommentBlock.build(
+        getText('review-point-action-comment'),
+      );
       parts.unshift(header);
       parts.push('', footer);
     }

@@ -4,11 +4,7 @@ import { App, Modal, Setting, TFile } from 'obsidian';
 import { IProgressReporter } from 'src/core/services/llm/note_analysis/IProgressReporter';
 import { DateUtil } from 'src/core/utils/date/DateUtil';
 import { i18n } from 'src/i18n';
-import {
-  DailyReviewRunOptions,
-  NoteSummaryOutputFormat,
-  SentenceMode,
-} from '../application/DailyReviewRunOptions';
+import { DailyReviewRunOptions } from '../application/DailyReviewRunOptions';
 
 export class DailyReviewModal extends Modal implements IProgressReporter {
   private isRunning = false;
@@ -19,11 +15,9 @@ export class DailyReviewModal extends Modal implements IProgressReporter {
   private files: TFile[] = [];
   private selectedDate: Date;
 
-  /** 実行オプション（集約） */
+  /** 実行オプション（モーダル由来・最小） */
   private runOptions: DailyReviewRunOptions = {
     forceRegenerate: false,
-    sentenceMode: 'raw',
-    outputFormat: 'xmind',
   };
 
   constructor(
@@ -51,7 +45,6 @@ export class DailyReviewModal extends Modal implements IProgressReporter {
     contentEl.empty();
     contentEl.addClass('llm-tag-generate-modal');
 
-    // i18n置換：「今日の振り返り（日付指定）」/「記録ノートの要約生成」
     const title =
       this.options.mode === 'date'
         ? i18n.ui.dailyReview.modal.title.date
@@ -79,8 +72,6 @@ export class DailyReviewModal extends Modal implements IProgressReporter {
 
     // --- options ---
     this.buildForceRegenerateSetting(contentEl);
-    this.buildSentenceModeSetting(contentEl);
-    this.buildOutputFormatSetting(contentEl);
 
     // --- actions ---
     this.buildActionButtons(contentEl);
@@ -92,9 +83,7 @@ export class DailyReviewModal extends Modal implements IProgressReporter {
 
   private buildDateSelector(container: HTMLElement): void {
     new Setting(container)
-      // i18n置換：「対象日（タグ抽出＆保存）」
       .setName(i18n.ui.dailyReview.modal.dateSelect.label)
-      // i18n置換：「過去7日間から選択してください」
       .setDesc(i18n.ui.dailyReview.modal.dateSelect.description)
       .addDropdown((drop) => {
         const opts: Record<string, string> = {};
@@ -120,11 +109,7 @@ export class DailyReviewModal extends Modal implements IProgressReporter {
 
   private buildForceRegenerateSetting(container: HTMLElement): void {
     new Setting(container)
-      // i18n置換：「解析済みノートも再実行する」
-
       .setName(i18n.ui.dailyReview.modal.option.forceRegenerate.label)
-
-      // i18n置換：「summary/tags があるノートも LLM で再解析します」
       .setDesc(i18n.ui.dailyReview.modal.option.forceRegenerate.description)
       .addToggle((toggle) => {
         toggle.setValue(this.runOptions.forceRegenerate);
@@ -132,44 +117,10 @@ export class DailyReviewModal extends Modal implements IProgressReporter {
       });
   }
 
-  private buildSentenceModeSetting(container: HTMLElement): void {
-    new Setting(container)
-      .setName(i18n.ui.dailyReview.modal.option.sentenceMode.label)
-      .setDesc(i18n.ui.dailyReview.modal.option.sentenceMode.description)
-      .addDropdown((drop) => {
-        drop.addOptions({
-          raw: i18n.ui.dailyReview.modal.option.sentenceMode.raw,
-          llm: i18n.ui.dailyReview.modal.option.sentenceMode.llm,
-        });
-        drop.setValue(this.runOptions.sentenceMode);
-        drop.onChange(
-          (value) => (this.runOptions.sentenceMode = value as SentenceMode),
-        );
-      });
-  }
-
-  private buildOutputFormatSetting(container: HTMLElement): void {
-    new Setting(container)
-      .setName(i18n.ui.dailyReview.modal.option.outputFormat.label)
-      .setDesc(i18n.ui.dailyReview.modal.option.outputFormat.description)
-      .addDropdown((drop) => {
-        drop.addOptions({
-          xmind: 'XMind',
-          outliner: 'Outliner',
-        });
-        drop.setValue(this.runOptions.outputFormat);
-        drop.onChange(
-          (value) =>
-            (this.runOptions.outputFormat = value as NoteSummaryOutputFormat),
-        );
-      });
-  }
-
   private buildActionButtons(container: HTMLElement): void {
     new Setting(container)
       .addButton((btn) =>
         btn
-          // i18n置換：「実行する」
           .setButtonText(`✅ ${i18n.ui.shared.action.confirm}`)
           .setCta()
           .onClick(() => {
@@ -184,7 +135,6 @@ export class DailyReviewModal extends Modal implements IProgressReporter {
           }),
       )
       .addButton((btn) =>
-        // i18n置換：「キャンセル」
         btn
           .setButtonText(i18n.ui.shared.action.cancel)
           .onClick(() => this.close()),
@@ -196,7 +146,6 @@ export class DailyReviewModal extends Modal implements IProgressReporter {
   // -------------------------
 
   private updateCountText(): void {
-    // i18n置換：「{count} 件の記録ノートに要約とタグを追加します。実行しますか？」
     this.countTextEl.setText(
       i18n.ui.dailyReview.modal.confirm.withCount.replace(
         '{count}',
@@ -212,7 +161,6 @@ export class DailyReviewModal extends Modal implements IProgressReporter {
   onStart(total: number): void {
     this.progressBarEl.max = total;
     this.progressBarEl.value = 0;
-    // i18n置換：「処理開始 ({total} 件)」
     this.messageEl.setText(
       `⏳ ${i18n.ui.dailyReview.modal.progress.start.replace(
         '{total}',
@@ -223,7 +171,6 @@ export class DailyReviewModal extends Modal implements IProgressReporter {
 
   onProgress(index: number, file: TFile): void {
     this.progressBarEl.value = index + 1;
-    // i18n置換：「処理中: {path}」
     this.messageEl.setText(
       `⏳ ${i18n.ui.dailyReview.modal.progress.processing.replace(
         '{path}',
@@ -233,7 +180,6 @@ export class DailyReviewModal extends Modal implements IProgressReporter {
   }
 
   onFinish(success: number, errors: number): void {
-    // i18n置換：「完了: 成功 {success} 件 / エラー {errors} 件」
     this.messageEl.setText(
       i18n.ui.dailyReview.modal.progress.finished
         .replace('{success}', String(success))

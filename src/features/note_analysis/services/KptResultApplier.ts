@@ -83,7 +83,7 @@ export class KptResultApplier {
 
       // 6. DailyNote へ append
       const suffix = `(${DateUtil.localTime()})`;
-      const updated = dailyNote.appendKpt(content, suffix, 'first');
+      const updated = dailyNote.appendReviewPoint(content, suffix, 'first');
 
       // 7. 保存
       await this.writer.writeToActive(updated);

@@ -21,4 +21,22 @@ export interface UiSettingsReviewI18n {
       text: string;
     };
   };
+
+  sentenceMode: {
+    name: string;
+    desc: string;
+    options: {
+      none: string;
+      llm: string;
+    };
+  };
+
+  noteSummaryOutputFormat: {
+    name: string;
+    desc: string;
+    options: {
+      outliner: string;
+      xmind: string;
+    };
+  };
 }

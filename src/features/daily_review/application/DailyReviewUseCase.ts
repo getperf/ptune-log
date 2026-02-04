@@ -85,7 +85,11 @@ export class DailyReviewUseCase {
     options: DailyReviewRunOptions,
   ): Promise<void> {
     const applier = new DailyReviewApplier(this.app, this.reviewSettings);
-    const reportUseCase = new DailyNoteSummaryUseCase(this.app, this.client);
+    const reportUseCase = new DailyNoteSummaryUseCase(
+      this.app,
+      this.client,
+      this.reviewSettings,
+    );
 
     try {
       const summaries = await this.runner.runOnFiles(
@@ -95,10 +99,8 @@ export class DailyReviewUseCase {
         options.forceRegenerate,
       );
 
-      const reportMd = await reportUseCase.execute(summaries, {
-        sentenceMode: options.sentenceMode,
-        outputFormat: options.outputFormat,
-      });
+      // ★ SettingTab の既定値を使用
+      const reportMd = await reportUseCase.execute(summaries);
 
       await applier.apply(date, summaries, reportMd);
     } catch (e) {

@@ -20,5 +20,5 @@ export const ja: Record<DailyNoteLabelKey, string> = {
 
   // sections
   'note.report': 'デイリーレポート',
-  'note.kpt': 'KPT分析',
+  'review.point': '振り返りポイント',
 };

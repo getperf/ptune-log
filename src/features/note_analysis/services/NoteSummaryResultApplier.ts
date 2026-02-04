@@ -21,7 +21,7 @@ export class NoteSummaryResultApplier {
 
   async apply(dailyNote: DailyNote, content: string): Promise<void> {
     const suffix = `(${DateUtil.localTime()})`;
-    const updated = dailyNote.appendKpt(content, suffix, 'last');
+    const updated = dailyNote.appendReviewPoint(content, suffix, 'last');
     await this.writer.writeToActive(updated);
 
     logger.info('[KptResultApplier] apply completed');

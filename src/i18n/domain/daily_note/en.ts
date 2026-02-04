@@ -14,5 +14,5 @@ export const en: Record<DailyNoteLabelKey, string> = {
   'note.tags.unregistered': 'Unregistered Tags',
 
   'note.report': 'Daily Report',
-  'note.kpt': 'KPT Analysis',
+  'review.point': 'Review Points',
 };

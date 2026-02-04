@@ -23,4 +23,22 @@ export const UI_SETTINGS_REVIEW_EN: UiSettingsReviewI18n = {
       text: 'Text (XMind / Mind Map)',
     },
   },
+
+  sentenceMode: {
+    name: 'Sentence Summary Mode',
+    desc: 'Select how sentence summaries are generated.',
+    options: {
+      none: 'Disabled',
+      llm: 'LLM-based summary',
+    },
+  },
+
+  noteSummaryOutputFormat: {
+    name: 'Note Summary Output Format',
+    desc: 'Select the output format for note summaries.',
+    options: {
+      outliner: 'Outliner (Markdown)',
+      xmind: 'XMind / Mind Map',
+    },
+  },
 };

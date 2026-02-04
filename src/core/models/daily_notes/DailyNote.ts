@@ -26,8 +26,8 @@ export class DailyNote {
   /** デイリーレポート */
   readonly reviewedNote: Section;
 
-  /** KPT（複数） */
-  readonly kpts: SectionList;
+  /** 振り返りポイント（複数） */
+  readonly reviewPoints: SectionList;
 
   constructor(params: {
     raw: string;
@@ -37,7 +37,7 @@ export class DailyNote {
     taskReviews?: SectionList;
     reviewMemo: Section;
     reviewedNote: Section;
-    kpts?: SectionList;
+    reviewPoints?: SectionList;
   }) {
     this.raw = params.raw;
     this.date = params.date ?? new Date();
@@ -48,7 +48,7 @@ export class DailyNote {
 
     this.reviewMemo = params.reviewMemo;
     this.reviewedNote = params.reviewedNote;
-    this.kpts = params.kpts ?? new SectionList();
+    this.reviewPoints = params.reviewPoints ?? new SectionList();
   }
 
   /** Parser 用ファクトリ */
@@ -60,7 +60,7 @@ export class DailyNote {
     taskReviews?: SectionList;
     reviewMemo: Section;
     reviewedNote: Section;
-    kpts?: SectionList;
+    reviewPoints?: SectionList;
   }): DailyNote {
     return new DailyNote(params);
   }
@@ -84,13 +84,13 @@ export class DailyNote {
   appendTaskReview(
     markdown: string,
     suffix?: string,
-    position: 'first' | 'last' = 'last'
+    position: 'first' | 'last' = 'last',
   ): DailyNote {
     return new DailyNote({
       ...this,
       taskReviews: this.taskReviews.insert(
         Section.fromBody('task.review', markdown, suffix),
-        position
+        position,
       ),
     });
   }
@@ -116,16 +116,16 @@ export class DailyNote {
     });
   }
 
-  appendKpt(
+  appendReviewPoint(
     markdown: string,
     suffix?: string,
-    position: 'first' | 'last' = 'last'
+    position: 'first' | 'last' = 'last',
   ): DailyNote {
     return new DailyNote({
       ...this,
-      kpts: this.kpts.insert(
-        Section.fromBody('note.kpt', markdown, suffix),
-        position
+      reviewPoints: this.reviewPoints.insert(
+        Section.fromBody('review.point', markdown, suffix),
+        position,
       ),
     });
   }

@@ -26,7 +26,7 @@ export class DailyNoteMarkdownBuilder {
     this.writeSingleSection(out, note.reviewedNote);
 
     // --- KPT ---
-    for (const section of note.kpts.sections) {
+    for (const section of note.reviewPoints.sections) {
       this.writeSingleSection(out, section);
     }
 

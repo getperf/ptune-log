@@ -1,13 +1,37 @@
 // src/features/daily_review/services/note_summary/builders/XMindReportBuilder.ts
 
 import { wrapWithCodeBlock } from 'src/core/utils/markdown/CodeBlockUtil';
+import { MarkdownCommentBlock } from 'src/core/utils/markdown/MarkdownCommentBlock';
 import { NoteSummaryDocument } from '../../../model/NoteSummaryDocument';
 import { ReportBuilder } from '../ReportBuilder';
+import { getText } from '../../comment';
 
 export class XMindReportBuilder implements ReportBuilder {
   build(doc: NoteSummaryDocument): string {
-    const lines: string[] = [];
+    const blocks: string[] = [];
 
+    // --- 利用手順コメント（HTML コメント） ---
+    const header = MarkdownCommentBlock.build(
+      getText('review-point-action-comment'),
+    );
+    blocks.push(header);
+
+    // --- インプット見出し ---
+    blocks.push(`#### ${getText('xmind-input-heading')}`);
+
+    // --- XMind コピー用テキスト生成 ---
+    const inputText = this.buildInputText(doc);
+    blocks.push(wrapWithCodeBlock(inputText, 'text'));
+
+    // --- アウトプット見出し（空） ---
+    blocks.push(`#### ${getText('xmind-output-heading')}`);
+    blocks.push(wrapWithCodeBlock('', 'text'));
+
+    return blocks.join('\n\n');
+  }
+
+  private buildInputText(doc: NoteSummaryDocument): string {
+    const lines: string[] = [];
     for (const project of doc.projects) {
       lines.push(project.projectTitle);
 
@@ -19,7 +43,6 @@ export class XMindReportBuilder implements ReportBuilder {
       }
     }
 
-    const text = lines.join('\n');
-    return wrapWithCodeBlock(text, 'text');
+    return lines.join('\n');
   }
 }

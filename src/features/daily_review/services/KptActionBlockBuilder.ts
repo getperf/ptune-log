@@ -4,8 +4,8 @@ import { MarkdownCommentBlock } from 'src/core/utils/markdown/MarkdownCommentBlo
 import { getText } from './comment';
 
 export class KptActionBlockBuilder {
-  private static readonly COMMENT_KIND = 'kpt-action-comment';
-  private static readonly LABEL_KIND = 'kpt-action-execute';
+  private static readonly COMMENT_KIND = 'review-point-action-comment';
+  private static readonly LABEL_KIND = 'review-point-action-execute';
 
   static build(): string {
     const commentLines = getText(this.COMMENT_KIND);

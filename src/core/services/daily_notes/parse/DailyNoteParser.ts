@@ -6,8 +6,12 @@ import { SectionList } from 'src/core/models/daily_notes/SectionList';
 import { HeadingSpecResolver } from './HeadingSpecResolver';
 
 type CurrentSection =
-  | { kind: 'single'; ref: 'planned' | 'timelog' | 'reviewMemo' | 'reviewed'; suffix?: string }
-  | { kind: 'list'; ref: 'taskReview' | 'kpt'; suffix?: string }
+  | {
+      kind: 'single';
+      ref: 'planned' | 'timelog' | 'reviewMemo' | 'reviewed';
+      suffix?: string;
+    }
+  | { kind: 'list'; ref: 'taskReview' | 'reviewPoint'; suffix?: string }
   | null;
 
 export class DailyNoteParser {
@@ -21,7 +25,7 @@ export class DailyNoteParser {
     let reviewedNote = Section.empty('note.report');
     let taskTimelog = Section.empty('task.timelog');
     let taskReviews = new SectionList();
-    let kpts = new SectionList();
+    let reviewPoints = new SectionList();
 
     let current: CurrentSection = null;
     let buffer: string[] = [];
@@ -51,11 +55,11 @@ export class DailyNoteParser {
       } else {
         if (current.ref === 'taskReview') {
           taskReviews = taskReviews.append(
-            Section.fromBody('task.review', body, current.suffix)
+            Section.fromBody('task.review', body, current.suffix),
           );
         } else {
-          kpts = kpts.append(
-            Section.fromBody('note.kpt', body, current.suffix)
+          reviewPoints = reviewPoints.append(
+            Section.fromBody('review.point', body, current.suffix),
           );
         }
       }
@@ -93,8 +97,8 @@ export class DailyNoteParser {
             current = { kind: 'list', ref: 'taskReview', suffix };
             break;
 
-          case 'note.kpt':
-            current = { kind: 'list', ref: 'kpt', suffix };
+          case 'review.point':
+            current = { kind: 'list', ref: 'reviewPoint', suffix };
             break;
 
           default:
@@ -116,7 +120,7 @@ export class DailyNoteParser {
       taskReviews,
       reviewMemo,
       reviewedNote,
-      kpts,
+      reviewPoints,
     });
   }
 }

@@ -76,7 +76,7 @@ export const NOTE_HEADING_SPECS: HeadingSpec[] = [
     emoji: '🏷',
   },
   {
-    key: 'note.kpt',
+    key: 'review.point',
     kind: 'section',
     level: 3,
     emoji: '🧠',
