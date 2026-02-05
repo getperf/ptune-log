@@ -24,7 +24,6 @@ import { TagNormalizationService } from 'src/core/services/tags/TagNormalization
 
 // --- feature usecase ---
 import { DailyReviewUseCase } from '../application/DailyReviewUseCase';
-import { KptAnalysisCommandRegistrar } from 'src/features/note_analysis/commands/KptAnalysisCommandRegistrar';
 import { TagMergeCommandRegistrar } from 'src/features/tag_merge/commands/TagMergeCommandRegistrar';
 
 /**
@@ -42,7 +41,6 @@ export class DailyReviewFeature {
   private readonly vectorRegistrar: VectorCommandRegistrar;
   private readonly reviewRegistrar: NoteReviewCommandRegistrar;
   private readonly llmSettingCommandRegistrar: LLMSettingsCommandRegistrar;
-  private readonly kptAnalysisRegistrar: KptAnalysisCommandRegistrar;
   private readonly tagMergeCommandRegistrar: TagMergeCommandRegistrar;
 
   constructor(
@@ -81,11 +79,6 @@ export class DailyReviewFeature {
     this.vectorRegistrar = new VectorCommandRegistrar(app, this.llmClient);
     this.reviewRegistrar = new NoteReviewCommandRegistrar(app, this.llmClient);
     this.llmSettingCommandRegistrar = new LLMSettingsCommandRegistrar(app);
-    this.kptAnalysisRegistrar = new KptAnalysisCommandRegistrar(
-      app,
-      this.llmClient,
-      reviewSettings,
-    );
     this.tagMergeCommandRegistrar = new TagMergeCommandRegistrar(
       app,
       this.llmClient,
@@ -105,7 +98,6 @@ export class DailyReviewFeature {
     this.vectorRegistrar.register(plugin);
     this.reviewRegistrar.register(plugin);
     this.llmSettingCommandRegistrar.register(plugin);
-    this.kptAnalysisRegistrar.register(plugin);
     this.tagMergeCommandRegistrar.register(plugin);
 
     logger.debug('[DailyReviewFeature.register] complete');

@@ -16,15 +16,6 @@ export class DailyReviewSummaryBuilder {
   private static toRenderOptions(
     settings: ReviewSettings,
   ): SummaryRenderOptions {
-    if (settings.enableDailyNoteUserReview) {
-      return {
-        checklist: true,
-        sentenceSplit: true,
-        withLink: true,
-        withUserReview: true,
-      };
-    }
-
     return {
       checklist: false,
       sentenceSplit: false,

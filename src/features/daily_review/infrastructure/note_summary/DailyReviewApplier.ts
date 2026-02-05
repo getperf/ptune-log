@@ -82,17 +82,6 @@ export class DailyReviewApplier {
     const summaryMd = DailyReviewSummaryBuilder.build(summaries, this.settings);
     const parts: string[] = [summaryMd.trimEnd()];
 
-    if (this.settings.enableDailyNoteUserReview) {
-      const header = MarkdownCommentBlock.build(
-        getText('daily-review-comment'),
-      );
-      const footer = MarkdownCommentBlock.build(
-        getText('review-point-action-comment'),
-      );
-      parts.unshift(header);
-      parts.push('', footer);
-    }
-
     return dailyNote.updateReviewedNote(parts.join('\n'));
   }
 }
