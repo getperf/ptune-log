@@ -33,6 +33,7 @@ export class DailyNoteSummaryUseCase {
     // 3. 出力生成
     const builder = ReportBuilderFactory.create(
       this.reviewSettings.noteSummaryOutputFormat as OutputFormat,
+      this.app,
     );
 
     return builder.build(doc);
